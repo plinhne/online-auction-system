@@ -1,0 +1,30 @@
+package com.auction.server;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+public class MainServer {
+    private static final int PORT = 8888;
+    // Danh sách quản lý tất cả client đang kết nối để gửi thông báo Realtime
+    public static CopyOnWriteArrayList<ClientHandler> clients = new CopyOnWriteArrayList<>();
+
+    public static void main(String[] args) {
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            System.out.println("Server đấu giá đang chạy tại cổng: " + PORT);
+
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Có người dùng mới kết nối: " + clientSocket.getInetAddress());
+                
+                // Tạo một luồng riêng cho mỗi Client để xử lý đồng thời
+                ClientHandler handler = new ClientHandler(clientSocket);
+                clients.add(handler);
+                new Thread(handler).start();
+            }
+        } catch (IOException e) {
+            System.err.println("Lỗi Server: " + e.getMessage());
+        }
+    }
+}
