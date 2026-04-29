@@ -9,26 +9,28 @@ import java.net.Socket;
 
 public class ClientHandler implements Runnable{
     private final Socket socket;
+    private final String clientIP;
     private final Gson gson = new Gson();
     private BufferedReader in;
     private PrintWriter out;
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
+        this.clientIP = socket.getInetAddress().getHostAddress();
     }
 
     @Override
     public void run() {
         try {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(new ObjectOutputStream(socket.getOutputStream()));
+            out = new PrintWriter(new ObjectOutputStream(socket.getOutputStream()), true);
 
             String line;
             while ((line = in.readLine()) != null) {
                 handleMessage(line);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.err.println("Client disconnected: " + clientIP);
         }finally {
             cleanup();
         }
@@ -52,16 +54,23 @@ public class ClientHandler implements Runnable{
                     response.addProperty("message", "Unknown action: " + action);
                 }
             }
-            out.println(gson.toJson(response));
+            sendMessage(gson.toJson(response));
         } catch (Exception e) {
             JsonObject error = new JsonObject();
             error.addProperty("status", "ERROR");
             error.addProperty("message", "Invalid request format");
-            out.println(gson.toJson(error));
+            sendMessage(gson.toJson(error));
+        }
+    }
+
+    public void sendMessage(String message) {
+        if (out != null) {
+            out.println(message);
         }
     }
 
     private void cleanup() {
+        MainServer.removeClient(clientIP);
         try {
             if (in != null) in.close();
             if (out != null) out.close();
