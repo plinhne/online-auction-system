@@ -6,21 +6,21 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Auction {
     private final int id;
-    private final String itemId; ///đổi thành int sau
-    private final String sellerId; ///đổi thành int sau
+    private final int itemId;
+    private final int sellerId;
     private final double startingPrice;
     private final LocalDateTime startTime;
     private LocalDateTime endTime;
 
     private AuctionStatus status;
     private double currentPrice;
-    private String leadingBidderID;
+    private int leadingBidderID;
     private final List<BidTransaction> bidHistory;
 
     private static final int SNIPE_WINDOW_SECONDS = 20;
     private static final int EXTENSION_SECONDS = 40;
 
-    public Auction(int id, String itemId, String sellerId, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
+    public Auction(int id, int itemId, int sellerId, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
         this.id = id;
         this.itemId = itemId;
         this.sellerId = sellerId;
@@ -29,7 +29,7 @@ public class Auction {
         this.endTime = endTime;
         this.currentPrice = startingPrice;
         this.status = AuctionStatus.OPEN;
-        this.leadingBidderID = null;
+        this.leadingBidderID = 0;
         this.bidHistory = new CopyOnWriteArrayList<>();
     }
 
@@ -61,10 +61,10 @@ public class Auction {
     public int getId() {
         return id;
     }
-    public String getItemId() {
+    public int getItemId() {
         return itemId;
     }
-    public String getSellerId() {
+    public int getSellerId() {
         return sellerId;
     }
     public double getStartingPrice() {
@@ -82,7 +82,7 @@ public class Auction {
     public double getCurrentPrice() {
         return currentPrice;
     }
-    public String getLeadingBidderID() {
+    public int getLeadingBidderID() {
         return leadingBidderID;
     }
     public List<BidTransaction> getBidHistory() {
