@@ -8,7 +8,7 @@ import javax.sql.DataSource;
 public class DatabaseConfig {
     private static HikariDataSource dataSource;
 
-    public static synchronized DataSource getDateSource() {
+    public static synchronized DataSource getDataSource() {
         if(dataSource == null) {
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl("jdbc:sqlserver://localhost\\SQLEXPRESS:1433;databaseName=auctionDB;integratedSecurity=true;encrypt=false");

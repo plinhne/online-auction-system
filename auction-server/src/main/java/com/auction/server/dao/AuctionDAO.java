@@ -13,7 +13,7 @@ public class AuctionDAO {
     private final DataSource dataSource;
 
     public AuctionDAO() {
-        this.dataSource = DatabaseConfig.getDateSource();
+        this.dataSource = DatabaseConfig.getDataSource();
     }
 
     public AuctionDAO(DataSource dataSource) {
@@ -28,7 +28,7 @@ public class AuctionDAO {
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, auction.getItemId());
-            stmt.setInt(2, Integer.parseInt(auction.getSellerId()));
+            stmt.setInt(2, auction.getSellerId());
             stmt.setDouble(3, auction.getStartingPrice());
             stmt.setDouble(4, auction.getCurrentPrice());
             stmt.setString(5, auction.getStatus().name());
@@ -44,9 +44,7 @@ public class AuctionDAO {
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                auctions.add(mapRow(rs));
-            }
+            while (rs.next()) auctions.add(mapRow(rs));
         }
         return auctions;
     }
@@ -57,19 +55,17 @@ public class AuctionDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return mapRow(rs);
-            }
+            if (rs.next()) return mapRow(rs);
         }
         return null;
     }
 
-    public void updateCurrentPrice(int auctionId, double newPrice, String leadingBidderId) throws SQLException {
+    public void updateCurrentPrice(int auctionId, double newPrice, int leadingBidderId) throws SQLException {
         String sql = "UPDATE auctions SET current_price = ?, winner_id = ? WHERE id = ?";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setDouble(1, newPrice);
-            stmt.setInt(2, Integer.parseInt(leadingBidderId));
+            stmt.setInt(2, leadingBidderId);
             stmt.setInt(3, auctionId);
             stmt.executeUpdate();
         }
@@ -88,7 +84,7 @@ public class AuctionDAO {
     private Auction mapRow(ResultSet rs) throws SQLException {
         Auction auction = new Auction(
                 rs.getInt("id"),
-                String.valueOf(rs.getInt("seller_id")),
+                rs.getInt("seller_id"),
                 rs.getInt("item_id"),
                 rs.getDouble("starting_price"),
                 rs.getTimestamp("start_time").toLocalDateTime(),
