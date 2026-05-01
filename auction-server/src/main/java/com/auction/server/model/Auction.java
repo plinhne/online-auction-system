@@ -88,4 +88,5 @@ public class Auction {
     public List<BidTransaction> getBidHistory() {
         return bidHistory;
     }
+    public synchronized void setStatus(AuctionStatus status) { this.status = status; }
 }
