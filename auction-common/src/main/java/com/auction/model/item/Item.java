@@ -6,7 +6,7 @@ public abstract class Item extends Entity {
     private String name;
     private double price;
 
-    public Item(String id, String name, double price) {
+    public Item(int id, String name, double price) {
         super(id);
         this.name = name;
         this.price = price;
