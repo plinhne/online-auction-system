@@ -27,4 +27,6 @@ public abstract class Item extends Entity {
     public void setPrice(double price) {
         this.price = price;
     }
+
+    public abstract void printInfor(); // polymorphism
 }
