@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane style="-fx-background-color: #f9fafb;" xmlns="http://javafx.com/javafx/21.0.0" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.ui.controllers.AddEditItemController">
+<BorderPane style="-fx-background-color: #f9fafb;" xmlns="http://javafx.com/javafx/21.0.0" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.AddEditItemController">
    <center>
       <VBox spacing="20.0" style="-fx-padding: 30;">
          <!-- Back Button -->

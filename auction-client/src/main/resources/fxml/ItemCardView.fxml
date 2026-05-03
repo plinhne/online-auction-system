@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="350.0" prefWidth="250.0" style="-fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-background-color: white;" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.auction.client.ui.controllers.ItemCardController">
+<BorderPane prefHeight="350.0" prefWidth="250.0" style="-fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-background-color: white;" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.auction.client.controller.ItemCardController">
    <top>
       <VBox prefHeight="200.0" style="-fx-background-color: #f3f4f6;">
          <children>

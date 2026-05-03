@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="600.0" style="-fx-background-color: linear-gradient(to bottom, #f3f4f6, #e5e7eb);" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.auction.client.ui.controllers.LoginController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="600.0" style="-fx-background-color: linear-gradient(to bottom, #f3f4f6, #e5e7eb);" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.auction.client.controller.LoginController">
    <center>
       <StackPane prefHeight="200.0" prefWidth="200.0">
          <children>

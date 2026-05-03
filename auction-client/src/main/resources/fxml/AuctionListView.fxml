@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane style="-fx-background-color: #f9fafb;" xmlns="http://javafx.com/javafx/21.0.0" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.ui.controllers.AuctionListViewController">
+<BorderPane style="-fx-background-color: #f9fafb;" xmlns="http://javafx.com/javafx/21.0.0" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.AuctionListViewController">
    <top>
       <!-- Header Section -->
       <VBox style="-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-padding: 20;">

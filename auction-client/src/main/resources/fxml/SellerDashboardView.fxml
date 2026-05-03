@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane style="-fx-background-color: #f9fafb;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.ui.controllers.SellerDashboardController">
+<BorderPane style="-fx-background-color: #f9fafb;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.SellerDashboardController">
    <top>
       <VBox style="-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-padding: 20;">
          <children>

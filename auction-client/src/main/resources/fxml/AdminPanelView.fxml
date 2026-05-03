@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane style="-fx-background-color: #f9fafb;" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.auction.client.ui.controllers.AdminPanelController">
+<BorderPane style="-fx-background-color: #f9fafb;" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.auction.client.controller.AdminPanelController">
    <top>
       <!-- Thanh tiêu đề trên cùng -->
       <VBox style="-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-padding: 20;">
