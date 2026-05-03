@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane style="-fx-background-color: #f9fafb;" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.auction.client.ui.controllers.AdminPanelController">
+   <top>
+      <!-- Thanh tiêu đề trên cùng -->
+      <VBox style="-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-padding: 20;">
+         <children>
+            <Label style="-fx-font-weight: bold;" text="Admin Panel">
+               <font>
+                  <Font size="28.0" />
+               </font>
+            </Label>
+         </children>
+      </VBox>
+   </top>
+
+   <center>
+      <VBox spacing="20.0" style="-fx-padding: 20;">
+         <children>
+            <!-- Khu vực các thẻ thống kê dùng HBox để không bị lỗi tọa độ -->
+            <HBox spacing="15.0">
+               <children>
+                  <!-- Thẻ: Tổng đấu giá -->
+                  <VBox HBox.hgrow="ALWAYS" spacing="8.0" style="-fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-padding: 20; -fx-background-color: white;">
+                     <children>
+                        <Label style="-fx-text-fill: #666666;" text="Total Auctions">
+                           <font>
+                              <Font size="10.0" />
+                           </font>
+                        </Label>
+                        <Label fx:id="totalAuctionsLabel" style="-fx-font-weight: bold;" text="0">
+                           <font>
+                              <Font size="24.0" />
+                           </font>
+                        </Label>
+                     </children>
+                  </VBox>
+                  <!-- Thẻ: Người dùng -->
+                  <VBox HBox.hgrow="ALWAYS" spacing="8.0" style="-fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-padding: 20; -fx-background-color: white;">
+                     <children>
+                        <Label style="-fx-text-fill: #666666;" text="Total Users">
+                           <font>
+                              <Font size="10.0" />
+                           </font>
+                        </Label>
+                        <Label fx:id="totalUsersLabel" style="-fx-font-weight: bold;" text="0">
+                           <font>
+                              <Font size="24.0" />
+                           </font>
+                        </Label>
+                     </children>
+                  </VBox>
+                  <!-- Thẻ: Doanh thu -->
+                  <VBox HBox.hgrow="ALWAYS" spacing="8.0" style="-fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-padding: 20; -fx-background-color: white;">
+                     <children>
+                        <Label style="-fx-text-fill: #666666;" text="Total Revenue">
+                           <font>
+                              <Font size="10.0" />
+                           </font>
+                        </Label>
+                        <Label fx:id="totalRevenueLabel" style="-fx-font-weight: bold; -fx-text-fill: #10b981;" text="\$0.00">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+
+            <!-- Khu vực bảng quản lý -->
+            <VBox spacing="10.0" style="-fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-padding: 20; -fx-background-color: white;" VBox.vgrow="ALWAYS">
+               <children>
+                  <Label style="-fx-font-weight: bold;" text="Manage Auctions">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+                  <TableView fx:id="auctionsTable" prefHeight="200.0" style="-fx-border-color: #e5e7eb; -fx-border-radius: 4;" VBox.vgrow="ALWAYS">
+                     <columns>
+                        <TableColumn fx:id="auctionIdColumn" prefWidth="80.0" text="ID" />
+                        <TableColumn fx:id="auctionNameColumn" prefWidth="200.0" text="Item Name" />
+                        <TableColumn fx:id="sellerColumn" prefWidth="150.0" text="Seller" />
+                        <TableColumn fx:id="statusColumn" prefWidth="100.0" text="Status" />
+                     </columns>
+                  </TableView>
+                  <Button fx:id="deleteAuctionButton" style="-fx-padding: 8 15; -fx-text-fill: #ef4444; -fx-cursor: hand;" text="🗑 Xóa Đấu Giá" />
+               </children>
+            </VBox>
+         </children>
+      </VBox>
+   </center>
+</BorderPane>
