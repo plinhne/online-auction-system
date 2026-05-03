@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml/1"
-    fx:controller="com.auction.ui.controllers.MainController">
+    fx:controller="com.auction.client.controller.MainController">
     
     <top>
         <HBox style="-fx-background-color: #030213; -fx-padding: 10; -fx-spacing: 10;">

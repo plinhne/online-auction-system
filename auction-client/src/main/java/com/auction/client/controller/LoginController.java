@@ -1,51 +1,52 @@
+package com.auction.client.controller;
+
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
-import java.io.*;
-import java.net.Socket;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 public class LoginController {
-    @FXML private TextField txtUsername;
-    @FXML private PasswordField txtPassword;
-    @FXML private Label lblMessage;
 
-    // Thông tin kết nối Server
-    private final String SERVER_HOST = "localhost";
-    private final int SERVER_PORT = 12345;
+    @FXML private TextField usernameField;
+    @FXML private PasswordField passwordField;
+    @FXML private Label errorLabel;
+    @FXML private Button loginButton;
+    @FXML private Button bidderDemoButton;
+    @FXML private Button sellerDemoButton;
+    @FXML private Button adminDemoButton;
 
     @FXML
-    private void handleLogin() {
-        String username = txtUsername.getText();
-        String password = txtPassword.getText();
-
-        if (username.isEmpty() || password.isEmpty()) {
-            lblMessage.setText("Vui lòng điền đầy đủ thông tin!");
-            return;
-        }
-
-        // Kết nối Socket và gửi dữ liệu
-        try (Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
-             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-
-            // Gửi chuỗi định dạng đơn giản (có thể thay bằng JSON như tài liệu yêu cầu)
-            out.println("LOGIN:" + username + ":" + password);
-
-            // Nhận phản hồi từ Server
-            String response = in.readLine();
-            if ("SUCCESS".equals(response)) {
-                lblMessage.setStyle("-fx-text-fill: green;");
-                lblMessage.setText("Đăng nhập thành công!");
-                // Logic chuyển sang màn hình AuctionList.fxml ở đây
+    public void initialize() {
+        loginButton.setOnAction(e -> {
+            if (usernameField.getText().isEmpty() || passwordField.getText().isEmpty()) {
+                errorLabel.setText("Vui lòng nhập đầy đủ!");
             } else {
-                lblMessage.setStyle("-fx-text-fill: red;");
-                lblMessage.setText("Sai tên đăng nhập hoặc mật khẩu.");
+                goToMainView();
             }
+        });
 
-        } catch (IOException e) {
-            lblMessage.setText("Lỗi: Không thể kết nối tới máy chủ.");
+        bidderDemoButton.setOnAction(e -> goToMainView());
+        sellerDemoButton.setOnAction(e -> goToMainView());
+        adminDemoButton.setOnAction(e -> goToMainView());
+    }
+
+    private void goToMainView() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MainView.fxml"));
+            BorderPane mainView = loader.load();
+
+            Scene scene = new Scene(mainView, 1200, 800);
+            scene.getStylesheets().add(getClass().getResource("/fxml/style.css").toExternalForm());
+
+            Stage stage = (Stage) loginButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Hệ thống đấu giá - Trang chủ");
+            stage.centerOnScreen();
+        } catch (Exception e) {
             e.printStackTrace();
+            if (errorLabel != null) errorLabel.setText("Khong the mo MainView!");
         }
     }
 }
