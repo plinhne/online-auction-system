@@ -2,7 +2,7 @@ package com.auction.model.item;
 
 public class Vehicle extends Item {
 
-    public Vehicle(int id, String name, double price, String model) {
+    public Vehicle(int id, String name, double price) {
         super(id, name, price);
     }
 
