@@ -11,7 +11,9 @@ public class DatabaseConfig {
     public static synchronized DataSource getDataSource() {
         if(dataSource == null) {
             HikariConfig config = new HikariConfig();
-            config.setJdbcUrl("jdbc:sqlserver://localhost\\SQLEXPRESS:1433;databaseName=auctionDB;integratedSecurity=true;encrypt=false");
+            config.setJdbcUrl("jdbc:sqlserver://;serverName=localhost\\SQLEXPRESS;databaseName=auctionDB");
+            config.setUsername("sa");
+            config.setPassword("auction123");
             config.setMaximumPoolSize(10);
             config.setMinimumIdle(2);
             config.setConnectionTimeout(30000);
