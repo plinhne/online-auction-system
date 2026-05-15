@@ -8,7 +8,7 @@ import com.auction.model.item.Vehicle;
 public class Seller extends User {
 
     public Seller(int id, String name, String email, String password) {
-        super(id, name, email, password, "SELLER");
+        super(id, name, email, password, UserRole.SELLER);
     }
 
     public Item createItem(String type, int id, String name, double price) {

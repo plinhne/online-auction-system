@@ -1,7 +1,6 @@
 package com.auction.model.item;
 
 import com.auction.model.base.Entity;
-import com.auction.model.item.ItemStatus;
 import com.auction.model.bid.Bid;
 
 import java.util.ArrayList;
