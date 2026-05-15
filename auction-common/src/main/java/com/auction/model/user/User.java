@@ -1,7 +1,5 @@
 package com.auction.model.user;
 import com.auction.model.base.Entity;
-import com.auction.model.user.UserRole;
-import com.auction.model.user.UserStatus;
 
 public abstract class User extends Entity {
 
