@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane style="-fx-background-color: #f9fafb;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.ProductDetailsController">
+   <top>
+      <HBox alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-padding: 15;">
+         <children>
+            <Button style="-fx-font-size: 12; -fx-cursor: hand;" text="← Back" />
+            <Region HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+   </top>
+
+   <center>
+      <HBox spacing="30.0" style="-fx-padding: 30;">
+         <children>
+            <!-- Left: Product Image -->
+            <VBox prefWidth="400.0">
+               <children>
+                  <ImageView fx:id="productImage" fitHeight="400.0" fitWidth="400.0" pickOnBounds="true" preserveRatio="true" style="-fx-border-color: #e5e7eb; -fx-border-radius: 8;" />
+               </children>
+            </VBox>
+   
+            <!-- Right: Details -->
+            <VBox spacing="20.0" HBox.hgrow="ALWAYS">
+               <children>
+                  <!-- Product Info -->
+                  <VBox spacing="8.0">
+                     <children>
+                        <Label fx:id="productNameLabel" style="-fx-font-size: 28; -fx-font-weight: bold;" text="Product Name" />
+                        <Label fx:id="categoryLabel" style="-fx-font-size: 14; -fx-text-fill: #666666;" text="Category: Electronics" />
+                        <Label fx:id="statusLabel" style="-fx-font-size: 14; -fx-text-fill: #10b981;" text="Status: RUNNING" />
+                     </children>
+                  </VBox>
+   
+                  <!-- Current Bid Card -->
+                  <VBox spacing="10.0" style="-fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-padding: 20; -fx-background-color: white;">
+                     <children>
+                        <Label style="-fx-font-size: 12; -fx-text-fill: #666666;" text="Current Bid" />
+                        <Label fx:id="currentPriceLabel" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #10b981;" text="\$0" />
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <Label style="-fx-font-size: 12; -fx-text-fill: #666666;" text="Starting Price:" />
+                              <Label fx:id="startingPriceLabel" style="-fx-font-size: 12; -fx-font-weight: bold;" text="\$0" />
+                           </children>
+                        </HBox>
+                        <Label fx:id="currentLeaderLabel" style="-fx-font-size: 12; -fx-text-fill: #666666;" text="Leading: User" />
+                     </children>
+                  </VBox>
+   
+                  <!-- Description -->
+                  <VBox spacing="8.0">
+                     <children>
+                        <Label style="-fx-font-weight: bold; -fx-font-size: 12;" text="Description" />
+                        <TextArea fx:id="descriptionArea" prefHeight="100.0" prefWidth="500.0" style="-fx-font-size: 11;" wrapText="true" />
+                     </children>
+                  </VBox>
+   
+                  <!-- Timeline -->
+                  <VBox spacing="8.0">
+                     <children>
+                        <Label style="-fx-font-weight: bold; -fx-font-size: 12;" text="Auction Timeline" />
+                        <HBox spacing="20.0">
+                           <children>
+                              <VBox spacing="4.0">
+                                 <children>
+                                    <Label style="-fx-font-size: 10; -fx-text-fill: #666666;" text="Start Time:" />
+                                    <Label fx:id="startTimeLabel" style="-fx-font-size: 11; -fx-font-weight: bold;" text="2024-01-01 10:00" />
+                                 </children>
+                              </VBox>
+                              <VBox spacing="4.0">
+                                 <children>
+                                    <Label style="-fx-font-size: 10; -fx-text-fill: #666666;" text="End Time:" />
+                                    <Label fx:id="endTimeLabel" style="-fx-font-size: 11; -fx-font-weight: bold;" text="2024-01-08 10:00" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+   
+                  <!-- Seller Info -->
+                  <VBox spacing="8.0" style="-fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-padding: 15; -fx-background-color: white;">
+                     <children>
+                        <Label style="-fx-font-weight: bold; -fx-font-size: 12;" text="Seller Information" />
+                        <Label fx:id="sellerLabel" style="-fx-font-size: 12;" text="Seller Name" />
+                        <Label style="-fx-font-size: 10; -fx-text-fill: #666666;" text="Verified Seller" />
+                     </children>
+                  </VBox>
+   
+                  <!-- Stats -->
+                  <HBox spacing="20.0">
+                     <children>
+                        <VBox spacing="4.0">
+                           <children>
+                              <Label style="-fx-font-size: 10; -fx-text-fill: #666666;" text="Views:" />
+                              <Label fx:id="viewCountLabel" style="-fx-font-size: 12; -fx-font-weight: bold;" text="0" />
+                           </children>
+                        </VBox>
+                        <VBox spacing="4.0">
+                           <children>
+                              <Label style="-fx-font-size: 10; -fx-text-fill: #666666;" text="Bids:" />
+                              <Label fx:id="bidCountLabel" style="-fx-font-size: 12; -fx-font-weight: bold;" text="0" />
+                           </children>
+                        </VBox>
+                     </children>
+                  </HBox>
+   
+                  <!-- Action Buttons -->
+                  <HBox spacing="10.0">
+                     <children>
+                        <Button fx:id="placeBidButton" maxWidth="1.7976931348623157E308" prefHeight="45.0" style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-size: 12; -fx-font-weight: bold; -fx-border-radius: 4; -fx-cursor: hand;" text="Place Bid" HBox.hgrow="ALWAYS" />
+                        <Button fx:id="shareButton" prefHeight="45.0" prefWidth="100.0" style="-fx-background-color: white; -fx-border-color: #d1d5db; -fx-font-size: 12; -fx-font-weight: bold; -fx-border-radius: 4; -fx-cursor: hand;" text="Share" />
+                     </children>
+                  </HBox>
+   
+                  <!-- Recent Bids Table -->
+                  <VBox spacing="8.0" VBox.vgrow="ALWAYS">
+                     <children>
+                        <Label style="-fx-font-weight: bold; -fx-font-size: 12;" text="Recent Bids" />
+                        <TableView fx:id="bidsTable" prefHeight="150.0" prefWidth="600.0">
+                           <columns>
+                              <TableColumn fx:id="bidderColumn" prefWidth="150.0" text="Bidder" />
+                              <TableColumn fx:id="amountColumn" prefWidth="150.0" text="Amount" />
+                              <TableColumn fx:id="timeColumn" prefWidth="250.0" text="Time" />
+                           </columns>
+                        </TableView>
+                     </children>
+                  </VBox>
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+   </center>
+</BorderPane>

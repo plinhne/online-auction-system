@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane style="-fx-background-color: #f9fafb;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.RealTimeBiddingController">
+   <center>
+      <HBox spacing="20.0" style="-fx-padding: 20;">
+         <children>
+            <!-- Left: Bidding Interface -->
+            <VBox spacing="15.0" HBox.hgrow="ALWAYS">
+               <children>
+                  <!-- Product Summary -->
+                  <VBox spacing="10.0" style="-fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-padding: 20; -fx-background-color: white;">
+                     <children>
+                        <Label fx:id="productNameLabel" style="-fx-font-size: 18; -fx-font-weight: bold;" text="Product Name" />
+                        <Label style="-fx-font-size: 12; -fx-text-fill: #666666;" text="Product description goes here..." />
+                     </children>
+                  </VBox>
+      
+                  <!-- Time Remaining -->
+                  <VBox spacing="10.0" style="-fx-background-color: #fee2e2; -fx-border-color: #fca5a5; -fx-border-radius: 8; -fx-padding: 20;">
+                     <children>
+                        <Label style="-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #dc2626;" text="⏱ Time Remaining" />
+                        <Label fx:id="timeRemainingLabel" style="-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: #dc2626;" text="3h 45m 30s" />
+                        <ProgressBar fx:id="timeProgressBar" maxWidth="1.7976931348623157E308" prefHeight="8.0" progress="0.6" />
+                     </children>
+                  </VBox>
+      
+                  <!-- Current Price -->
+                  <VBox spacing="10.0" style="-fx-background-color: #dcfce7; -fx-border-color: #86efac; -fx-border-radius: 8; -fx-padding: 20;">
+                     <children>
+                        <Label style="-fx-font-size: 12; -fx-text-fill: #666666;" text="Current Bid" />
+                        <Label fx:id="currentPriceLabel" style="-fx-font-size: 36; -fx-font-weight: bold; -fx-text-fill: #10b981;" text="\$285,000" />
+                        <Label fx:id="currentLeaderLabel" style="-fx-font-size: 12;" text="Leading: User" />
+                        <Label fx:id="bidCountLabel" style="-fx-font-size: 11; -fx-text-fill: #666666;" text="5 bids" />
+                     </children>
+                  </VBox>
+      
+                  <!-- Place Bid Section -->
+                  <VBox spacing="10.0" style="-fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-padding: 20; -fx-background-color: white;">
+                     <children>
+                        <Label style="-fx-font-size: 12; -fx-font-weight: bold;" text="💰 Place Your Bid" />
+                        <HBox spacing="5.0">
+                           <children>
+                              <TextField fx:id="bidAmountField" promptText="Enter bid amount" style="-fx-padding: 10; -fx-border-radius: 4; -fx-border-color: #d1d5db; -fx-font-size: 12;" HBox.hgrow="ALWAYS" />
+                              <Button fx:id="placeBidButton" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-size: 12; -fx-font-weight: bold; -fx-border-radius: 4;" text="Place Bid" />
+                           </children>
+                        </HBox>
+                        <Label fx:id="suggestedBidLabel" style="-fx-font-size: 10; -fx-text-fill: #666666;" text="Minimum: $295,000" />
+                        
+                        <HBox spacing="5.0">
+                           <children>
+                              <Button fx:id="quickBid1Button" maxWidth="1.7976931348623157E308" prefHeight="35.0" style="-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-radius: 4;" text="\$295,000" HBox.hgrow="ALWAYS" />
+                              <Button fx:id="quickBid2Button" maxWidth="1.7976931348623157E308" prefHeight="35.0" style="-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-radius: 4;" text="\$305,000" HBox.hgrow="ALWAYS" />
+                              <Button fx:id="quickBid3Button" maxWidth="1.7976931348623157E308" prefHeight="35.0" style="-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-radius: 4;" text="\$315,000" HBox.hgrow="ALWAYS" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+      
+                  <!-- Auto Bid Section -->
+                  <VBox spacing="10.0" style="-fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-padding: 20; -fx-background-color: white;">
+                     <children>
+                        <Label style="-fx-font-size: 12; -fx-font-weight: bold;" text="⚡ Auto-Bid (Optional)" />
+                        <CheckBox fx:id="autoBidCheckBox" style="-fx-font-size: 11;" text="Enable Auto-Bid" />
+                        <HBox spacing="10.0">
+                           <children>
+                              <TextField fx:id="autoBidMaxField" disable="true" promptText="Max Amount" style="-fx-padding: 8; -fx-border-radius: 4; -fx-border-color: #d1d5db; -fx-font-size: 11;" HBox.hgrow="ALWAYS" />
+                              <TextField fx:id="autoBidIncrementField" disable="true" prefWidth="100.0" promptText="Increment" style="-fx-padding: 8; -fx-border-radius: 4; -fx-border-color: #d1d5db; -fx-font-size: 11;" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </children>
+            </VBox>
+   
+            <!-- Right: Live Bid Activity -->
+            <VBox prefWidth="300.0" spacing="10.0" style="-fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-padding: 20; -fx-background-color: white;">
+               <children>
+                  <Label style="-fx-font-size: 12; -fx-font-weight: bold;" text="📊 Live Bid Activity" />
+                  <ListView fx:id="bidActivityList" prefHeight="500.0" prefWidth="300.0" VBox.vgrow="ALWAYS" />
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+   </center>
+</BorderPane>
