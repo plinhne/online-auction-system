@@ -18,6 +18,9 @@ public abstract class User extends Entity {
         this.role = role;
         this.status = UserStatus.ACTIVE;
     }
+    public String getName() { return name; }
+    public String getEmail() { return email; }
+    public String getPassword() { return password; }
 
     public UserStatus getStatus() {
         return status;
@@ -26,4 +29,8 @@ public abstract class User extends Entity {
     public UserRole getRole() {
         return role;
     }
+
+    public void setName(String name) { this.name = name; }
+    public void setEmail(String email) { this.email = email; }
+    public void setPassword(String password) { this.password = password; }
 }
