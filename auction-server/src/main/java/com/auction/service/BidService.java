@@ -27,12 +27,16 @@ public class BidService {
         Bid bid = new Bid(
                 (int)System.currentTimeMillis(),
                 amount,
-                user
+                user,
+                auction.getId()
         );
 
-        item.getBids().add(bid);
-        item.setPrice(amount);
-        auction.setHighestBid(bid);
+        //Cập nhật thông tin vào Model
+        if (item.getBids() != null) {
+            item.getBids().add(bid);
+        }
+        item.setPrice(amount); // Cập nhật lại giá hiện tại của sản phẩm
+        auction.setHighestBid(bid); // Cập nhật lượt bid cao nhất cho phiên
 
         return true;
     }
