@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox xmlns="http://javafx.com" xmlns:fx="http://javafx.com"
+      fx:id="rootContainer" spacing="15" alignment="CENTER_LEFT"
+      style="-fx-background-color: #333; -fx-padding: 10; -fx-background-radius: 5;">
+    <Label fx:id="messageLabel" text="Thông báo mới!" style="-fx-text-fill: white;" />
+    <Button text="X" onAction="#close" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-cursor: hand;" />
+</HBox>
