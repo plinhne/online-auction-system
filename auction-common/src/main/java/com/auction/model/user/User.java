@@ -3,10 +3,10 @@ import com.auction.model.base.Entity;
 
 public abstract class User extends Entity {
 
+    private int id;
     private String name;
     private String email;
     private String password;
-
     private UserRole role;      // dùng enum
     private UserStatus status;  // thêm status
 
@@ -18,18 +18,18 @@ public abstract class User extends Entity {
         this.role = role;
         this.status = UserStatus.ACTIVE;
     }
+//getters
+    public int getId() { return id; }
     public String getName() { return name; }
     public String getEmail() { return email; }
     public String getPassword() { return password; }
-
     public UserStatus getStatus() {
         return status;
     }
-
     public UserRole getRole() {
         return role;
     }
-
+//setters
     public void setName(String name) { this.name = name; }
     public void setEmail(String email) { this.email = email; }
     public void setPassword(String password) { this.password = password; }
