@@ -1,24 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.*?>
 
-<BorderPane prefHeight="350.0" prefWidth="250.0" style="-fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-background-color: white;" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.auction.client.controller.ItemCardController">
+<BorderPane prefWidth="280.0" styleClass="card" stylesheets="@../css/style.css" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.auction.client.controller.ItemCardController">
    <top>
-      <VBox prefHeight="200.0" style="-fx-background-color: #f3f4f6;">
+      <VBox styleClass="bg-light">
          <children>
-            <ImageView fx:id="productImage" fitHeight="160.0" fitWidth="250.0" pickOnBounds="true" />
-            <HBox spacing="8.0" style="-fx-padding: 10;">
+            <!-- Ảnh sản phẩm với tỉ lệ cố định -->
+            <StackPane prefHeight="160.0" style="-fx-background-color: #eee;">
                <children>
-                  <Label fx:id="statusBadge" style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 4 12; -fx-border-radius: 4; -fx-font-size: 9; -fx-font-weight: bold;" text="RUNNING" />
-                  <Label fx:id="categoryBadge" style="-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-radius: 4; -fx-padding: 4 12; -fx-font-size: 9;" text="Electronics" />
+                  <ImageView fx:id="productImage" fitHeight="160.0" fitWidth="280.0" preserveRatio="true" />
+               </children>
+            </StackPane>
+
+            <!-- Hệ thống Badge (Nhãn trạng thái) -->
+            <HBox spacing="5.0">
+               <padding>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </padding>
+               <children>
+                  <Label fx:id="statusBadge" styleClass="bg-success" style="-fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 4; -fx-font-size: 10; -fx-font-weight: bold;" text="ĐANG CHẠY" />
+                  <Label fx:id="categoryBadge" style="-fx-border-color: #d1d5db; -fx-border-radius: 4; -fx-padding: 2 8; -fx-font-size: 10;" text="Điện tử" />
                   <Region HBox.hgrow="ALWAYS" />
-                  <Label fx:id="timeRemainingBadge" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-padding: 4 8; -fx-border-radius: 4; -fx-font-size: 9; -fx-font-weight: bold;" text="3h 45m" />
+                  <Label fx:id="timeRemainingBadge" styleClass="bg-danger" style="-fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 4; -fx-font-size: 10; -fx-font-weight: bold;" text="3h 45m" />
                </children>
             </HBox>
          </children>
@@ -26,31 +33,44 @@
    </top>
 
    <center>
-      <VBox spacing="8.0" style="-fx-padding: 12;">
+      <VBox spacing="8.0">
+         <padding>
+            <Insets bottom="15.0" left="12.0" right="12.0" top="5.0" />
+         </padding>
          <children>
-            <Label fx:id="itemNameLabel" style="-fx-font-size: 12; -fx-font-weight: bold;" text="Item Name" wrapText="true" />
-            <Label fx:id="descriptionLabel" style="-fx-font-size: 11; -fx-text-fill: #666666;" text="Description..." wrapText="true" />
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <Label fx:id="itemNameLabel" styleClass="label" style="-fx-font-size: 14; -fx-font-weight: bold;" text="Tên sản phẩm" wrapText="true" />
+            <Label fx:id="descriptionLabel" styleClass="label, subtitle" prefHeight="40.0" text="Mô tả ngắn gọn về sản phẩm đấu giá..." wrapText="true" />
+
+            <HBox alignment="BOTTOM_LEFT" spacing="5.0">
                <children>
-                  <Label style="-fx-font-size: 11; -fx-text-fill: #666666;" text="Current Bid" />
-                  <Label fx:id="currentPriceLabel" style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #10b981;" text="\$0" />
+                  <VBox>
+                     <children>
+                        <Label styleClass="text-muted" style="-fx-font-size: 10;" text="Giá hiện tại" />
+                        <Label fx:id="currentPriceLabel" styleClass="text-success" style="-fx-font-size: 18; -fx-font-weight: bold;" text="1.500.000đ" />
+                     </children>
+                  </VBox>
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Label fx:id="bidsLabel" styleClass="text-muted" text="12 lượt đặt" />
                </children>
             </HBox>
-            <Label fx:id="bidsLabel" style="-fx-font-size: 10; -fx-text-fill: #999999;" text="0 bids" />
          </children>
       </VBox>
    </center>
 
    <bottom>
-      <VBox spacing="8.0" style="-fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-width: 1 0 0 0; -fx-padding: 10;">
+      <VBox spacing="10.0" style="-fx-border-color: #e5e7eb; -fx-border-width: 1 0 0 0;">
+         <padding>
+            <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+         </padding>
          <children>
-            <HBox alignment="CENTER_LEFT" spacing="20.0">
+            <HBox alignment="CENTER_LEFT">
                <children>
-                  <Label fx:id="viewsLabel" style="-fx-font-size: 10; -fx-text-fill: #999999;" text="0 views" />
-                  <Label fx:id="currentLeaderLabel" style="-fx-font-size: 10; -fx-text-fill: #999999;" text="Leading: User" visible="false" />
+                  <Label fx:id="viewsLabel" styleClass="text-muted" text="156 lượt xem" />
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Label fx:id="currentLeaderLabel" styleClass="text-primary" style="-fx-font-weight: bold; -fx-font-size: 10;" text="Bạn đang dẫn đầu" visible="false" />
                </children>
             </HBox>
-            <Button fx:id="viewDetailsButton" maxWidth="500.0" prefHeight="35.0" style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-size: 11; -fx-font-weight: bold; -fx-border-radius: 4;" text="View Details" />
+            <Button fx:id="viewDetailsButton" maxWidth="Infinity" styleClass="button, primary" text="Xem chi tiết" />
          </children>
       </VBox>
    </bottom>

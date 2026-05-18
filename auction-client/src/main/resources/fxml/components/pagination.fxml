@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox xmlns="http://javafx.com" xmlns:fx="http://javafx.com"
+      alignment="CENTER" spacing="10" style="-fx-padding: 10;">
+    <Button fx:id="prevBtn" text="&lt; Trước" onAction="#handlePrev"/>
+    <Label fx:id="pageInfo" text="Trang 1 / 10" />
+    <Button fx:id="nextBtn" text="Sau &gt;" onAction="#handleNext"/>
+</HBox>
