@@ -1,30 +1,31 @@
 package com.auction.model.auction;
 
+import com.auction.model.base.Entity;
 import com.auction.model.item.Item;
 import com.auction.model.bid.Bid;
 import java.time.LocalDateTime;
 
-public class Auction {
+public class Auction extends Entity {
 
-    private int id;
     private AuctionStatus status;
-    private Item item;              // item đang đấu giá
+    private int itemId;              // id item đang đấu giá
     private double minIncrement;    // bước giá tối thiểu
-    private Bid highestBid;         // bid cao nhất
-    private final String sellerId; // Người khởi tạo phiên đấu giá
+    private final int sellerId; // Người khởi tạo phiên đấu giá
     private final double startingPrice; // Giá khởi điểm
+    private double currentPrice; //không cần biết chi tiết thông tin bid, chỉ cần mức giá
+    private int leadingBidderId; //id người có bid cao nhất hiện tại
     private final LocalDateTime startTime; // Thời gian bắt đầu
     private LocalDateTime endTime; // Không để final để xử lý anti-sniping
 
-    public Auction(int id, Item item, double minIncrement, String sellerId, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
-        this.id = id;
-        this.item = item;
-        this.minIncrement = minIncrement;
+    public Auction(int id, int itemId, int sellerId, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
+        super(id);
+        this.itemId = itemId;
         this.sellerId = sellerId;
         this.status = AuctionStatus.SCHEDULED; //Trạng thái đã lên lịch
         this.startingPrice = startingPrice;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.minIncrement = 0;
     }
 
     public void startAuction() {
@@ -48,15 +49,11 @@ public class Auction {
     }
 
     // getters
-    public int getId() {
-        return id;
+    public int getItemId() {
+        return itemId;
     }
 
-    public Item getItem() {
-        return item;
-    }
-
-    public String getSellerId() {
+    public int getSellerId() {
         return sellerId;
     }
 
@@ -76,12 +73,16 @@ public class Auction {
         return status;
     }
 
-    public Bid getHighestBid() {
-        return highestBid;
-    }
-
     public double getMinIncrement() {
         return minIncrement;
+    }
+
+    public double getCurrentPrice() {
+        return currentPrice;
+    }
+
+    public int getLeadingBidderId() {
+        return leadingBidderId;
     }
 
     //setters
@@ -89,11 +90,19 @@ public class Auction {
         this.endTime = endTime;
     }
 
-    public void setHighestBid(Bid highestBid) {
-        this.highestBid = highestBid;
+    public void setCurrentPrice(double currentPrice) {
+        this.currentPrice = currentPrice;
     }
 
     public void setStatus(AuctionStatus status) {
         this.status = status;
+    }
+
+    public void setLeadingBidderId(int leadingBidderId) {
+        this.leadingBidderId = leadingBidderId;
+    }
+
+    public void setMinIncrement(double minIncrement) {
+        this.minIncrement = minIncrement;
     }
 }
