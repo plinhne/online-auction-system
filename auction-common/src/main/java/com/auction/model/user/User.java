@@ -1,7 +1,7 @@
 package com.auction.model.user;
 import com.auction.model.base.Entity;
 
-public class User extends Entity {
+public abstract class User extends Entity {
 
     private int id;
     private String name;
