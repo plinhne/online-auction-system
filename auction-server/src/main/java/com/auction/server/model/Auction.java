@@ -15,6 +15,8 @@ public class Auction {
     private AuctionStatus status;
     private double currentPrice;
     private int leadingBidderID;
+    private User autoBidUser;
+    private double autoBidLimit;
     private final List<BidTransaction> bidHistory;
 
     private static final int SNIPE_WINDOW_SECONDS = 20;
@@ -58,6 +60,16 @@ public class Auction {
         }
     }
 
+    public synchronized void setCurrentPrice(double currentPrice) {
+        this.currentPrice = currentPrice;
+    }
+
+    public synchronized void setLeadingBidderID(int leadingBidderID) {
+        this.leadingBidderID = leadingBidderID;
+    }
+
+
+
     public int getId() {
         return id;
     }
@@ -89,4 +101,20 @@ public class Auction {
         return bidHistory;
     }
     public synchronized void setStatus(AuctionStatus status) { this.status = status; }
+
+    public synchronized void setAutoBidUser(User autoBidUser) {
+        this.autoBidUser = autoBidUser;
+    }
+
+    public synchronized void setAutoBidLimit(double autoBidLimit) {
+        this.autoBidLimit = autoBidLimit;
+    }
+
+    public User getAutoBidUser() {
+        return autoBidUser;
+    }
+
+    public double getAutoBidLimit() {
+        return autoBidLimit;
+    }
 }
