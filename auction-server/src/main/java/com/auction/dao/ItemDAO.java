@@ -1,4 +1,6 @@
 package com.auction.dao;
 
-public class ItemDAO {
+import com.auction.model.item.Item;
+
+public interface ItemDAO extends GenericDAO<Item, Integer> {
 }
