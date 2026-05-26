@@ -105,6 +105,17 @@ public class AuctionDAO {
         }
     }
 
+    public void updateEndTime(int auctionId, java.time.LocalDateTime newEndTime) throws SQLException {
+        String sql = "UPDATE auctions SET end_time = ? WHERE id = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setTimestamp(1, Timestamp.valueOf(newEndTime));
+            stmt.setInt(2, auctionId);
+            stmt.executeUpdate();
+        }
+    }
+
+
     private Auction mapRow(ResultSet rs) throws SQLException {
         Auction auction = new Auction(
                 rs.getInt("id"),
