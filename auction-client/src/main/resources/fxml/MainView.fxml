@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane styleClass="bg-light" stylesheets="@../css/style.css" xmlns="http://javafx.com" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.MainController">
+
+    <!-- Thanh Navigation phía trên (Dark Theme để tạo điểm nhấn) -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-background-color: #111827; -fx-padding: 10 25;">
+            <children>
+                <Label style="-fx-text-fill: white; -fx-font-size: 20; -fx-font-weight: bold;" text="🔨 Auction" />
+
+                <Region HBox.hgrow="ALWAYS" />
+
+                <HBox alignment="CENTER" spacing="10.0">
+                    <children>
+                        <Button fx:id="homeButton" styleClass="button" style="-fx-background-color: transparent; -fx-text-fill: white;" text="🏠 Trang chủ" />
+                        <Button fx:id="dashboardButton" styleClass="button" style="-fx-background-color: transparent; -fx-text-fill: white;" text="📊 Dashboard" />
+                        <Separator orientation="VERTICAL" style="-fx-opacity: 0.3;" />
+                        <Button fx:id="profileButton" styleClass="button, primary" text="👤 Cá nhân" />
+                        <Button fx:id="logoutButton" styleClass="button, danger" text="Thoát" />
+                    </children>
+                </HBox>
+            </children>
+        </HBox>
+    </top>
+
+    <!-- Khu vực bộ lọc bên trái -->
+    <left>
+        <VBox spacing="20.0" styleClass="bg-white" style="-fx-border-color: #e5e7eb; -fx-border-width: 0 1 0 0;">
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="25.0" />
+            </padding>
+            <children>
+                <Label styleClass="label" style="-fx-font-weight: bold; -fx-font-size: 14;" text="BỘ LỌC TÌM KIẾM" />
+
+                <VBox spacing="8.0">
+                    <children>
+                        <Label styleClass="text-muted" text="Danh mục" />
+                        <ComboBox fx:id="categoryFilterCombo" maxWidth="Infinity" promptText="Tất cả danh mục" styleClass="combo-box" />
+                    </children>
+                </VBox>
+
+                <VBox spacing="8.0">
+                    <children>
+                        <Label styleClass="text-muted" text="Từ khóa" />
+                        <TextField fx:id="searchField" promptText="Tìm sản phẩm..." styleClass="text-field" />
+                    </children>
+                </VBox>
+
+                <Separator />
+
+                <VBox spacing="10.0">
+                    <children>
+                        <Label styleClass="text-muted" text="Trạng thái" />
+                        <CheckBox text="Đang diễn ra" selected="true" />
+                        <CheckBox text="Sắp kết thúc" />
+                    </children>
+                </VBox>
+            </children>
+            <prefWidth>240.0</prefWidth>
+        </VBox>
+    </left>
+
+    <!-- Nội dung chính hiển thị lưới sản phẩm -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane" style="-fx-background-color: transparent;">
+            <content>
+                <GridPane fx:id="auctionGridPane" hgap="20.0" vgap="20.0">
+                    <padding>
+                        <Insets bottom="25.0" left="25.0" right="25.0" top="25.0" />
+                    </padding>
+                    <!-- Các ItemCard sẽ được nạp vào đây bằng Java code -->
+                </GridPane>
+            </content>
+        </ScrollPane>
+    </center>
+
+</BorderPane>
