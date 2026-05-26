@@ -7,9 +7,19 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="auction-client" />
-        <module name="auction-common" />
         <module name="auction-server" />
+        <module name="auction-common" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="auction-client (1)" target="1.5" />
+      <module name="auction-client (2)" target="1.8" />
+      <module name="auction-common (1)" target="1.8" />
+      <module name="auction-common (2)" target="1.5" />
+      <module name="auction-server (1)" target="21" />
+      <module name="auction-server (2)" target="21" />
+      <module name="auction-system (1)" target="1.5" />
+      <module name="auction-system (2)" target="1.5" />
+    </bytecodeTargetLevel>
   </component>
 </project>
