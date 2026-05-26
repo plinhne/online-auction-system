@@ -1,9 +1,9 @@
 package com.auction.model.auction;
 
 import com.auction.model.base.Entity;
-import com.auction.model.item.Item;
 import com.auction.model.bid.Bid;
-import com.auction.model.pattern.observer.AuctionSubject; 
+import com.auction.model.item.Item;
+import com.auction.model.pattern.observer.AuctionSubject;
 import com.auction.model.pattern.observer.BidObserver;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ public class Auction extends Entity implements AuctionSubject {
 
     // Danh sách những người đang xem phiên đấu giá (Observer Pattern)
     private final List<BidObserver> observers = new ArrayList<>();
-
+    private final Item item;
     private AuctionStatus status;
     private int itemId;              // id item đang đấu giá
     private double minIncrement;    // bước giá tối thiểu
@@ -26,8 +26,9 @@ public class Auction extends Entity implements AuctionSubject {
     private int leadingBidderId; //id người có bid cao nhất hiện tại
     private final LocalDateTime startTime; // Thời gian bắt đầu
     private LocalDateTime endTime; // Không để final để xử lý anti-sniping
+    private Bid highestBid;
 
-    public Auction(int id, Item item, double minIncrement, String sellerId, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
+    public Auction(int id, Item item, double minIncrement, int sellerId, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
         super(id);
         this.item = item;
         this.minIncrement = minIncrement;
@@ -137,5 +138,9 @@ public class Auction extends Entity implements AuctionSubject {
 
     public void setMinIncrement(double minIncrement) {
         this.minIncrement = minIncrement;
+    }
+
+    public void setHighestBid(Bid highestBid) {
+        this.highestBid = highestBid;
     }
 }
