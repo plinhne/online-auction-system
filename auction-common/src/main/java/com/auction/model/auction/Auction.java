@@ -18,11 +18,12 @@ public class Auction extends Entity implements AuctionSubject {
     private final List<BidObserver> observers = new ArrayList<>();
 
     private AuctionStatus status;
-    private Item item;              // item đang đấu giá
+    private int itemId;              // id item đang đấu giá
     private double minIncrement;    // bước giá tối thiểu
-    private Bid highestBid;         // bid cao nhất
-    private final String sellerId; // Người khởi tạo phiên đấu giá
+    private final int sellerId; // Người khởi tạo phiên đấu giá
     private final double startingPrice; // Giá khởi điểm
+    private double currentPrice; //không cần biết chi tiết thông tin bid, chỉ cần mức giá
+    private int leadingBidderId; //id người có bid cao nhất hiện tại
     private final LocalDateTime startTime; // Thời gian bắt đầu
     private LocalDateTime endTime; // Không để final để xử lý anti-sniping
 
@@ -35,6 +36,7 @@ public class Auction extends Entity implements AuctionSubject {
         this.startingPrice = startingPrice;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.minIncrement = 0;
     }
     @Override
     public void addObserver(BidObserver observer) {
@@ -84,7 +86,7 @@ public class Auction extends Entity implements AuctionSubject {
         return item;
     }
 
-    public String getSellerId() {
+    public int getSellerId() {
         return sellerId;
     }
 
@@ -104,12 +106,16 @@ public class Auction extends Entity implements AuctionSubject {
         return status;
     }
 
-    public Bid getHighestBid() {
-        return highestBid;
-    }
-
     public double getMinIncrement() {
         return minIncrement;
+    }
+
+    public double getCurrentPrice() {
+        return currentPrice;
+    }
+
+    public int getLeadingBidderId() {
+        return leadingBidderId;
     }
 
     //setters
@@ -117,11 +123,19 @@ public class Auction extends Entity implements AuctionSubject {
         this.endTime = endTime;
     }
 
-    public void setHighestBid(Bid highestBid) {
-        this.highestBid = highestBid;
+    public void setCurrentPrice(double currentPrice) {
+        this.currentPrice = currentPrice;
     }
 
     public void setStatus(AuctionStatus status) {
         this.status = status;
+    }
+
+    public void setLeadingBidderId(int leadingBidderId) {
+        this.leadingBidderId = leadingBidderId;
+    }
+
+    public void setMinIncrement(double minIncrement) {
+        this.minIncrement = minIncrement;
     }
 }

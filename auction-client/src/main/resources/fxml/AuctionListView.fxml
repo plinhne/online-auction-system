@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane styleClass="bg-light" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/21.0.0" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.AuctionListViewController">
+   <top>
+      <!-- Header Section -->
+      <VBox styleClass="bg-white" style="-fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;">
+         <padding>
+            <Insets bottom="20.0" left="25.0" right="25.0" top="20.0" />
+         </padding>
+         <children>
+            <!-- Title -->
+            <HBox alignment="CENTER_LEFT">
+               <Label styleClass="label, header" text="Sàn Đấu Giá Trực Tuyến" />
+               <Region HBox.hgrow="ALWAYS" />
+               <Label fx:id="totalItemsLabel" styleClass="label, subtitle" text="0 sản phẩm hiện có" />
+            </HBox>
+
+            <!-- Search and Filters -->
+            <HBox spacing="10.0">
+               <padding>
+                  <Insets top="15.0" />
+               </padding>
+               <TextField fx:id="searchField" promptText="Tìm kiếm sản phẩm..." styleClass="text-field" HBox.hgrow="ALWAYS" />
+               <ComboBox fx:id="categoryCombo" prefWidth="150.0" promptText="Danh mục" styleClass="combo-box" />
+               <ComboBox fx:id="sortCombo" prefWidth="180.0" promptText="Sắp xếp" styleClass="combo-box" />
+               <Button styleClass="button, primary" text="Tìm kiếm" />
+            </HBox>
+         </children>
+      </VBox>
+   </top>
+
+   <center>
+      <VBox>
+         <!-- Status Tabs -->
+         <TabPane fx:id="statusTabPane" styleClass="tab-pane" tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+               <Tab text="Tất cả" />
+               <Tab text="Đang diễn ra" />
+               <Tab text="Sắp diễn ra" />
+               <Tab text="Đã kết thúc" />
+            </tabs>
+         </TabPane>
+
+         <!-- Auction Grid -->
+         <StackPane VBox.vgrow="ALWAYS">
+            <children>
+               <!-- ScrollPane cho Grid -->
+               <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+                  <content>
+                     <FlowPane fx:id="auctionGridPane" hgap="20.0" vgap="20.0">
+                        <padding>
+                           <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                        </padding>
+                     </FlowPane>
+                  </content>
+               </ScrollPane>
+
+               <!-- No Results Label -->
+               <VBox fx:id="noResultsArea" alignment="CENTER" spacing="10.0" visible="false">
+                  <Label styleClass="label, subtitle" style="-fx-font-size: 16;" text="Không tìm thấy sản phẩm nào" />
+                  <Button styleClass="button" text="Xóa bộ lọc" />
+               </VBox>
+            </children>
+         </StackPane>
+      </VBox>
+   </center>
+</BorderPane>

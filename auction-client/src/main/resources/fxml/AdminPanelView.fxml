@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane styleClass="bg-light" stylesheets="@../css/style.css" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.auction.client.controller.AdminPanelController">
+
+   <!-- Header -->
+   <top>
+      <VBox styleClass="bg-white" style="-fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;">
+         <padding>
+            <Insets bottom="20.0" left="25.0" right="25.0" top="20.0" />
+         </padding>
+         <children>
+            <Label styleClass="label, header" text="Quản trị hệ thống (Admin)" />
+         </children>
+      </VBox>
+   </top>
+
+   <center>
+      <VBox spacing="20.0">
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+         </padding>
+         <children>
+
+            <!-- Stats Cards Area -->
+            <HBox spacing="15.0">
+               <children>
+                  <!-- Card: Đấu giá -->
+                  <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="card">
+                     <children>
+                        <Label styleClass="label, subtitle" text="Tổng số đấu giá" />
+                        <Label fx:id="totalAuctionsLabel" styleClass="label, header" text="0" />
+                     </children>
+                  </VBox>
+
+                  <!-- Card: Người dùng -->
+                  <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="card">
+                     <children>
+                        <Label styleClass="label, subtitle" text="Người dùng hệ thống" />
+                        <Label fx:id="totalUsersLabel" styleClass="label, header" text="0" />
+                     </children>
+                  </VBox>
+
+                  <!-- Card: Doanh thu -->
+                  <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="card">
+                     <children>
+                        <Label styleClass="label, subtitle" text="Doanh thu dự kiến" />
+                        <Label fx:id="totalRevenueLabel" styleClass="label, header, text-success" text="0.00" />
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+
+            <!-- Management Table Area -->
+            <VBox spacing="15.0" styleClass="card" VBox.vgrow="ALWAYS">
+               <children>
+                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+                     <children>
+                        <Label styleClass="label" style="-fx-font-weight: bold; -fx-font-size: 16;" text="Danh sách quản lý đấu giá" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="deleteAuctionButton" styleClass="button, danger" text="🗑 Xóa Đấu Giá" />
+                     </children>
+                  </HBox>
+
+                  <TableView fx:id="auctionsTable" styleClass="table-view" VBox.vgrow="ALWAYS">
+                     <columns>
+                        <TableColumn fx:id="auctionIdColumn" prefWidth="70.0" text="ID" />
+                        <TableColumn fx:id="auctionNameColumn" prefWidth="250.0" text="Tên sản phẩm" />
+                        <TableColumn fx:id="sellerColumn" prefWidth="150.0" text="Người bán" />
+                        <TableColumn fx:id="statusColumn" prefWidth="120.0" text="Trạng thái" />
+                     </columns>
+                     <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                     </columnResizePolicy>
+                  </TableView>
+               </children>
+            </VBox>
+         </children>
+      </VBox>
+   </center>
+</BorderPane>
