@@ -1,4 +1,4 @@
-package com.auction.model.exception;
+package com.auction.exception;
 
 public class AuctionClosedException extends AuctionException {
     public AuctionClosedException(String message) {
