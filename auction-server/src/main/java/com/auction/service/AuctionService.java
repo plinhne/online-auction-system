@@ -2,57 +2,131 @@ package com.auction.service;
 
 import com.auction.dao.AuctionDAO;
 import com.auction.model.auction.Auction;
-import com.auction.model.item.Item;
+import com.auction.model.auction.AuctionStatus;
 import com.auction.model.user.User;
-import com.auction.model.user.Seller;
-import com.auction.exception.UnauthorizedException;
+import com.auction.model.user.UserRole;
+import com.auction.server.dao.AuctionDAO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
+
 
 public class AuctionService {
-
+    private static final Logger logger = LoggerFactory.getLogger(AuctionService.class);
     private final AuctionDAO auctionDAO;
-    private static final AtomicInteger auctionIdGenerator = new AtomicInteger(5000);
 
     public AuctionService(AuctionDAO auctionDAO) {
         this.auctionDAO = auctionDAO;
     }
 
-    public Auction createAuction(Item item, User creator, double startingPrice, int durationInMinutes, double minIncrement) {
-        // Chỉ Seller mới được tạo phiên đấu giá
-        if (!(creator instanceof Seller)) {
-            throw new UnauthorizedException("Access Denied: Only Sellers can create auctions!");
+    public Auction getAuctionById (int auctionId) throws SQLException {
+        return auctionDAO.findById(auctionId);
+    }
+
+    public List<Auction> getAllAuctions() throws SQLException {
+        return auctionDAO.findAll();
+    }
+
+    public List<Auction> findByStatus(AuctionStatus status) throws SQLException {
+        return auctionDAO.findByStatus(status);
+    }
+
+    public List<Auction> getAuctionsBySeller(int sellerId) throws SQLException {
+        return auctionDAO.findByBySellerId(sellerId);
+    }
+
+    public List<Auction> getAuctionsByBidder(int bidderId) throws SQLException {
+        return auctionDAO.findByBidderId(bidderId);
+    }
+
+    public int createAuction(int sellerId, int itemId, double startingPrice,
+                             double minIncrement, LocalDateTime startTime,
+                             LocalDateTime endTime) throws SQLException, SQLException {
+        Auction auction = new Auction(0, itemId, sellerId, startingPrice, startTime, endTime);
+        auction.setMinIncrement(minIncrement);
+        auction.setCurrentPrice(startingPrice); // current_price ban đầu = starting_price
+        auction.setStatus(AuctionStatus.SCHEDULED);
+        return auctionDAO.save(auction);
+    }
+
+    public void startAuction(int auctionId) throws SQLException {
+        Auction auction = auctionDAO.findById(auctionId);
+        if (auction == null) throw new IllegalArgumentException("Auction not found: " + auctionId);
+        auction.startAuction();
+        auctionDAO.updateStatus(auctionId, AuctionStatus.ACTIVE);
+        logger.info("Auction started: auctionId={}", auctionId);
+    }
+
+    public void endAuction(int auctionId) throws SQLException {
+        Auction auction = auctionDAO.findById(auctionId);
+        if (auction == null) throw new IllegalArgumentException("Auction not found: " + auctionId);
+        auction.endAuction();
+        auctionDAO.updateStatus(auctionId, AuctionStatus.ENDED);
+        logger.info("Auction ended: auctionId={}", auctionId);
+    }
+
+    /**
+     * Seller tạo phiên đấu giá mới.
+     * Validate: chỉ SELLER mới được tạo, startTime phải sau now,
+     * endTime phải sau startTime.
+     */
+    public Auction createAuction(User seller, int itemId, double startingPrice,
+                                 double minIncrement, LocalDateTime startTime,
+                                 LocalDateTime endTime) throws SQLException {
+        if (seller.getRole() != UserRole.SELLER) {
+            throw new IllegalStateException("Only sellers can create auctions");
+        }
+        if (!startTime.isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("startTime must be in the future");
+        }
+        if (!endTime.isAfter(startTime)) {
+            throw new IllegalArgumentException("endTime must be after startTime");
+        }
+        if (startingPrice <= 0) {
+            throw new IllegalArgumentException("startingPrice must be positive");
+        }
+        if (minIncrement <= 0) {
+            throw new IllegalArgumentException("minIncrement must be positive");
         }
 
-        int auctionId = auctionIdGenerator.incrementAndGet();
-        LocalDateTime startTime = LocalDateTime.now();
-        LocalDateTime endTime = startTime.plusMinutes(durationInMinutes);
+        Auction auction = new Auction(0, itemId, seller.getId(), startingPrice, startTime, endTime);
+        auction.setMinIncrement(minIncrement);
+        auction.setStatus(AuctionStatus.SCHEDULED);
 
-        // Giả sử constructor của Auction nhận creator.getId()
-        Auction newAuction = new Auction(auctionId, item, minIncrement, creator.getId(), startingPrice, startTime, endTime);
+        int id = auctionDAO.save(auction);
+        auction.setId(id);
 
-        // Lưu qua DAO
-        auctionDAO.save(newAuction);
-
-        return newAuction;
+        logger.info("Auction created: auctionId={}, sellerId={}, itemId={}", id, seller.getId(), itemId);
+        return auction;
     }
 
-    public Auction getAuctionById(int id) {
-        return auctionDAO.findById(id);
-    }
+    /**
+     * Seller/Admin huỷ phiên trước khi bắt đầu.
+     * Không cho phép huỷ khi đang ACTIVE hoặc đã ENDED.
+     */
+    public void cancelAuction(int auctionId, User requester) throws SQLException {
+        Auction auction = auctionDAO.findById(auctionId);
+        if (auction == null) throw new IllegalArgumentException("Auction not found: " + auctionId);
 
-    public void handleAntiSniping(Auction auction, int triggerMinutesBeforeEnd, int extendMinutes) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime triggerWindow = auction.getEndTime().minusMinutes(triggerMinutesBeforeEnd);
+        boolean isSeller = requester.getRole() == UserRole.SELLER
+                && auction.getSellerId() == requester.getId();
+        boolean isAdmin  = requester.getRole() == UserRole.ADMIN;
 
-        if (now.isAfter(triggerWindow) && now.isBefore(auction.getEndTime())) {
-            LocalDateTime newEndTime = auction.getEndTime().plusMinutes(extendMinutes);
-            auction.setEndTime(newEndTime);
-
-            // Gọi DAO để cập nhật thời gian mới vào Database
-            auctionDAO.update(auction);
-
-            System.out.println("Anti-sniping triggered! Auction " + auction.getId() + " extended to: " + newEndTime);
+        if (!isSeller && !isAdmin) {
+            throw new IllegalStateException("Only the seller or admin can cancel this auction");
         }
+        if (auction.getStatus() == AuctionStatus.ACTIVE) {
+            throw new IllegalStateException("Cannot cancel an active auction");
+        }
+        if (auction.getStatus() == AuctionStatus.ENDED) {
+            throw new IllegalStateException("Cannot cancel an ended auction");
+        }
+
+        auctionDAO.updateStatus(auctionId, AuctionStatus.CANCELLED);
+        logger.info("Auction cancelled: auctionId={}, by userId={}", auctionId, requester.getId());
     }
+
 }
