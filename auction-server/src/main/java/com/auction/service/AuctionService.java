@@ -1,5 +1,6 @@
 package com.auction.service;
 
+import com.auction.dao.AuctionDAO;
 import com.auction.model.auction.Auction;
 import com.auction.model.auction.AuctionStatus;
 import com.auction.model.user.User;

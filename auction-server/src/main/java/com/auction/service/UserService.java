@@ -1,32 +1,54 @@
 package com.auction.service;
 
-import com.auction.model.user.User;
-import com.auction.model.user.UserRole;
-import java.util.HashMap;
-import java.util.Map;
+import com.auction.dao.UserDAO;
+import com.auction.model.user.*; // Import các class con Bidder, Seller, Admin
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class UserService {
-    // Giả lập Database lưu trữ User
-    private final Map<Integer, User> userDatabase = new HashMap<>();
+
+    private final UserDAO userDAO;
+
+    // Sinh ID tự động tăng
+    private static final AtomicInteger idGenerator = new AtomicInteger(0);
+
+    public UserService(UserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
 
     public User registerUser(String name, String email, String password, UserRole role) {
-        if (userDatabase.values().stream().anyMatch(u -> u.getName().equals(name))) {
+        // Dùng DAO để tra cứu
+        if (userDAO.findByName(name) != null) {
             throw new IllegalArgumentException("Username already exists!");
         }
-        int id = (int)System.currentTimeMillis();
-        User newUser = new User(id, name, email, password, role);
-        userDatabase.put(id, newUser);
+
+        int id = idGenerator.incrementAndGet(); // Tránh lỗi tràn số âm
+        User newUser;
+
+        // Đa hình
+        switch (role) {
+            case BIDDER:
+                newUser = new Bidder(id, name, email, password);
+                break;
+            case SELLER:
+                newUser = new Seller(id, name, email, password);
+                break;
+            case ADMIN:
+                newUser = new Admin(id, name, email, password);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid role!");
+        }
+
+        // Lưu vào cơ sở dữ liệu qua DAO
+        userDAO.save(newUser);
         return newUser;
     }
 
     public User findById(int id) {
-        return userDatabase.get(id);
+        return userDAO.findById(id);
     }
 
     public User findByUsername(String username) {
-        return userDatabase.values().stream()
-                .filter(u -> u.getName().equals(username))
-                .findFirst()
-                .orElse(null);
+        return userDAO.findByName(username);
     }
 }
