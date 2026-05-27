@@ -71,7 +71,6 @@ public class AuctionDAO {
     }
 
     //tìm winner của auction có id là id
-    //vde: nế
     public Integer findWinnerbyId(int id) throws SQLException {
         String sql = "SELECT leading_bidder_id FROM auctions WHERE id = ? AND status = 'ENDED'";
         try (Connection conn = dataSource.getConnection();
@@ -83,6 +82,53 @@ public class AuctionDAO {
         }
         return null;
     }
+
+    //tìm các phiên đấu giá có trạng thái ?
+    public List<Auction> findByStatus(AuctionStatus status) throws SQLException {
+        String sql = "SELECT * FROM auctions WHERE status = ? ";
+        List<Auction> auctions = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, status.name());
+            try (ResultSet rs = stmt.executeQuery()){
+                while (rs.next()) auctions.add(mapRow(rs));
+            }
+        }
+        return auctions;
+    }
+
+    //danh sách các phiên đấu giá của seller có id ?
+    public List<Auction> findByBySellerId(int sellerId) throws SQLException {
+        String sql = "SELECT * FROM auctions WHERE seller_id = ? ";
+        List<Auction> auctions = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, sellerId);
+            try (ResultSet rs = stmt.executeQuery()){
+                while (rs.next()) auctions.add(mapRow(rs));
+            }
+        }
+        return auctions;
+    }
+
+    // lịch sử thma gia của bidder có id ?
+    public List<Auction> findByBidderId(int bidderId) throws SQLException {
+        String sql = """
+            SELECT DISTINCT a.* FROM auctions a
+            JOIN bids b ON a.id = b.auction_id
+            WHERE b.bidder_id = ?
+            """;
+        List<Auction> auctions = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, bidderId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) auctions.add(mapRow(rs));
+            }
+        }
+        return auctions;
+    }
+
 
     public void updateStatus(int auctionId, AuctionStatus status) throws SQLException {
         String sql = "UPDATE auctions SET status = ? WHERE id = ?";

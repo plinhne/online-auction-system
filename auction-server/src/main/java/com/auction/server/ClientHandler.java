@@ -1,22 +1,44 @@
 package com.auction.server;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.auction.server.controller.AuctionController;
+import com.auction.server.controller.AuthController;
+import com.auction.server.controller.BidController;
+import com.auction.server.dao.AuctionDAO;
+import com.auction.server.dao.BidDAO;
+import com.auction.server.dao.UserDAO;
+import com.auction.service.AuctionService;
+import com.auction.service.AuthService;
+import com.auction.service.BidService;
+import com.auction.service.UserService;
 
 import java.io.*;
 import java.net.Socket;
 
 public class ClientHandler implements Runnable{
     private final Socket socket;
-    private final String clientIP;
-    private final Gson gson = new Gson();
+    private final MessageRouter router;
     private BufferedReader in;
     private PrintWriter out;
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
-        this.clientIP = socket.getInetAddress().getHostAddress();
+
+        //tạo DAO -> services -> controller -> router
+        UserDAO userDAO = new UserDAO();
+        AuctionDAO auctionDAO = new AuctionDAO();
+        BidDAO bidDAO = new BidDAO();
+
+        //nhận DAO
+        UserService userService = new UserService();
+        AuthService authService = new AuthService(userService);
+        AuctionService auctionService = new AuctionService(auctionDAO);
+        BidService bidService = new BidService();
+
+        AuthController authController = new AuthController(authService, userService);
+        AuctionController auctionController = new AuctionController(auctionService);
+        BidController bidController = new BidController(bidService, auctionService);
+
+        this.router = new MessageRouter(authController,auctionController,bidController);
     }
 
     @Override
@@ -27,39 +49,13 @@ public class ClientHandler implements Runnable{
 
             String line;
             while ((line = in.readLine()) != null) {
-                handleMessage(line);
+                String response = router.route(line);
+                out.println(response);
             }
         } catch (IOException e) {
-            System.err.println("Client disconnected: " + clientIP);
+            System.err.println("Client disconnected: " + socket.getInetAddress().getHostAddress());
         }finally {
             cleanup();
-        }
-    }
-
-    private void handleMessage(String rawJson) {
-        try {
-            JsonObject request = JsonParser.parseString(rawJson).getAsJsonObject();
-            String action = request.get("action").getAsString();
-
-            JsonObject response = new JsonObject();
-
-            switch (action) {
-                case "PING" -> {
-                    response.addProperty("status","OK");
-                    response.addProperty("message", "PONG");
-                }
-
-                default -> {
-                    response.addProperty("status","ERROR");
-                    response.addProperty("message", "Unknown action: " + action);
-                }
-            }
-            sendMessage(gson.toJson(response));
-        } catch (Exception e) {
-            JsonObject error = new JsonObject();
-            error.addProperty("status", "ERROR");
-            error.addProperty("message", "Invalid request format");
-            sendMessage(gson.toJson(error));
         }
     }
 
@@ -69,8 +65,12 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    public int getCurrentAuctionId() {
+       return router.getCurrentAuctionId();
+    }
+
     private void cleanup() {
-        MainServer.removeClient(clientIP);
+        MainServer.removeClient(this);
         try {
             if (in != null) in.close();
             if (out != null) out.close();
