@@ -35,7 +35,7 @@ public abstract class BaseController {
         currentUser = user;
         outStream = out;
         serverListener = listener;
-        LoggerUtil.info("Đã thiết lập Session cho tài khoản: " + user.getUsername());
+        LoggerUtil.info("Đã thiết lập Session cho tài khoản: " + user.getName());
     }
 
     /**

@@ -73,7 +73,7 @@ public class LoginController extends BaseController {
 
         // 2. Sử dụng hàm runAsyncTask kế thừa từ BaseController để chạy ngầm tác vụ mạng Socket
         // Giúp giao diện Client không bị đơ cứng (UI Freeze) khi Server xử lý chậm hoặc mất mạng
-        Task<User> loginTask = new Task<>() {
+        Task<User> loginTask = new Task() {
             @Override
             protected User call() throws Exception {
                 return executeNetworkAuth(username, password);
@@ -151,11 +151,11 @@ public class LoginController extends BaseController {
 
                     // Sử dụng đa hình khởi tạo đúng đối tượng thực thể User con [cite: 114, 115, 121]
                     if ("ADMIN".equalsIgnoreCase(roleStr)) {
-                        user = new Admin(id, username, email);
+                        user = new Admin(id, username, email, password);
                     } else if ("SELLER".equalsIgnoreCase(roleStr)) {
-                        user = new Seller(id, username, email);
+                        user = new Seller(id, username, email, password);
                     } else {
-                        user = new Bidder(id, username, email);
+                        user = new Bidder(id, username, email, password);
                     }
 
                     // 6. KHỞI TẠO LUỒNG NGHE MẠNG NGẦM (SERVER LISTENER) ĐÃ ĐƯỢC ĐỒNG BỘ
