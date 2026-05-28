@@ -72,7 +72,7 @@ public class AuctionDAO {
 
     //tìm winner của auction có id là id
     public Integer findWinnerbyId(int id) throws SQLException {
-        String sql = "SELECT leading_bidder_id FROM auctions WHERE id = ? AND status = 'ENDED'";
+        String sql = "SELECT winner_id FROM auctions WHERE id = ? AND status = 'ENDED'";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
@@ -115,7 +115,7 @@ public class AuctionDAO {
     public List<Auction> findByBidderId(int bidderId) throws SQLException {
         String sql = """
             SELECT DISTINCT a.* FROM auctions a
-            JOIN bids b ON a.id = b.auction_id
+            JOIN bid_transactions b ON a.id = b.auction_id
             WHERE b.bidder_id = ?
             """;
         List<Auction> auctions = new ArrayList<>();
@@ -141,7 +141,7 @@ public class AuctionDAO {
     }
 
     public void updateLeadingBidder(int auctionId, double newPrice, int leadingBidderId) throws SQLException {
-        String sql = "UPDATE auctions SET current_price = ?, leading_bidder_id = ? WHERE id = ?";
+        String sql = "UPDATE auctions SET current_price = ?, winner_id = ? WHERE id = ?";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setDouble(1, newPrice);

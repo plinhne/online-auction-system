@@ -5,6 +5,8 @@ import com.auction.model.user.UserStatus;
 import com.auction.exception.UnauthorizedException;
 import com.auction.service.UserService;
 
+import java.sql.SQLException;
+
 public class AuthService {
     private final UserService userService;
 
@@ -12,8 +14,8 @@ public class AuthService {
         this.userService = userService;
     }
 
-    public User login(String name, String password) {
-        User user = userService.findByUsername(name);
+    public User login(String email , String password) throws SQLException {
+        User user = userService.findByEmail(email);
 
         if (user == null) {
             throw new UnauthorizedException("Account does not exist!");

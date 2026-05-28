@@ -16,7 +16,6 @@ public class Auction extends Entity implements AuctionSubject {
 
     // Danh sách những người đang xem phiên đấu giá (Observer Pattern)
     private final List<BidObserver> observers = new ArrayList<>();
-    private final Item item;
     private AuctionStatus status;
     private int itemId;              // id item đang đấu giá
     private double minIncrement;    // bước giá tối thiểu
@@ -28,10 +27,9 @@ public class Auction extends Entity implements AuctionSubject {
     private LocalDateTime endTime; // Không để final để xử lý anti-sniping
     private Bid highestBid;
 
-    public Auction(int id, Item item, double minIncrement, int sellerId, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
+    public Auction(int id, int itemId, int sellerId, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
         super(id);
-        this.item = item;
-        this.minIncrement = minIncrement;
+        this.itemId = itemId;
         this.sellerId = sellerId;
         this.status = AuctionStatus.SCHEDULED; //Trạng thái đã lên lịch
         this.startingPrice = startingPrice;
@@ -39,6 +37,7 @@ public class Auction extends Entity implements AuctionSubject {
         this.endTime = endTime;
         this.minIncrement = 0;
     }
+
     @Override
     public void addObserver(BidObserver observer) {
         if (!observers.contains(observer)) {
@@ -52,11 +51,11 @@ public class Auction extends Entity implements AuctionSubject {
     }
 
     @Override
-    public void notifyObservers(double newAmount, String bidderName) {
+    public void notifyObservers(double newAmount, int bidderId) {
         // Mỗi khi có người đặt giá mới, báo cho tất cả client đang xem
         for (BidObserver observer : observers) {
             // Lấy ID từ Entity cha
-            observer.updateNewBid(this.getId(), newAmount, bidderName);
+            observer.updateNewBid(this.getId(), newAmount, bidderId);
         }
     }
 
@@ -83,10 +82,6 @@ public class Auction extends Entity implements AuctionSubject {
     }
 
     // getters
-    public Item getItem() {
-        return item;
-    }
-
     public int getSellerId() {
         return sellerId;
     }
@@ -118,6 +113,8 @@ public class Auction extends Entity implements AuctionSubject {
     public int getLeadingBidderId() {
         return leadingBidderId;
     }
+
+    public int getItemId() { return itemId; }
 
     //setters
     public void setEndTime(LocalDateTime endTime) {

@@ -20,7 +20,7 @@ public class BidDAO {
     }
 
     public void save(Bid bid) throws SQLException {
-        String sql = "INSERT INTO bid_transactions (auction_id, bidder_id, amount) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO bid_transactions (auction_id, bidder_id, amount, placed_at) VALUES (?, ?, ?, ?)";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, bid.getAuctionId());

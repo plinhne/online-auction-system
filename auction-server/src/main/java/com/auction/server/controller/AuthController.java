@@ -6,6 +6,8 @@ import com.auction.service.UserService;
 import com.auction.model.user.UserRole;
 import com.google.gson.JsonObject;
 
+import java.sql.SQLException;
+
 public class AuthController {
     private final AuthService authService;
     private final UserService userService;
@@ -15,10 +17,10 @@ public class AuthController {
         this.userService = userService;
     }
 
-    public User handleLogin(JsonObject request, JsonObject response) {
-        String username = request.get("username").getAsString();
+    public User handleLogin(JsonObject request, JsonObject response) throws SQLException {
+        String email = request.get("email").getAsString();
         String password = request.get("password").getAsString();
-        User user = authService.login(username, password);
+        User user = authService.login(email, password);
         response.addProperty("status", "OK");
         response.addProperty("userId", user.getId());
         response.addProperty("role", user.getRole().name());
@@ -30,7 +32,7 @@ public class AuthController {
         response.addProperty("status", "OK");
     }
 
-    public void handleRegister(JsonObject request, JsonObject response) {
+    public void handleRegister(JsonObject request, JsonObject response) throws SQLException {
         String name     = request.get("name").getAsString();
         String email    = request.get("email").getAsString();
         String password = request.get("password").getAsString();

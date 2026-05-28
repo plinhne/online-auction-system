@@ -5,6 +5,7 @@ import com.auction.model.user.User;
 import com.auction.server.controller.AuctionController;
 import com.auction.server.controller.AuthController;
 import com.auction.server.controller.BidController;
+import com.auction.server.controller.ItemController;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ public class MessageRouter {
     private final AuthController authController;
     private final AuctionController auctionController;
     private final BidController bidController;
+    private final ItemController itemController;
 
     // Session state — mỗi ClientHandler có 1 MessageRouter riêng
     private User currentUser = null;
@@ -28,10 +30,12 @@ public class MessageRouter {
 
     public MessageRouter(AuthController authController,
                          AuctionController auctionController,
-                         BidController bidController) {
+                         BidController bidController,
+                         ItemController itemController) {
         this.authController = authController;
         this.auctionController = auctionController;
         this.bidController = bidController;
+        this.itemController = itemController;
     }
 
     public String route(String rawJson) {
