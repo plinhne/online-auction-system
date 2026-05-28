@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane prefHeight="700.0" prefWidth="600.0" styleClass="bg-light" stylesheets="@../css/style.css" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.auction.client.controller.LoginController">
+<BorderPane prefHeight="700.0" prefWidth="600.0" styleClass="bg-light" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.LoginController">
    <center>
       <VBox alignment="CENTER" maxWidth="450.0" spacing="25.0">
          <children>
@@ -12,7 +12,7 @@
             <VBox alignment="CENTER" spacing="10.0">
                <children>
                   <Label style="-fx-font-size: 56;" text="🔨" />
-                  <Label styleClass="label, header" style="-fx-font-size: 36;" text="Auction Pro" />
+                  <Label style="-fx-font-size: 36;" styleClass="label, header" text="Auction" />
                   <Label styleClass="label, subtitle" text="Hệ thống đấu giá trực tuyến thế hệ mới" />
                </children>
             </VBox>
@@ -48,12 +48,12 @@
             <!-- Demo Access Section -->
             <VBox alignment="CENTER" spacing="15.0">
                <children>
-                  <Label styleClass="text-muted" style="-fx-font-size: 11;" text="HOẶC TRUY CẬP NHANH BẰNG TÀI KHOẢN DEMO" />
+                  <Label style="-fx-font-size: 11;" styleClass="text-muted" text="HOẶC TRUY CẬP NHANH BẰNG TÀI KHOẢN DEMO" />
                   <HBox spacing="10.0">
                      <children>
-                        <Button fx:id="bidderDemoButton" styleClass="button, success" text="Người mua" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
-                        <Button fx:id="sellerDemoButton" style="-fx-background-color: #f59e0b; -fx-text-fill: white;" styleClass="button" text="Người bán" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
-                        <Button fx:id="adminDemoButton" styleClass="button, danger" text="Quản trị" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                        <Button fx:id="bidderDemoButton" maxWidth="Infinity" styleClass="button, success" text="Người mua" HBox.hgrow="ALWAYS" />
+                        <Button fx:id="sellerDemoButton" maxWidth="Infinity" style="-fx-background-color: #f59e0b; -fx-text-fill: white;" styleClass="button" text="Người bán" HBox.hgrow="ALWAYS" />
+                        <Button fx:id="adminDemoButton" maxWidth="Infinity" styleClass="button, danger" text="Quản trị" HBox.hgrow="ALWAYS" />
                      </children>
                   </HBox>
                </children>
