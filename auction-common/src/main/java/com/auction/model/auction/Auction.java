@@ -119,6 +119,7 @@ public class Auction extends Entity implements AuctionSubject {
         return leadingBidderId;
     }
 
+
     //setters
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;

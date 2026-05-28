@@ -9,6 +9,7 @@ public abstract class User extends Entity {
     private String password;
     private UserRole role;      // dùng enum
     private UserStatus status;  // thêm status
+    private double walletBalance;
 
     public User(int id, String name, String email, String password, UserRole role) {
         super(id);
@@ -18,6 +19,13 @@ public abstract class User extends Entity {
         this.role = role;
         this.status = UserStatus.ACTIVE;
     }
+    public User(int id, String name, double walletBalance) {
+        super(id);
+        this.id = id;
+        this.name = name;
+        this.walletBalance = walletBalance;
+    }
+
 //getters
     public int getId() { return id; }
     public String getName() { return name; }
@@ -29,8 +37,25 @@ public abstract class User extends Entity {
     public UserRole getRole() {
         return role;
     }
-//setters
+    public double getWalletBalance() {
+        return walletBalance;
+    }
+
+    //setters
     public void setName(String name) { this.name = name; }
     public void setEmail(String email) { this.email = email; }
     public void setPassword(String password) { this.password = password; }
+
+
+    public void depositMoney(double amount) {walletBalance += amount;} // nạp tiền
+
+    // trừ tiền
+    public void withdrawMoney(double amount) {
+
+        if (walletBalance < amount) {
+            throw new RuntimeException("Not enough balance");
+        }
+
+        walletBalance -= amount;
+    }
 }

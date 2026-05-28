@@ -12,7 +12,7 @@ public class Bid {
     private final int auctionId; // Gắn liền với một phiên đấu giá tồn tại
     private final LocalDateTime placedAt; // Thời gian đặt bid
 
-    public Bid(int id, double amount, User bidderId, int auctionId) {
+    public Bid(int id, double amount, int bidderId, int auctionId) {
         this.id = id;
         this.amount = amount;
         this.bidderId = bidderId;
