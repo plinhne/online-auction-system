@@ -50,14 +50,14 @@ public class AdminPanelController extends BaseController {
 
         // Cấu hình bảng Đấu giá
         auctionIdColumn.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().getId())));
-        auctionNameColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getItem().getTitle()));
+        auctionNameColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getItem().getName()));
         sellerColumn.setCellValueFactory(data -> new SimpleStringProperty("Seller_ID: " + data.getValue().getId()));
         statusColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getStatus().name()));
         auctionsTable.setItems(masterAuctionList);
 
         // Cấu hình bảng Người dùng
         userIdColumn.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().getId())));
-        usernameColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getUsername()));
+        usernameColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getName()));
         emailColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getEmail()));
         roleColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getRole().name()));
         usersTable.setItems(masterUserList);
@@ -89,7 +89,7 @@ public class AdminPanelController extends BaseController {
 
     private void handleApproveAuction() {
         Auction selected = auctionsTable.getSelectionModel().getSelectedItem();
-        if (selected == null || selected.getStatus() != AuctionStatus.OPEN) {
+        if (selected == null || selected.getStatus() != AuctionStatus.ACTIVE) {
             DialogUtil.showWarning("Vui lòng chọn một cuộc đấu giá hợp lệ đang ở trạng thái OPEN!");
             return;
         }
@@ -106,7 +106,7 @@ public class AdminPanelController extends BaseController {
     private void handleDeleteUser() {
         User selected = usersTable.getSelectionModel().getSelectedItem();
         if (selected != null && selected.getRole() != UserRole.ADMIN) {
-            if (DialogUtil.showConfirm("Cảnh báo", "Khóa/Xóa vĩnh viễn tài khoản " + selected.getUsername() + "?")) {
+            if (DialogUtil.showConfirm("Cảnh báo", "Khóa/Xóa vĩnh viễn tài khoản " + selected.getName() + "?")) {
                 sendAdminActionToServer("DELETE_USER", selected.getId());
             }
         }
