@@ -12,17 +12,19 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 
-
 public class AuctionService {
     private static final Logger logger = LoggerFactory.getLogger(AuctionService.class);
+
     private final AuctionDAO auctionDAO;
 
     public AuctionService(AuctionDAO auctionDAO) {
         this.auctionDAO = auctionDAO;
     }
 
-    public Auction getAuctionById (int auctionId) throws SQLException {
-        return auctionDAO.findById(auctionId);
+    // ── Query ────────────────────────────────────────────────────────────────
+
+    public Auction getAuctionById(int id) throws SQLException {
+        return auctionDAO.findById(id);
     }
 
     public List<Auction> getAllAuctions() throws SQLException {
@@ -34,40 +36,14 @@ public class AuctionService {
     }
 
     public List<Auction> getAuctionsBySeller(int sellerId) throws SQLException {
-        return auctionDAO.findByBySellerId(sellerId);
+        return auctionDAO.findBySellerId(sellerId);
     }
 
     public List<Auction> getAuctionsByBidder(int bidderId) throws SQLException {
         return auctionDAO.findByBidderId(bidderId);
     }
 
-    public int createAuction(int sellerId, int itemId, double startingPrice,
-                             double minIncrement, LocalDateTime startTime,
-                             LocalDateTime endTime) throws SQLException, SQLException {
-        com.auction.model.item.Item item = new com.auction.model.item.Electronics(itemId, "Sản phẩm", startingPrice);
-
-
-        Auction auction = new Auction(0, item, startingPrice, 10, minIncrement, startTime, endTime);
-
-        auction.setStatus(AuctionStatus.SCHEDULED);
-        return auctionDAO.save(auction);
-    }
-
-    public void startAuction(int auctionId) throws SQLException {
-        Auction auction = auctionDAO.findById(auctionId);
-        if (auction == null) throw new IllegalArgumentException("Auction not found: " + auctionId);
-        auction.startAuction();
-        auctionDAO.updateStatus(auctionId, AuctionStatus.ACTIVE);
-        logger.info("Auction started: auctionId={}", auctionId);
-    }
-
-    public void endAuction(int auctionId) throws SQLException {
-        Auction auction = auctionDAO.findById(auctionId);
-        if (auction == null) throw new IllegalArgumentException("Auction not found: " + auctionId);
-        auction.endAuction();
-        auctionDAO.updateStatus(auctionId, AuctionStatus.ENDED);
-        logger.info("Auction ended: auctionId={}", auctionId);
-    }
+    // ── Mutation ─────────────────────────────────────────────────────────────
 
     /**
      * Seller tạo phiên đấu giá mới.
@@ -93,10 +69,8 @@ public class AuctionService {
             throw new IllegalArgumentException("minIncrement must be positive");
         }
 
-        com.auction.model.item.Item item = new com.auction.model.item.Electronics(itemId, "Sản phẩm", startingPrice);
-
-
-        Auction auction = new Auction(0, item, startingPrice, 10, minIncrement, startTime, endTime);
+        Auction auction = new Auction(0, itemId, seller.getId(), startingPrice, startTime, endTime);
+        auction.setMinIncrement(minIncrement);
         auction.setStatus(AuctionStatus.SCHEDULED);
 
         int id = auctionDAO.save(auction);
@@ -104,6 +78,22 @@ public class AuctionService {
 
         logger.info("Auction created: auctionId={}, sellerId={}, itemId={}", id, seller.getId(), itemId);
         return auction;
+    }
+
+    public void startAuction(int auctionId) throws SQLException {
+        Auction auction = auctionDAO.findById(auctionId);
+        if (auction == null) throw new IllegalArgumentException("Auction not found: " + auctionId);
+        auction.startAuction(); // validate: SCHEDULED → ACTIVE
+        auctionDAO.updateStatus(auctionId, AuctionStatus.ACTIVE);
+        logger.info("Auction started: auctionId={}", auctionId);
+    }
+
+    public void endAuction(int auctionId) throws SQLException {
+        Auction auction = auctionDAO.findById(auctionId);
+        if (auction == null) throw new IllegalArgumentException("Auction not found: " + auctionId);
+        auction.endAuction(); // validate: ACTIVE → ENDED
+        auctionDAO.updateStatus(auctionId, AuctionStatus.ENDED);
+        logger.info("Auction ended: auctionId={}", auctionId);
     }
 
     /**
@@ -131,5 +121,4 @@ public class AuctionService {
         auctionDAO.updateStatus(auctionId, AuctionStatus.CANCELLED);
         logger.info("Auction cancelled: auctionId={}, by userId={}", auctionId, requester.getId());
     }
-
 }

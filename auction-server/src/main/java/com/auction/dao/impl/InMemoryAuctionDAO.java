@@ -34,4 +34,16 @@ public class InMemoryAuctionDAO implements AuctionDAO {
     public void delete(Integer id) {
         database.remove(id);
     }
+
+    @Override
+    public List<Auction> findByBidderId(int bidderId) {
+        List<Auction> result = new ArrayList<>();
+        for (Auction auction : database.values()) {
+            // Adjust the logic as per your data model
+            if (auction.getLeadingBidderId() == bidderId) {
+                result.add(auction);
+            }
+        }
+        return result;
+    }
 }

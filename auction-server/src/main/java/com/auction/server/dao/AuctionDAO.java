@@ -16,10 +16,6 @@ public class AuctionDAO {
         this.dataSource = DatabaseConfig.getDataSource();
     }
 
-    public AuctionDAO(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
-
     //tạo query với dữ liệu nhập vào thông qua các entity (obj -> sql)
     public int save(Auction auction) throws SQLException {
         String sql = """
@@ -98,7 +94,7 @@ public class AuctionDAO {
     }
 
     //danh sách các phiên đấu giá của seller có id ?
-    public List<Auction> findByBySellerId(int sellerId) throws SQLException {
+    public List<Auction> findBySellerId(int sellerId) throws SQLException {
         String sql = "SELECT * FROM auctions WHERE seller_id = ? ";
         List<Auction> auctions = new ArrayList<>();
         try (Connection conn = dataSource.getConnection();

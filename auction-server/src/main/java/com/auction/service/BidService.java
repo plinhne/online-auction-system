@@ -83,10 +83,6 @@ public class BidService {
         } finally {
             lock.unlock();
         }
-        item.setPrice(amount); // Cập nhật lại giá hiện tại của sản phẩm
-        auction.setHighestBid(bid); // Cập nhật lượt bid cao nhất cho phiên
-
-        return true;
     }
 
     public void setAutoBid(int auctionId, int bidderId, double maxBid, double increment)
@@ -101,16 +97,16 @@ public class BidService {
 
     // ── Private helpers ──────────────────────────────────────────────────────
 
+    //đảm bảo luôn trả về cùng một obj nếu cùng auctionId
     private Auction getOrLoadAuction(int auctionId) throws SQLException {
-        return auctionCache.computeIfAbsent(auctionId, id -> {
-            try {
-                Auction a = auctionDAO.findById(id);
-                if (a == null) throw new IllegalArgumentException("Auction not found: " + id);
-                return a;
-            } catch (SQLException e) {
-                throw new RuntimeException("DB error loading auction: " + id, e);
-            }
-        });
+        Auction cached = auctionCache.get(auctionId);
+        if (cached != null) return cached;
+
+        Auction auction = auctionDAO.findById(auctionId);
+        if (auction == null) throw new IllegalArgumentException("Auction not found: " + auctionId);
+
+        auctionCache.put(auctionId, auction);
+        return auction;
     }
 
     private void syncStatus(Auction auction) throws SQLException {
