@@ -6,8 +6,8 @@ import com.auction.client.util.LoggerUtil;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 public class AuctionClientApp extends Application {
@@ -20,13 +20,19 @@ public class AuctionClientApp extends Application {
         try {
             // 2. Tải màn hình khởi đầu (LoginView)
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LoginView.fxml"));
-            BorderPane root = loader.load();
-            Scene scene = new Scene(root, 600, 700);
+
+            Parent root = loader.load();
+
+            Scene scene = new Scene(root);
 
             scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
 
             stage.setScene(scene);
             stage.setTitle("Auction System - Login");
+
+            // TỰ ĐỘNG PHÓNG TO TỐI ĐA KHI MỞ CỬA SỔ ĐẦU TIÊN
+            stage.setMaximized(true);
+
             stage.show();
         } catch (Exception e) {
             LoggerUtil.error("Lỗi khởi động UI", e);

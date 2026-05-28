@@ -35,6 +35,7 @@ public class LoginController extends BaseController {
     @FXML private Button bidderDemoButton;
     @FXML private Button sellerDemoButton;
     @FXML private Button adminDemoButton;
+    @FXML private Button signUpButton; // Cập nhật đồng bộ nút Sign Up mới từ FXML
 
     private final Gson gson = new Gson();
     private static final String SERVER_HOST = "localhost";
@@ -51,10 +52,13 @@ public class LoginController extends BaseController {
         // Gán sự kiện cho luồng đăng nhập chính thức
         loginButton.setOnAction(event -> handleLogin());
 
-        // Gán sự kiện cho luồng truy cập nhanh bằng tài khoản Demo để nghiệm thu BTL
-        bidderDemoButton.setOnAction(event -> handleDemoLogin("demo_bidder", "password123"));
-        sellerDemoButton.setOnAction(event -> handleDemoLogin("demo_seller", "password123"));
-        adminDemoButton.setOnAction(event -> handleDemoLogin("demo_admin", "password123"));
+        // Cập nhật thông tin tài khoản Demo chính xác theo bảng hiển thị Demo Credentials mới
+        bidderDemoButton.setOnAction(event -> handleDemoLogin("bidder", "bidder123"));
+        sellerDemoButton.setOnAction(event -> handleDemoLogin("seller", "seller123"));
+        adminDemoButton.setOnAction(event -> handleDemoLogin("admin", "admin123"));
+
+        // Gán sự kiện điều hướng chuyển cửa sổ sang màn hình Đăng ký tài khoản
+        signUpButton.setOnAction(event -> handleNavigateToSignUp());
     }
 
     /**
@@ -73,7 +77,7 @@ public class LoginController extends BaseController {
 
         // 2. Sử dụng hàm runAsyncTask kế thừa từ BaseController để chạy ngầm tác vụ mạng Socket
         // Giúp giao diện Client không bị đơ cứng (UI Freeze) khi Server xử lý chậm hoặc mất mạng
-        Task<User> loginTask = new Task() {
+        Task<User> loginTask = new Task<>() {
             @Override
             protected User call() throws Exception {
                 return executeNetworkAuth(username, password);
@@ -112,7 +116,16 @@ public class LoginController extends BaseController {
     }
 
     /**
-     * LOGIC LẬP TRÌNH MẠNG (TỰ HỌC TUẦN 9-10): Thiết lập cổng kết nối Object Stream song phương với Server[cite: 250, 265].
+     * ĐIỀU HƯỚNG SANG MÀN HÌNH ĐĂNG KÝ: Chuyển đổi ngữ cảnh Stage hiện tại sang SignUpView fxml.
+     */
+    private void handleNavigateToSignUp() {
+        LoggerUtil.info("Người dùng yêu cầu mở màn hình đăng ký hệ thống mới...");
+        // Sử dụng phương thức kế thừa switchWindow từ BaseController của bạn để điều hướng linh hoạt
+        switchWindow(signUpButton, "/fxml/SignUpView.fxml");
+    }
+
+    /**
+     * LOGIC LẬP TRÌNH MẠNG: Thiết lập cổng kết nối Object Stream song phương với Server.
      */
     private User executeNetworkAuth(String username, String password) throws IOException, ClassNotFoundException {
         // 1. Tạo kết nối Socket mới đến Server
@@ -149,7 +162,7 @@ public class LoginController extends BaseController {
                     int id = resultJson.get("id").getAsInt();
                     String email = resultJson.get("email").getAsString();
 
-                    // Sử dụng đa hình khởi tạo đúng đối tượng thực thể User con [cite: 114, 115, 121]
+                    // Sử dụng đa hình khởi tạo đúng đối tượng thực thể User con
                     if ("ADMIN".equalsIgnoreCase(roleStr)) {
                         user = new Admin(id, username, email, password);
                     } else if ("SELLER".equalsIgnoreCase(roleStr)) {
@@ -176,7 +189,7 @@ public class LoginController extends BaseController {
     }
 
     /**
-     * THUẬT TOÁN ĐIỀU HƯỚNG VAI TRÒ (Phân quyền đồ họa UI): Tách biệt màn hình dựa theo chức năng của User[cite: 32].
+     * THUẬT TOÁN ĐIỀU HƯỚNG VAI TRÒ (Phân quyền đồ họa UI): Tách biệt màn hình dựa theo chức năng của User.
      */
     private void navigateToDashboard(User user) {
         LoggerUtil.info("Xác thực thành công. Điều hướng giao diện theo phân quyền: " + user.getRole());

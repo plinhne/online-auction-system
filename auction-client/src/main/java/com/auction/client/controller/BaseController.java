@@ -5,6 +5,7 @@ import com.auction.client.util.LoggerUtil;
 import com.auction.client.network.ServerListener;
 import com.auction.model.user.User;
 
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -63,6 +64,7 @@ public abstract class BaseController {
 
     /**
      * NÂNG CẤP: Thay đổi toàn bộ giao diện hỗ trợ cho mọi cấu trúc Node (StackPane, VBox, Button,...)
+     * Đảm bảo cửa sổ mới luôn được phóng to tối đa vừa khít màn hình bằng cách ép luồng render chạy Maximized sau cùng.
      *
      * @param triggerNode Node kích hoạt sự kiện để tìm Stage nền (Nút bấm, StackPane avatar,...)
      * @param fxmlPath Đường dẫn tuyệt đối đến file FXML mới
@@ -85,7 +87,15 @@ public abstract class BaseController {
             }
 
             stage.setScene(scene);
-            stage.centerOnScreen();
+
+            // CẬP NHẬT SỬA LỖI KHÔNG FULL MÀN HÌNH:
+            // Đặt lệnh maximized vào Platform.runLater để JavaFX tái cấu trúc kích thước sau khi layout đã ổn định ổn định ổn định
+            Platform.runLater(() -> {
+                stage.setMaximized(false); // Đưa về trạng thái thường để xóa bộ nhớ đệm render của HĐH
+                stage.setMaximized(true);  // Ép buộc bung lấp đầy toàn bộ màn hình chính một cách đồng bộ
+            });
+
+            stage.show();
         } catch (IOException e) {
             LoggerUtil.error("Lỗi nghiêm trọng khi nạp file FXML tại đường dẫn: " + fxmlPath, e);
             DialogUtil.showError("Có lỗi hệ thống xảy ra khi chuyển đổi màn hình.");

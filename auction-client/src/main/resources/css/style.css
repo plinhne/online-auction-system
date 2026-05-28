@@ -4,295 +4,151 @@
 }
 
 .root {
-    -fx-font-size: 12px;
-    -fx-text-fill: #333333;
+    -fx-font-size: 13px;
+    -fx-text-fill: #1e293b;
+}
+
+/* ==================== SCROLL PANE ==================== */
+.main-scroll-pane {
+    -fx-background: #f8fafc;
+    -fx-border-width: 0;
+}
+.main-scroll-pane .viewport {
+    -fx-background-color: transparent;
 }
 
 /* ==================== BUTTONS ==================== */
 .button {
-    -fx-padding: 10px 20px;
-    -fx-font-size: 12px;
-    -fx-border-radius: 4px;
-    -fx-background-color: #f3f4f6;
-    -fx-text-fill: #030213;
+    -fx-padding: 8px 16px;
+    -fx-font-size: 13px;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #0f172a;
     -fx-cursor: hand;
-    -fx-border-color: #d1d5db;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1px;
 }
 
 .button:hover {
-    -fx-background-color: #e5e7eb;
+    -fx-background-color: #f1f5f9;
 }
 
 .button:pressed {
-    -fx-background-color: #d1d5db;
+    -fx-background-color: #e2e8f0;
 }
 
-.button:disabled {
-    -fx-opacity: 0.5;
-    -fx-cursor: default;
-}
-
-/* Primary Button */
+/* Nút Submit chính màu đen đặc */
 .button.primary {
-    -fx-background-color: #3b82f6;
-    -fx-text-fill: white;
-    -fx-border-color: #3b82f6;
-}
-
-.button.primary:hover {
-    -fx-background-color: #2563eb;
-}
-
-/* Success Button */
-.button.success {
-    -fx-background-color: #10b981;
-    -fx-text-fill: white;
-    -fx-border-color: #10b981;
-}
-
-.button.success:hover {
-    -fx-background-color: #059669;
-}
-
-/* Danger Button */
-.button.danger {
-    -fx-background-color: #ef4444;
-    -fx-text-fill: white;
-    -fx-border-color: #ef4444;
-}
-
-.button.danger:hover {
-    -fx-background-color: #dc2626;
-}
-
-/* ==================== TEXT FIELDS ==================== */
-.text-field {
-    -fx-padding: 8px;
-    -fx-border-color: #d1d5db;
-    -fx-border-radius: 4px;
-    -fx-background-color: white;
-    -fx-font-size: 12px;
-}
-
-.text-field:focused {
-    -fx-border-color: #3b82f6;
-    -fx-border-width: 2;
-}
-
-/* ==================== PASSWORD FIELD ==================== */
-.password-field {
-    -fx-padding: 8px;
-    -fx-border-color: #d1d5db;
-    -fx-border-radius: 4px;
-    -fx-background-color: white;
-}
-
-.password-field:focused {
-    -fx-border-color: #3b82f6;
-    -fx-border-width: 2;
-}
-
-/* ==================== COMBO BOX ==================== */
-.combo-box {
-    -fx-padding: 8px;
-    -fx-border-color: #d1d5db;
-    -fx-border-radius: 4px;
-    -fx-background-color: white;
-}
-
-.combo-box:focused {
-    -fx-border-color: #3b82f6;
-}
-
-/* ==================== LABELS ==================== */
-.label {
-    -fx-text-fill: #333333;
-}
-
-.label.header {
-    -fx-font-size: 24px;
+    -fx-background-color: #0f172a;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #0f172a;
     -fx-font-weight: bold;
 }
 
+.button.primary:hover {
+    -fx-background-color: #1e293b;
+}
+
+/* Nút tài khoản Demo */
+.button.demo-btn {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-text-fill: #0f172a;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 16px;
+}
+
+.button.demo-btn:hover {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #cbd5e1;
+}
+
+/* Nút liên kết văn bản màu xanh ẩn hoàn toàn hộp button */
+.button.link-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-padding: 0px 2px;
+    -fx-text-fill: #2563eb;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+.button.link-button:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #1d4ed8;
+    -fx-underline: true;
+}
+.button.link-button:pressed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #1e40af;
+}
+
+/* ==================== TEXT FIELDS & COMBO BOX ==================== */
+.text-field, .password-field, .combo-box {
+    -fx-padding: 8px 12px;
+    -fx-border-color: #cbd5e1;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-background-color: #ffffff;
+    -fx-font-size: 13px;
+}
+
+.text-field:focused, .password-field:focused, .combo-box:focused {
+    -fx-border-color: #2563eb;
+    -fx-border-width: 1.5px;
+}
+
+/* Định dạng riêng danh sách đổ xuống của ComboBox */
+.combo-box .list-cell {
+    -fx-background-color: white;
+    -fx-text-fill: #1e293b;
+    -fx-padding: 6px 12px;
+}
+.combo-box .list-cell:hover {
+    -fx-background-color: #f1f5f9;
+}
+
+/* ==================== LABELS ==================== */
+.label.header {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #0f172a;
+}
+
 .label.subtitle {
-    -fx-font-size: 14px;
-    -fx-text-fill: #666666;
+    -fx-font-size: 13px;
+    -fx-text-fill: #64748b;
 }
 
 .label.error {
     -fx-text-fill: #ef4444;
-}
-
-.label.success {
-    -fx-text-fill: #10b981;
-}
-
-/* ==================== TEXT AREA ==================== */
-.text-area {
-    -fx-padding: 10px;
-    -fx-border-color: #d1d5db;
-    -fx-border-radius: 4px;
-    -fx-control-inner-background: white;
-    -fx-font-size: 11px;
-}
-
-.text-area:focused {
-    -fx-border-color: #3b82f6;
-}
-
-/* ==================== TABLE VIEW ==================== */
-.table-view {
-    -fx-border-color: #e5e7eb;
-    -fx-border-radius: 4px;
-}
-
-.table-view .column-header {
-    -fx-background-color: #f9fafb;
-    -fx-border-color: #e5e7eb;
-}
-
-.table-view .table-row-cell {
-    -fx-border-color: #e5e7eb;
-    -fx-padding: 10px;
-}
-
-.table-view .table-row-cell:hover {
-    -fx-background-color: #f3f4f6;
-}
-
-/* ==================== PROGRESS BAR ==================== */
-.progress-bar {
-    -fx-padding: 2px;
-    -fx-border-radius: 2px;
-}
-
-.progress-bar .bar {
-    -fx-background-color: linear-gradient(to right, #3b82f6, #1d4ed8);
-    -fx-border-radius: 2px;
-}
-
-/* ==================== SCROLL PANE ==================== */
-.scroll-pane {
-    -fx-background: #f9fafb;
-    -fx-border-color: #e5e7eb;
+    -fx-font-size: 12px;
 }
 
 /* ==================== SEPARATORS ==================== */
-.separator {
-    -fx-border-color: #e5e7eb;
-}
-
-/* ==================== LIST VIEW ==================== */
-.list-view {
-    -fx-border-color: #e5e7eb;
-    -fx-control-inner-background: white;
-}
-
-.list-view .list-cell {
-    -fx-padding: 10px;
-    -fx-border-color: #f3f4f6;
-}
-
-.list-view .list-cell:hover {
-    -fx-background-color: #f9fafb;
-}
-
-/* ==================== TAB PANE ==================== */
-.tab-pane {
-    -fx-border-color: #e5e7eb;
-}
-
-.tab-pane .tab {
-    -fx-padding: 10px 20px;
-    -fx-border-color: #e5e7eb;
-}
-
-.tab-pane .tab:selected {
-    -fx-background-color: white;
-    -fx-border-color: #3b82f6;
-}
-
-/* ==================== CONTEXT MENU ==================== */
-.context-menu {
-    -fx-background-color: white;
-    -fx-border-color: #d1d5db;
-}
-
-.menu-item:focused {
-    -fx-background-color: #f3f4f6;
+.separator .line {
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0.5px;
 }
 
 /* ==================== CARDS ==================== */
 .card {
-    -fx-border-color: #e5e7eb;
-    -fx-border-radius: 8;
-    -fx-background-color: white;
-    -fx-padding: 20;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 3, 0, 0, 1);
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-background-color: #ffffff;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.04), 10, 0, 0, 4);
 }
 
-/* ==================== COLOR CLASSES ==================== */
+/* ==================== COLOR UTILITIES ==================== */
 .text-primary {
-    -fx-text-fill: #3b82f6;
-}
-
-.text-success {
-    -fx-text-fill: #10b981;
-}
-
-.text-danger {
-    -fx-text-fill: #ef4444;
-}
-
-.text-warning {
-    -fx-text-fill: #f59e0b;
+    -fx-text-fill: #2563eb;
 }
 
 .text-muted {
-    -fx-text-fill: #999999;
-}
-
-/* ==================== BACKGROUND CLASSES ==================== */
-.bg-primary {
-    -fx-background-color: #3b82f6;
-}
-
-.bg-success {
-    -fx-background-color: #dcfce7;
-}
-
-.bg-danger {
-    -fx-background-color: #fee2e2;
-}
-
-.bg-warning {
-    -fx-background-color: #fef3c7;
-}
-
-.bg-light {
-    -fx-background-color: #f9fafb;
-}
-
-.bg-white {
-    -fx-background-color: white;
-}
-/* ==================== CHART VIEW ==================== */
-.chart {
-    -fx-padding: 10px;
-}
-
-.chart-series-line {
-    -fx-stroke: #3b82f6;
-    -fx-stroke-width: 3px;
-}
-
-.chart-line-symbol {
-    -fx-background-color: #3b82f6, white;
-    -fx-background-radius: 5px;
-    -fx-padding: 5px;
-}
-
-.axis {
-    -fx-tick-label-fill: #666666;
-    -fx-font-size: 10px;
+    -fx-text-fill: #94a3b8;
 }

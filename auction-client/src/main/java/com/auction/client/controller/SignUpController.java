@@ -14,7 +14,7 @@ import javafx.scene.control.*;
 import java.io.IOException;
 
 /**
- * Controller chịu trách nhiệm điều khiển giao diện Đăng ký tài khoản (SignUpView.fxml)[cite: 64].
+ * Controller chịu trách nhiệm điều khiển giao diện Đăng ký tài khoản (SignUpView.fxml).
  * Thực hiện validate logic form và gửi yêu cầu đăng ký tài khoản mới lên hệ thống Máy chủ.
  */
 public class SignUpController extends BaseController {
@@ -27,7 +27,9 @@ public class SignUpController extends BaseController {
     @FXML private PasswordField txtPassword;
     @FXML private PasswordField txtConfirmPassword;
     @FXML private Button btnSignUp;
-    @FXML private Hyperlink linkLogin;
+
+    // ĐÃ CẬP NHẬT: Thay thế Hyperlink sang Button để đồng bộ với FXML mới, xóa bỏ hộp viền bằng CSS
+    @FXML private Button linkLogin;
 
     /**
      * Hàm tự động chạy sau khi file FXML được nạp thành công.
@@ -41,7 +43,7 @@ public class SignUpController extends BaseController {
         cbAccountType.setItems(FXCollections.observableArrayList(UserRole.BIDDER, UserRole.SELLER));
         cbAccountType.getSelectionModel().select(UserRole.BIDDER); // Mặc định chọn vai trò Người đấu giá
 
-        // 2. Gán hành động sự kiện cho Nút đăng ký và Hyperlink chuyển màn hình
+        // 2. Gán hành động sự kiện cho Nút đăng ký và Nút chuyển màn hình dạng liên kết văn bản
         btnSignUp.setOnAction(event -> handleSignUp());
         linkLogin.setOnAction(event -> handleSwitchToLogin());
     }
@@ -131,7 +133,7 @@ public class SignUpController extends BaseController {
      */
     private void handleSwitchToLogin() {
         LoggerUtil.info("Người dùng chuyển hướng sang giao diện Đăng nhập.");
-        // Sử dụng hàm switchWindow tiện ích của lớp cha BaseController để đổi Scene
+        // Sử dụng hàm switchWindow tiện ích của lớp cha BaseController để đổi Scene an toàn
         switchWindow(linkLogin, "/fxml/LoginView.fxml");
     }
 }
