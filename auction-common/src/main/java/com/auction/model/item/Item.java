@@ -11,10 +11,11 @@ public abstract class Item extends Entity {
     private String name;
     private double price;
     private ItemStatus status;
+    private String description;
 
     private List<Bid> bids = new ArrayList<>();
 
-    public Item(int id, String name, double price) {
+    public Item(int id, String name, double price, ItemCategory category) {
         super(id);
         this.name = name;
         this.price = price;
@@ -38,6 +39,10 @@ public abstract class Item extends Entity {
         return bids;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -48,6 +53,10 @@ public abstract class Item extends Entity {
 
     public void setStatus(ItemStatus status) {
         this.status = status;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     // polymorphism
