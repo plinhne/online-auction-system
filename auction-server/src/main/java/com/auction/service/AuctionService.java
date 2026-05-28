@@ -44,9 +44,11 @@ public class AuctionService {
     public int createAuction(int sellerId, int itemId, double startingPrice,
                              double minIncrement, LocalDateTime startTime,
                              LocalDateTime endTime) throws SQLException, SQLException {
-        Auction auction = new Auction(0, itemId, sellerId, startingPrice, startTime, endTime);
-        auction.setMinIncrement(minIncrement);
-        auction.setCurrentPrice(startingPrice); // current_price ban đầu = starting_price
+        com.auction.model.item.Item item = new com.auction.model.item.Electronics(itemId, "Sản phẩm", startingPrice);
+
+
+        Auction auction = new Auction(0, item, startingPrice, 10, minIncrement, startTime, endTime);
+
         auction.setStatus(AuctionStatus.SCHEDULED);
         return auctionDAO.save(auction);
     }
@@ -91,8 +93,10 @@ public class AuctionService {
             throw new IllegalArgumentException("minIncrement must be positive");
         }
 
-        Auction auction = new Auction(0, itemId, seller.getId(), startingPrice, startTime, endTime);
-        auction.setMinIncrement(minIncrement);
+        com.auction.model.item.Item item = new com.auction.model.item.Electronics(itemId, "Sản phẩm", startingPrice);
+
+
+        Auction auction = new Auction(0, item, startingPrice, 10, minIncrement, startTime, endTime);
         auction.setStatus(AuctionStatus.SCHEDULED);
 
         int id = auctionDAO.save(auction);

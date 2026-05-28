@@ -28,7 +28,6 @@
             <!-- Stats Cards Area -->
             <HBox spacing="15.0">
                <children>
-                  <!-- Card: Đấu giá -->
                   <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="card">
                      <children>
                         <Label styleClass="label, subtitle" text="Tổng số đấu giá" />
@@ -36,7 +35,6 @@
                      </children>
                   </VBox>
 
-                  <!-- Card: Người dùng -->
                   <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="card">
                      <children>
                         <Label styleClass="label, subtitle" text="Người dùng hệ thống" />
@@ -44,7 +42,6 @@
                      </children>
                   </VBox>
 
-                  <!-- Card: Doanh thu -->
                   <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="card">
                      <children>
                         <Label styleClass="label, subtitle" text="Doanh thu dự kiến" />
@@ -54,30 +51,80 @@
                </children>
             </HBox>
 
-            <!-- Management Table Area -->
-            <VBox spacing="15.0" styleClass="card" VBox.vgrow="ALWAYS">
-               <children>
-                  <HBox alignment="CENTER_LEFT" spacing="10.0">
-                     <children>
-                        <Label styleClass="label" style="-fx-font-weight: bold; -fx-font-size: 16;" text="Danh sách quản lý đấu giá" />
-                        <Region HBox.hgrow="ALWAYS" />
-                        <Button fx:id="deleteAuctionButton" styleClass="button, danger" text="🗑 Xóa Đấu Giá" />
-                     </children>
-                  </HBox>
+            <!-- Main Management Tabs -->
+            <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+               <tabs>
 
-                  <TableView fx:id="auctionsTable" styleClass="table-view" VBox.vgrow="ALWAYS">
-                     <columns>
-                        <TableColumn fx:id="auctionIdColumn" prefWidth="70.0" text="ID" />
-                        <TableColumn fx:id="auctionNameColumn" prefWidth="250.0" text="Tên sản phẩm" />
-                        <TableColumn fx:id="sellerColumn" prefWidth="150.0" text="Người bán" />
-                        <TableColumn fx:id="statusColumn" prefWidth="120.0" text="Trạng thái" />
-                     </columns>
-                     <columnResizePolicy>
-                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                     </columnResizePolicy>
-                  </TableView>
-               </children>
-            </VBox>
+                  <!-- TAB 1: QUẢN LÝ ĐẤU GIÁ -->
+                  <Tab text="Quản lý Đấu giá">
+                     <content>
+                        <VBox spacing="15.0" styleClass="card" style="-fx-background-color: white;">
+                           <padding>
+                              <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                           </padding>
+                           <children>
+                              <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                 <children>
+                                    <Label styleClass="label" style="-fx-font-weight: bold; -fx-font-size: 16;" text="Danh sách cuộc đấu giá" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="approveAuctionButton" styleClass="button, success" text="✓ Duyệt Đấu Giá" />
+                                    <Button fx:id="deleteAuctionButton" styleClass="button, danger" text="🗑 Xóa Đấu Giá" />
+                                 </children>
+                              </HBox>
+
+                              <TableView fx:id="auctionsTable" styleClass="table-view" VBox.vgrow="ALWAYS">
+                                 <columns>
+                                    <TableColumn fx:id="auctionIdColumn" prefWidth="70.0" text="ID" />
+                                    <TableColumn fx:id="auctionNameColumn" prefWidth="250.0" text="Tên sản phẩm" />
+                                    <TableColumn fx:id="sellerColumn" prefWidth="150.0" text="Người bán" />
+                                    <TableColumn fx:id="statusColumn" prefWidth="120.0" text="Trạng thái" />
+                                 </columns>
+                                 <columnResizePolicy>
+                                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                 </columnResizePolicy>
+                              </TableView>
+                           </children>
+                        </VBox>
+                     </content>
+                  </Tab>
+
+                  <!-- TAB 2: QUẢN LÝ NGƯỜI DÙNG (THÊM MỚI) -->
+                  <Tab text="Quản lý Người dùng">
+                     <content>
+                        <VBox spacing="15.0" styleClass="card" style="-fx-background-color: white;">
+                           <padding>
+                              <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                           </padding>
+                           <children>
+                              <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                 <children>
+                                    <Label styleClass="label" style="-fx-font-weight: bold; -fx-font-size: 16;" text="Danh sách thành viên" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="addUserButton" styleClass="button, primary" text="➕ Thêm Người Dùng" />
+                                    <Button fx:id="editUserButton" styleClass="button" text="✏ Sửa Thông Tin" />
+                                    <Button fx:id="deleteUserButton" styleClass="button, danger" text="🗑 Xóa Tài Khoản" />
+                                 </children>
+                              </HBox>
+
+                              <TableView fx:id="usersTable" styleClass="table-view" VBox.vgrow="ALWAYS">
+                                 <columns>
+                                    <TableColumn fx:id="userIdColumn" prefWidth="70.0" text="ID" />
+                                    <TableColumn fx:id="usernameColumn" prefWidth="150.0" text="Tên tài khoản" />
+                                    <TableColumn fx:id="emailColumn" prefWidth="200.0" text="Email" />
+                                    <TableColumn fx:id="roleColumn" prefWidth="120.0" text="Vai trò" />
+                                 </columns>
+                                 <columnResizePolicy>
+                                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                 </columnResizePolicy>
+                              </TableView>
+                           </children>
+                        </VBox>
+                     </content>
+                  </Tab>
+
+               </tabs>
+            </TabPane>
+
          </children>
       </VBox>
    </center>

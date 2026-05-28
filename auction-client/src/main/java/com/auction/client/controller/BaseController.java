@@ -2,48 +2,83 @@ package com.auction.client.controller;
 
 import com.auction.client.util.DialogUtil;
 import com.auction.client.util.LoggerUtil;
+import com.auction.client.network.ServerListener;
+import com.auction.model.user.User;
+
 import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Control;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-
+import java.io.ObjectOutputStream;
 import java.io.IOException;
 
+/**
+ * Lớp trừu tượng nền tảng (Abstract Base Class) cho toàn bộ các Controller trong hệ thống.
+ * Cung cấp các công cụ tiện ích dùng chung về điều hướng màn hình, quản lý Session và đa luồng.
+ */
 public abstract class BaseController {
 
+    // --- THÔNG TIN SESSION TOÀN CỤC (DÙNG CHUNG CHO TẤT CẢ MÀN HÌNH CON) ---
+    protected static User currentUser;                  // Người dùng đang đăng nhập hệ thống hiện tại
+    protected static ObjectOutputStream outStream;      // Luồng đẩy gói tin Object lên Server
+    protected static ServerListener serverListener;    // Luồng ngầm lắng nghe gói tin từ Server đổ về
+
     /**
-     * Lấy Stage (Cửa sổ) hiện tại từ một Control bất kỳ trên giao diện.
+     * Thiết lập cấu hình Session mạng toàn cục một lần duy nhất sau khi đăng nhập thành công.
      */
-    protected Stage getStage(Control control) {
-        if (control != null && control.getScene() != null) {
-            return (Stage) control.getScene().getWindow();
+    public static void setSessionContext(User user, ObjectOutputStream out, ServerListener listener) {
+        currentUser = user;
+        outStream = out;
+        serverListener = listener;
+        LoggerUtil.info("Đã thiết lập Session cho tài khoản: " + user.getName());
+    }
+
+    /**
+     * Xóa sạch thông tin Session khi người dùng thực hiện hành động Đăng xuất (Logout).
+     */
+    public static void clearSessionContext() {
+        currentUser = null;
+        outStream = null;
+        if (serverListener != null) {
+            serverListener.stopListening();
+            serverListener = null;
+        }
+        LoggerUtil.info("Đã xóa sạch phiên làm việc (Session cleared).");
+    }
+
+    /**
+     * Lấy Stage (Cửa sổ) hiện tại từ một Node bất kỳ trên giao diện (Hỗ trợ cả Control và các thẻ Layout).
+     */
+    protected Stage getStage(Node node) {
+        if (node != null && node.getScene() != null) {
+            return (Stage) node.getScene().getWindow();
         }
         return null;
     }
 
     /**
-     * Thay đổi toàn bộ giao diện của cửa sổ hiện tại (Ví dụ: Đăng nhập <-> Đăng ký <-> Màn hình chính).
-     * Tự động áp dụng file CSS dùng chung của hệ thống.
+     * NÂNG CẤP: Thay đổi toàn bộ giao diện hỗ trợ cho mọi cấu trúc Node (StackPane, VBox, Button,...)
      *
-     * @param triggerControl Control kích hoạt sự kiện để tìm Stage nền (Nút bấm, Hyperlink,...)
-     * @param fxmlPath Đường dẫn tuyệt đối đến file FXML mới (Ví dụ: "/fxml/login.fxml")
+     * @param triggerNode Node kích hoạt sự kiện để tìm Stage nền (Nút bấm, StackPane avatar,...)
+     * @param fxmlPath Đường dẫn tuyệt đối đến file FXML mới
      */
-    protected void switchWindow(Control triggerControl, String fxmlPath) {
+    protected void switchWindow(Node triggerNode, String fxmlPath) {
         try {
-            LoggerUtil.log("Đang chuyển đổi màn hình chính sang: " + fxmlPath);
-            Stage stage = getStage(triggerControl);
+            LoggerUtil.info("Đang chuyển đổi cấu trúc màn hình chính sang: " + fxmlPath);
+            Stage stage = getStage(triggerNode);
             if (stage == null) {
-                throw new IllegalStateException("Không tìm thấy Stage từ control được cung cấp.");
+                throw new IllegalStateException("Không tìm thấy Stage từ node được cung cấp.");
             }
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent root = loader.load();
             Scene scene = new Scene(root);
 
-            // Tự động liên kết file CSS mặc định của hệ thống
             String cssPath = "/css/style.css";
             if (getClass().getResource(cssPath) != null) {
                 scene.getStylesheets().add(getClass().getResource(cssPath).toExternalForm());
@@ -52,39 +87,63 @@ public abstract class BaseController {
             stage.setScene(scene);
             stage.centerOnScreen();
         } catch (IOException e) {
-            LoggerUtil.error("Lỗi khi nạp file FXML tại: " + fxmlPath, e);
+            LoggerUtil.error("Lỗi nghiêm trọng khi nạp file FXML tại đường dẫn: " + fxmlPath, e);
             DialogUtil.showError("Có lỗi hệ thống xảy ra khi chuyển đổi màn hình.");
         }
     }
 
     /**
-     * Nạp giao diện con vào vùng trung tâm (Center) của một BorderPane (Dùng cho MainController, Dashboard).
-     * Hàm này sử dụng Generics để tự động trả về Controller của View con vừa nạp, giúp dễ dàng truyền dữ liệu.
-     *
-     * @param container BorderPane chứa vùng trung tâm cần thay thế
-     * @param fxmlPath Đường dẫn FXML phân vùng con (Ví dụ: "/fxml/profile.fxml")
-     * @return Controller của giao diện con vừa được nạp, hoặc null nếu thất bại.
+     * GIỮ NGUYÊN ĐỂ BẢO TOÀN CÁC FILE ĐANG CHẠY: Gọi bắc cầu từ Control sang Node
+     */
+    protected void switchWindow(Control triggerControl, String fxmlPath) {
+        switchWindow((Node) triggerControl, fxmlPath);
+    }
+
+    /**
+     * GIỮ NGUYÊN ĐỂ BẢO TOÀN CÁC FILE CŨ: Nạp giao diện con vào vùng Center của BorderPane
      */
     protected <T> T loadCenterView(BorderPane container, String fxmlPath) {
         try {
-            LoggerUtil.log("Đang tải phân vùng con: " + fxmlPath);
+            LoggerUtil.info("Đang tải phân vùng giao diện con vào BorderPane: " + fxmlPath);
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent node = loader.load();
             container.setCenter(node);
             return loader.getController();
         } catch (IOException e) {
-            LoggerUtil.error("Lỗi không thể nạp phân vùng tại: " + fxmlPath, e);
-            DialogUtil.showError("Có lỗi xảy ra khi tải nội dung giao diện.");
+            LoggerUtil.error("Lỗi không thể nạp phân vùng đồ họa tại: " + fxmlPath, e);
+            DialogUtil.showError("Có lỗi xảy ra khi tải nội dung giao diện con.");
             return null;
         }
     }
 
     /**
-     * Thực thi một tác vụ ngầm bằn JavaFX Task để ngăn chặn tình trạng đơ/lag giao diện (UI Freeze)
-     * khi tương tác với mạng (NetworkService) hoặc cơ sở dữ liệu.
+     * BỔ SUNG MỚI: Nạp giao diện con cho mọi loại Container Layout (VBox, HBox, AnchorPane,...)
+     * Giúp xử lý gọn ghẽ vùng `contentArea` kiểu VBox của bạn mà không làm hỏng cấu trúc cũ.
      *
-     * @param <V> Kiểu dữ liệu trả về của tác vụ ngầm
-     * @param task Tác vụ cần xử lý ngầm dưới Background Thread
+     * @param container Bất kỳ lớp Layout nào kế thừa từ Pane (VBox, HBox, AnchorPane,...)
+     * @param fxmlPath Đường dẫn FXML phân vùng con
+     * @return Controller của giao diện con vừa được nạp
+     */
+    protected <T> T loadCenterView(Pane container, String fxmlPath) {
+        try {
+            LoggerUtil.info("Đang tải phân vùng giao diện con vào Pane/VBox: " + fxmlPath);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+            Parent node = loader.load();
+
+            // Xóa toàn bộ phần tử cũ và nạp giao diện mới vào
+            container.getChildren().setAll(node);
+
+            return loader.getController();
+        } catch (IOException e) {
+            LoggerUtil.error("Lỗi không thể nạp phân vùng đồ họa tại: " + fxmlPath, e);
+            DialogUtil.showError("Có lỗi xảy ra khi tải nội dung giao diện con.");
+            return null;
+        }
+    }
+
+    /**
+     * Thực thi một tác vụ ngầm bằng JavaFX Task để ngăn chặn tình trạng đơ/lag giao diện (UI Freeze)
+     * khi tương tác với mạng (NetworkService) hoặc cơ sở dữ liệu.
      */
     protected <V> void runAsyncTask(Task<V> task) {
         Thread thread = new Thread(task);

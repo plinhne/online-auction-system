@@ -83,6 +83,10 @@ public class BidService {
         } finally {
             lock.unlock();
         }
+        item.setPrice(amount); // Cập nhật lại giá hiện tại của sản phẩm
+        auction.setHighestBid(bid); // Cập nhật lượt bid cao nhất cho phiên
+
+        return true;
     }
 
     public void setAutoBid(int auctionId, int bidderId, double maxBid, double increment)

@@ -1,103 +1,137 @@
 package com.auction.client.controller;
 
 import com.auction.client.util.DialogUtil;
+import com.auction.client.util.LoggerUtil;
 import com.auction.client.util.ValidationUtil;
 import com.auction.model.user.UserRole;
+import com.auction.network.NetworkMessage;
+import com.auction.network.MessageType;
+import com.google.gson.JsonObject;
+
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.stage.Stage;
-
 import java.io.IOException;
-import java.net.URL;
-import java.util.ResourceBundle;
 
-public class SignUpController implements Initializable {
+/**
+ * Controller chịu trách nhiệm điều khiển giao diện Đăng ký tài khoản (SignUpView.fxml)[cite: 64].
+ * Thực hiện validate logic form và gửi yêu cầu đăng ký tài khoản mới lên hệ thống Máy chủ.
+ */
+public class SignUpController extends BaseController {
 
+    // --- CÁC THÀNH PHẦN ĐỒ HỌA FX INJECT TỪ FXML ---
     @FXML private TextField txtFullName;
     @FXML private TextField txtUsername;
     @FXML private TextField txtEmail;
-    @FXML private ComboBox<UserRole> cbAccountType;
+    @FXML private ComboBox<UserRole> cbAccountType; // Đổi sang Enum UserRole để đồng bộ dữ liệu
     @FXML private PasswordField txtPassword;
     @FXML private PasswordField txtConfirmPassword;
     @FXML private Button btnSignUp;
     @FXML private Hyperlink linkLogin;
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        // 1. Đổ dữ liệu phân quyền tự động từ Enum UserRole (gói common) vào ComboBox
-        cbAccountType.setItems(FXCollections.observableArrayList(UserRole.values()));
-        cbAccountType.setPromptText("Chọn vai trò tài khoản...");
+    /**
+     * Hàm tự động chạy sau khi file FXML được nạp thành công.
+     * Thiết lập cấu hình ban đầu cho ComboBox và lắng nghe các sự kiện tương tác.
+     */
+    @FXML
+    public void initialize() {
+        LoggerUtil.info("Đang khởi tạo màn hình đăng ký tài khoản (Sign Up)...");
 
-        // 2. Gán sự kiện cho nút đăng ký (Sign Up)
+        // 1. Chỉ đổ 2 quyền có thể tự đăng ký tự do: BIDDER và SELLER lên ComboBox
+        cbAccountType.setItems(FXCollections.observableArrayList(UserRole.BIDDER, UserRole.SELLER));
+        cbAccountType.getSelectionModel().select(UserRole.BIDDER); // Mặc định chọn vai trò Người đấu giá
+
+        // 2. Gán hành động sự kiện cho Nút đăng ký và Hyperlink chuyển màn hình
         btnSignUp.setOnAction(event -> handleSignUp());
-
-        // 3. Gán sự kiện chuyển hướng về màn hình đăng nhập (Log in)
-        linkLogin.setOnAction(event -> navigateToLogin());
+        linkLogin.setOnAction(event -> handleSwitchToLogin());
     }
 
     /**
-     * Xử lý logic nghiệp vụ khi người dùng click Đăng ký
+     * THUẬT TOÁN ĐĂNG KÝ: Tiền kiểm tra (Validate) dữ liệu biểu mẫu tại Client trước khi gửi mạng.
      */
     private void handleSignUp() {
-        String fullName = txtFullName.getText().trim();
-        String username = txtUsername.getText().trim();
-        String email = txtEmail.getText().trim();
-        UserRole role = cbAccountType.getValue();
+        String fullName = txtFullName.getText() != null ? txtFullName.getText().trim() : "";
+        String username = txtUsername.getText() != null ? txtUsername.getText().trim() : "";
+        String email = txtEmail.getText() != null ? txtEmail.getText().trim() : "";
+        UserRole selectedRole = cbAccountType.getValue();
         String password = txtPassword.getText();
         String confirmPassword = txtConfirmPassword.getText();
 
-        // Kiểm tra dữ liệu đầu vào bằng ValidationUtil của hệ thống
-        if (fullName.isEmpty() || username.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-            DialogUtil.showError("Lỗi nhập liệu. Vui lòng điền đầy đủ tất cả các trường có dấu (*).");
+        // 1. Kiểm tra không được bỏ trống các trường bắt buộc có dấu (*)
+        if (ValidationUtil.isEmpty(fullName) || ValidationUtil.isEmpty(username) ||
+                ValidationUtil.isEmpty(email) || ValidationUtil.isEmpty(password) || ValidationUtil.isEmpty(confirmPassword)) {
+            DialogUtil.showWarning("Vui lòng điền đầy đủ các trường thông tin bắt buộc (*).");
             return;
         }
 
-        if (!ValidationUtil.isValidEmail(email)) { // Giả định ValidationUtil có hàm kiểm tra email
-            DialogUtil.showError("Lỗi nhập liệu. Định dạng Email không hợp lệ.");
+        // 2. Kiểm tra cấu trúc định dạng Username (Không chứa ký tự đặc biệt)
+        if (!ValidationUtil.isValidUsername(username)) {
+            DialogUtil.showWarning("Username không hợp lệ! Chỉ chấp nhận chữ, số, dấu gạch dưới và độ dài từ 3-20 ký tự.");
             return;
         }
 
-        if (role == null) {
-            DialogUtil.showError("Lỗi nhập liệu. Vui lòng chọn loại tài khoản (Account Type).");
+        // 3. Kiểm tra định dạng Email hợp lệ
+        if (!ValidationUtil.isValidEmail(email)) {
+            DialogUtil.showWarning("Định dạng Email không đúng quy chuẩn (Ví dụ: abc@example.com).");
             return;
         }
 
+        // 4. Kiểm tra độ an toàn bảo mật tối thiểu của Mật khẩu
+        if (!ValidationUtil.isValidPassword(password)) {
+            DialogUtil.showWarning("Mật khẩu bảo mật bắt buộc phải chứa ít nhất 6 ký tự.");
+            return;
+        }
+
+        // 5. Kiểm tra logic khớp chuỗi giữa Mật khẩu và Nhập lại mật khẩu
         if (!password.equals(confirmPassword)) {
-            DialogUtil.showError("Lỗi mật khẩu. Mật khẩu xác nhận không trùng khớp.");
+            DialogUtil.showWarning("Mật khẩu nhập lại không trùng khớp! Vui lòng kiểm tra kỹ.");
             return;
         }
 
-        // TODO: Đóng gói dữ liệu gửi qua mạng lên server
-        // Gợi ý: NetworkMessage msg = new NetworkMessage(MessageType.SIGNUP_REQ, dataJson);
-        // Gửi qua cổng OutStream của Socket...
-
-        System.out.println("Gửi thông tin đăng ký lên Server: " + username + " với vai trò " + role);
-        DialogUtil.showInfo("Thành công. Đăng ký tài khoản thành công! Quay lại màn hình đăng nhập.");
-        navigateToLogin();
+        // 6. Gửi gói tin lên Server thông qua luồng outStream tĩnh kế thừa từ BaseController
+        sendSignUpRequestToServer(fullName, username, email, selectedRole, password);
     }
 
     /**
-     * Điều hướng giao diện quay trở lại màn hình Đăng Nhập
+     * Đóng gói thông tin form thành cấu trúc JSON và đẩy qua đường truyền mạng Object Socket Stream.
      */
-    private void navigateToLogin() {
-        try {
-            // Tải tệp cấu hình giao diện đăng nhập
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LoginView.fxml"));
-            Parent root = loader.load();
+    private void sendSignUpRequestToServer(String fullName, String username, String email, UserRole role, String password) {
+        if (outStream == null) {
+            DialogUtil.showError("Không thể thực hiện đăng ký. Mất kết nối tới máy chủ hệ thống!");
+            return;
+        }
 
-            // Lấy Stage hiện tại của ứng dụng và đổi Scene
-            Stage stage = (Stage) linkLogin.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.setTitle("Đăng nhập hệ thống đấu giá");
-            stage.show();
+        try {
+            // Đóng gói payload dữ liệu thô thành JsonObject
+            JsonObject signUpPayload = new JsonObject();
+            signUpPayload.addProperty("fullName", fullName);
+            signUpPayload.addProperty("username", username);
+            signUpPayload.addProperty("email", email);
+            signUpPayload.addProperty("role", role.name()); // Truyền chuỗi vai trò: "BIDDER" hoặc "SELLER"
+            signUpPayload.addProperty("password", password); // Server sẽ chịu trách nhiệm băm mã hóa mật khẩu ở tầng AuthService
+
+            // Tạo đối tượng NetworkMessage bọc chung theo cấu trúc sơ đồ lớp dữ liệu
+            NetworkMessage message = new NetworkMessage(MessageType.SIGNUP_REQUEST, signUpPayload.toString());
+
+            // Đẩy đối tượng nhị phân qua đường ống mạng lên Server xử lý tập trung
+            outStream.writeObject(message);
+            outStream.flush();
+
+            LoggerUtil.info("Đã gửi gói tin SIGNUP_REQUEST cho tài khoản: " + username);
+            DialogUtil.showInfo("Yêu cầu đăng ký đã được gửi đi thành công! Vui lòng chờ phản hồi xác thực từ hệ thống.");
 
         } catch (IOException e) {
-            DialogUtil.showError("Lỗi hệ thống. Không thể tải giao diện đăng nhập: " + e.getMessage());
+            LoggerUtil.error("Sự cố nghẽn luồng truyền tải gói tin đăng ký qua Socket mạng.", e);
+            DialogUtil.showError("Đường truyền Socket gặp sự cố bất ngờ. Không thể gửi yêu cầu đăng ký!");
         }
+    }
+
+    /**
+     * ĐIỀU HƯỚNG MÀN HÌNH: Chuyển người dùng quay trở lại giao diện Đăng nhập nếu đã có tài khoản.
+     */
+    private void handleSwitchToLogin() {
+        LoggerUtil.info("Người dùng chuyển hướng sang giao diện Đăng nhập.");
+        // Sử dụng hàm switchWindow tiện ích của lớp cha BaseController để đổi Scene
+        switchWindow(linkLogin, "/fxml/LoginView.fxml");
     }
 }

@@ -42,7 +42,7 @@ public class LoggerUtil {
     /**
      * In lỗi hệ thống kèm theo dấu vết ngoại lệ (Exception StackTrace)
      */
-    public static void error(String message, Exception e) {
+    public static void error(String message, Throwable e) {
         System.err.println(String.format("[%s] [ERROR] [%s] - %s",
                 LocalDateTime.now().format(FORMATTER),
                 Thread.currentThread().getName(),
