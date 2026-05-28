@@ -4,7 +4,7 @@ public class Electronics extends Item {
 
     public Electronics(int id, String name, double price) {
 
-        super(id, name, price);
+        super(id, name, price, ItemCategory.ELECTRONICS);
     }
 
     @Override

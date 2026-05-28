@@ -1,7 +1,5 @@
 package com.auction.model.bid;
 
-import com.auction.model.user.User;
-
 import java.time.LocalDateTime;
 
 public class Bid {

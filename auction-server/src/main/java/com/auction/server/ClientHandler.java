@@ -3,18 +3,21 @@ package com.auction.server;
 import com.auction.server.controller.AuctionController;
 import com.auction.server.controller.AuthController;
 import com.auction.server.controller.BidController;
+import com.auction.server.controller.ItemController;
 import com.auction.server.dao.AuctionDAO;
 import com.auction.server.dao.BidDAO;
+import com.auction.server.dao.ItemDAO;
 import com.auction.server.dao.UserDAO;
-import com.auction.service.AuctionService;
-import com.auction.service.AuthService;
-import com.auction.service.BidService;
-import com.auction.service.UserService;
+import com.auction.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
 
-public class ClientHandler implements Runnable{
+public class ClientHandler implements Runnable {
+    private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
+
     private final Socket socket;
     private final MessageRouter router;
     private BufferedReader in;
@@ -23,29 +26,34 @@ public class ClientHandler implements Runnable{
     public ClientHandler(Socket socket) {
         this.socket = socket;
 
-        //tạo DAO -> services -> controller -> router
-        UserDAO userDAO = new UserDAO();
+        // Wiring: DAOs → Services → Controllers → Router
+        UserDAO userDAO       = new UserDAO();
         AuctionDAO auctionDAO = new AuctionDAO();
-        BidDAO bidDAO = new BidDAO();
+        BidDAO bidDAO         = new BidDAO();
+        ItemDAO itemDAO       = new ItemDAO();
 
-        //nhận DAO
-        UserService userService = new UserService();
-        AuthService authService = new AuthService(userService);
-        AuctionService auctionService = new AuctionService(auctionDAO);
-        BidService bidService = new BidService();
+        UserService userService         = new UserService(userDAO);
+        AuthService authService         = new AuthService(userService);
+        AuctionService auctionService   = new AuctionService(auctionDAO);
+        BidService bidService           = new BidService(auctionDAO, bidDAO);
+        ItemService itemService         = new ItemService(itemDAO);
 
-        AuthController authController = new AuthController(authService, userService);
+        // AutoBidService lấy từ BidService để dùng chung auctionCache
+        AutoBidService autoBidService = bidService.getAutoBidService();
+
+        AuthController authController       = new AuthController(authService, userService);
         AuctionController auctionController = new AuctionController(auctionService);
-        BidController bidController = new BidController(bidService, auctionService);
+        BidController bidController         = new BidController(bidService, autoBidService);
+        ItemController itemController       = new ItemController(itemService);
 
-        this.router = new MessageRouter(authController,auctionController,bidController);
+        this.router = new MessageRouter(authController, auctionController, bidController, itemController);
     }
 
     @Override
     public void run() {
         try {
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(new ObjectOutputStream(socket.getOutputStream()), true);
+            in  = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream(), true); // autoFlush=true
 
             String line;
             while ((line = in.readLine()) != null) {
@@ -53,20 +61,18 @@ public class ClientHandler implements Runnable{
                 out.println(response);
             }
         } catch (IOException e) {
-            System.err.println("Client disconnected: " + socket.getInetAddress().getHostAddress());
-        }finally {
+            logger.info("Client disconnected: {}", socket.getInetAddress().getHostAddress());
+        } finally {
             cleanup();
         }
     }
 
     public void sendMessage(String message) {
-        if (out != null) {
-            out.println(message);
-        }
+        if (out != null) out.println(message);
     }
 
     public int getCurrentAuctionId() {
-       return router.getCurrentAuctionId();
+        return router.getCurrentAuctionId();
     }
 
     private void cleanup() {
@@ -74,9 +80,9 @@ public class ClientHandler implements Runnable{
         try {
             if (in != null) in.close();
             if (out != null) out.close();
-            if (socket != null && !socket.isClosed()) socket.close();
+            if (!socket.isClosed()) socket.close();
         } catch (IOException e) {
-            System.err.println("Cleanup error: " + e.getMessage());
+            logger.error("Cleanup error: {}", e.getMessage());
         }
     }
 }
