@@ -27,7 +27,7 @@ public class BidService {
         Bid bid = new Bid(
                 (int)System.currentTimeMillis(),
                 amount,
-                user,
+                user.getId(),
                 auction.getId()
         );
 
