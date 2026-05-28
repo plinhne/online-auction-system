@@ -29,7 +29,7 @@ public class AuctionClientApp extends Application {
             stage.setTitle("Auction System - Login");
             stage.show();
         } catch (Exception e) {
-            LoggerUtil.logError("Lỗi khởi động UI", e);
+            LoggerUtil.error("Lỗi khởi động UI", e);
             DialogUtil.showError("Lỗi nghiêm trọng: Không thể khởi chạy giao diện.");
         }
     }

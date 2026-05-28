@@ -48,14 +48,19 @@ public class AdminPanelController extends BaseController {
     public void initialize() {
         LoggerUtil.info("Khởi tạo bảng quản trị dữ liệu của Admin.");
 
-        // Cấu hình bảng Đấu giá
+        // ĐÃ SỬA: Cấu hình bảng Đấu giá tương thích với Model Auction thực tế
         auctionIdColumn.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().getId())));
-        auctionNameColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getItem().getName()));
-        sellerColumn.setCellValueFactory(data -> new SimpleStringProperty("Seller_ID: " + data.getValue().getId()));
+
+        // Sửa từ .getItem().getName() thành .getItemId() vì Model chỉ lưu ID nguyên thủy
+        auctionNameColumn.setCellValueFactory(data -> new SimpleStringProperty("Mã sản phẩm: " + data.getValue().getItemId()));
+
+        // Sửa từ .getId() thành .getSellerId() để hiển thị đúng ID người bán
+        sellerColumn.setCellValueFactory(data -> new SimpleStringProperty("Seller ID: " + data.getValue().getSellerId()));
+
         statusColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getStatus().name()));
         auctionsTable.setItems(masterAuctionList);
 
-        // Cấu hình bảng Người dùng
+        // Cấu hình bảng Người dùng (Giữ nguyên giả định Model User của bạn chạy đúng)
         userIdColumn.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().getId())));
         usernameColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getName()));
         emailColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getEmail()));
@@ -68,18 +73,15 @@ public class AdminPanelController extends BaseController {
         deleteUserButton.setOnAction(event -> handleDeleteUser());
     }
 
-    /**
-     * NOTE: Đã loại bỏ hoàn toàn hàm nhận outStream trung gian cũ.
-     */
     public void refreshAdminDataFromServer() {
-        // Có thể phát đi lệnh mạng yêu cầu nạp dữ liệu tươi mới từ DB thông qua outStream của BaseController tại đây
+        // Gửi lệnh lên server yêu cầu lấy danh sách mới nhất nếu cần
     }
 
     public void updateAdminDashboard(List<Auction> auctions, List<User> users) {
         totalAuctionsLabel.setText(String.valueOf(auctions.size()));
         totalUsersLabel.setText(String.valueOf(users.size()));
 
-        // Tính tổng doanh thu dự kiến hệ thống hưởng hoa hồng 10%
+        // Tính tổng doanh thu dựa trên hàm getCurrentPrice() của Auction
         double revenue = auctions.stream().mapToDouble(Auction::getCurrentPrice).sum() * 0.1;
         totalRevenueLabel.setText(String.format("%,.0fđ", revenue));
 
@@ -89,8 +91,10 @@ public class AdminPanelController extends BaseController {
 
     private void handleApproveAuction() {
         Auction selected = auctionsTable.getSelectionModel().getSelectedItem();
-        if (selected == null || selected.getStatus() != AuctionStatus.ACTIVE) {
-            DialogUtil.showWarning("Vui lòng chọn một cuộc đấu giá hợp lệ đang ở trạng thái OPEN!");
+
+        // ĐÃ SỬA: Kiểm tra nếu đấu giá đang ở trạng thái SCHEDULED (chờ duyệt) thì mới cho phép bấm Duyệt
+        if (selected == null || selected.getStatus() != AuctionStatus.SCHEDULED) {
+            DialogUtil.showWarning("Vui lòng chọn một cuộc đấu giá hợp lệ đang chờ duyệt (SCHEDULED)!");
             return;
         }
         sendAdminActionToServer("APPROVE_AUCTION", selected.getId());
@@ -112,9 +116,6 @@ public class AdminPanelController extends BaseController {
         }
     }
 
-    /**
-     * NOTE: Sử dụng trực tiếp 'outStream' tĩnh bọc gói tin gửi yêu cầu điều phối tối cao lên máy chủ.
-     */
     private void sendAdminActionToServer(String subAction, int targetId) {
         if (outStream == null) return;
         try {
@@ -122,7 +123,10 @@ public class AdminPanelController extends BaseController {
             adminPayload.addProperty("adminAction", subAction);
             adminPayload.addProperty("targetId", targetId);
 
+            // ⚠️ LƯU Ý LOGIC: Bạn đang gửi lệnh quản trị bằng `MessageType.PLACE_BID_REQUEST`.
+            // Đáng lẽ ra nên dùng một MessageType riêng cho admin như MessageType.ADMIN_ACTION_REQUEST
             NetworkMessage message = new NetworkMessage(MessageType.PLACE_BID_REQUEST, adminPayload.toString());
+
             outStream.writeObject(message);
             outStream.flush();
             LoggerUtil.info("Admin thực thi lệnh: " + subAction + " trên đối tượng ID: " + targetId);
