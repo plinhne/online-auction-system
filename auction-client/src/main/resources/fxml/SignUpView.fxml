@@ -2,11 +2,11 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
-<?import javafx.scene.image.*?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="main-scroll-pane" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.SignUpController">
+<ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" styleClass="main-scroll-pane" stylesheets="@../css/style.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.SignUpController">
     <content>
         <VBox alignment="CENTER" style="-fx-background-color: #f8fafc;">
             <padding>
@@ -21,8 +21,8 @@
                         <VBox alignment="CENTER" spacing="8.0">
                             <children>
                                 <StackPane>
-                                    <Circle fill="#2563eb" radius="22.0" />
-                                    <ImageView fitHeight="24.0" fitWidth="24.0" preserveRatio="true">
+                                    <Circle fill="#2563eb" radius="30.0" />
+                                    <ImageView fitHeight="44.0" fitWidth="41.0" preserveRatio="true">
                                         <image>
                                             <Image url="@../icons/BidIcon.png" />
                                         </image>
@@ -126,7 +126,7 @@
                                 <Insets top="15.0" />
                             </VBox.margin>
                             <children>
-                                <Label styleClass="text-muted" style="-fx-font-size: 13px;" text="Already have an account?" />
+                                <Label style="-fx-font-size: 13px;" styleClass="text-muted" text="Already have an account?" />
                                 <Button fx:id="linkLogin" styleClass="button, link-button" text="Log in" />
                             </children>
                         </HBox>
