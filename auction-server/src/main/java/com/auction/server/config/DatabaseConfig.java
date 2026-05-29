@@ -2,25 +2,53 @@ package com.auction.server.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 public class DatabaseConfig {
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
     private static HikariDataSource dataSource;
 
     public static synchronized DataSource getDataSource() {
-        if(dataSource == null) {
+        if (dataSource == null) {
+            Properties props = loadProperties();
             HikariConfig config = new HikariConfig();
-            config.setJdbcUrl("jdbc:sqlserver://;serverName=localhost\\SQLEXPRESS;databaseName=auctionDB");
-            config.setUsername("sa");
-            config.setPassword("auction123");
-            config.setMaximumPoolSize(10);
-            config.setMinimumIdle(2);
-            config.setConnectionTimeout(30000);
-            config.setIdleTimeout(600000);
-            config.setMaxLifetime(1800000);
+            config.setJdbcUrl(props.getProperty("db.url"));
+            config.setUsername(props.getProperty("db.username"));
+            config.setPassword(props.getProperty("db.password"));
+            config.setMaximumPoolSize(Integer.parseInt(props.getProperty("db.pool.maxSize", "10")));
+            config.setMinimumIdle(Integer.parseInt(props.getProperty("db.pool.minIdle", "2")));
+            config.setConnectionTimeout(Long.parseLong(props.getProperty("db.pool.connectionTimeout", "30000")));
+            config.setIdleTimeout(Long.parseLong(props.getProperty("db.pool.idleTimeout", "600000")));
+            config.setMaxLifetime(Long.parseLong(props.getProperty("db.pool.maxLifetime", "1800000")));
             dataSource = new HikariDataSource(config);
+            logger.info("Database connection pool initialized: {}", props.getProperty("db.url"));
         }
         return dataSource;
+    }
+
+    public static void close() {
+        if (dataSource != null && !dataSource.isClosed()) {
+            dataSource.close();
+            logger.info("Database connection pool closed");
+        }
+    }
+
+    private static Properties loadProperties() {
+        Properties props = new Properties();
+        try (InputStream in = DatabaseConfig.class
+                .getClassLoader()
+                .getResourceAsStream("database.properties")) {
+            if (in == null) throw new RuntimeException("database.properties not found in classpath");
+            props.load(in);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load database.properties", e);
+        }
+        return props;
     }
 }
