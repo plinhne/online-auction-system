@@ -1,81 +1,92 @@
 package com.auction.client.controller;
 
 import com.auction.client.util.DialogUtil;
+import com.auction.client.util.FormatterUtil;
 import com.auction.client.util.LoggerUtil;
+import com.auction.model.user.User;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 
 public class ProfileController extends BaseController {
 
+    // --- CÁC THÀNH PHẦN ĐỒ HỌA FX INJECT TỪ FXML ---
+    @FXML private Button btnBack; // Thêm nếu bạn muốn bắt sự kiện nút Quay lại
+    @FXML private Label fullNameLabel;
+    @FXML private Label roleBadge;
     @FXML private Label usernameLabel;
     @FXML private Label emailLabel;
-    @FXML private Label roleLabel;
-
-    // TODO: Khởi tạo hoặc Inject UserService khi kết nối dữ liệu thực tế từ máy chủ
-    // private final UserService userService = new UserService();
+    @FXML private Label accountIdLabel;
+    @FXML private Label balanceLabel; // Nhãn hiển thị số dư mới bổ sung
 
     @FXML
     public void initialize() {
-        LoggerUtil.log("✓ ProfileController bắt đầu khởi tạo.");
+        LoggerUtil.info("✓ ProfileController bắt đầu khởi tạo hồ sơ cá nhân.");
+
+        // Cấu hình sự kiện nút quay lại (nếu cần thiết, chuyển về màn hình danh sách đấu giá)
+        if (btnBack != null) {
+            btnBack.setOnAction(e -> switchWindow(btnBack, "/fxml/AuctionListView.fxml"));
+        }
+
+        // Kích hoạt luồng tải dữ liệu an toàn
         loadUserProfile();
     }
 
     /**
-     * Nạp dữ liệu thông tin cá nhân của người dùng bất đồng bộ bằng JavaFX Task
+     * Nạp dữ liệu thông tin cá nhân của người dùng bất đồng bộ từ Session hiện tại
      */
     private void loadUserProfile() {
-        // Bọc tiến trình gọi mạng/database vào Task để chống đơ UI Thread
-        Task<UserWrapper> loadProfileTask = new Task<>() {
+        // Sử dụng Task chạy ngầm để bảo đảm an toàn dữ liệu luồng đồ họa JavaFX
+        Task<User> loadProfileTask = new Task<>() {
             @Override
-            protected UserWrapper call() throws Exception {
-                // Giả lập thời gian trễ phản hồi từ Server
-                Thread.sleep(150);
+            protected User call() throws Exception {
+                // Giả lập thời gian trễ phản hồi cực ngắn từ bộ nhớ Session
+                Thread.sleep(100);
 
-                // Ở đây sau này bạn sẽ gọi Service thực tế, ví dụ: userService.getCurrentUser()
-                return new UserWrapper("Demo User", "user@auction.com", "Bidder");
+                if (currentUser == null) {
+                    throw new IllegalStateException("Mất thông tin phiên làm việc hiện tại. Hãy đăng nhập lại!");
+                }
+
+                // Trả về trực tiếp thực thể User tĩnh kế thừa từ lớp cha BaseController
+                return currentUser;
             }
         };
 
-        // Cập nhật thông tin lên các Label khi lấy dữ liệu ngầm thành công
+        // Cập nhật đồng bộ thông tin lên toàn bộ các nhãn Label khi Task thành công
         loadProfileTask.setOnSucceeded(e -> {
-            UserWrapper user = loadProfileTask.getValue();
+            User user = loadProfileTask.getValue();
 
-            usernameLabel.setText(user.getUsername());
-            emailLabel.setText(user.getEmail());
-            roleLabel.setText(user.getRole());
+            // Đổ dữ liệu động vào các trường giao diện
+            if (fullNameLabel != null) fullNameLabel.setText(user.getName());
+            if (usernameLabel != null) usernameLabel.setText(user.getName());
+            if (emailLabel != null) emailLabel.setText(user.getEmail());
 
-            LoggerUtil.log("Đã tải thông tin hồ sơ cá nhân thành công cho tài khoản: " + user.getUsername());
+            // Định dạng mã tài khoản theo quy chuẩn thiết kế
+            if (accountIdLabel != null) accountIdLabel.setText("USR-" + user.getId());
+
+            // Định dạng hiển thị nhãn Quyền hạn vai trò
+            if (roleBadge != null && user.getRole() != null) {
+                roleBadge.setText(user.getRole().name().toUpperCase());
+            }
+
+            // ĐỒNG BỘ SỐ DƯ: Định dạng số dư tiền tệ thực tế thông qua FormatterUtil có sẵn
+            if (balanceLabel != null) {
+                balanceLabel.setText(FormatterUtil.formatCurrency(user.getWalletBalance()));
+            }
+
+            LoggerUtil.info("Đã tải thông tin hồ sơ cá nhân thành công cho tài khoản: " + user.getName());
         });
 
-        // Xử lý khi xảy ra sự cố kết nối mạng trong tiến trình ngầm
+        // Xử lý khi xảy ra sự cố bất ngờ
         loadProfileTask.setOnFailed(e -> {
             Throwable exception = loadProfileTask.getException();
-            LoggerUtil.error("Lỗi khi tải thông tin hồ sơ cá nhân người dùng: ", exception);
-            DialogUtil.showError("Không thể tải thông tin hồ sơ từ máy chủ.");
+            LoggerUtil.error("Lỗi khi nạp dữ liệu thông tin hồ sơ: ", exception);
+            DialogUtil.showError("Không thể hiển thị thông tin hồ sơ cá nhân.");
         });
 
         // Kích hoạt tiến trình ngầm thông qua hàm dùng chung trong BaseController
         runAsyncTask(loadProfileTask);
-    }
-
-    /**
-     * Lớp nội bộ (Inner Class) tạm thời dùng để đóng gói thông tin người dùng.
-     * Bạn có thể thay thế bằng class Model User thực tế của dự án nếu có sẵn.
-     */
-    private static class UserWrapper {
-        private final String username;
-        private final String email;
-        private final String role;
-
-        public UserWrapper(String username, String email, String role) {
-            this.username = username;
-            this.email = email;
-            this.role = role;
-        }
-
-        public String getUsername() { return username; }
-        public String getEmail() { return email; }
-        public String getRole() { return role; }
     }
 }

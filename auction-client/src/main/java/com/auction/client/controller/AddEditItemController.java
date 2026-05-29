@@ -1,5 +1,6 @@
 package com.auction.client.controller;
 
+import com.auction.client.network.NetworkService;
 import com.auction.client.util.DialogUtil;
 import com.auction.client.util.LoggerUtil;
 import com.auction.client.util.ValidationUtil;
@@ -16,7 +17,6 @@ import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -57,7 +57,7 @@ public class AddEditItemController extends BaseController {
     }
 
     /**
-     * NOTE: Cấu hình chế độ form (Thêm mới/Sửa đổi). Đã loại bỏ hoàn toàn tham số 'outStream'.
+     * Cấu hình chế độ form (Thêm mới/Sửa đổi).
      */
     public void setFormMode(boolean isEditMode, int itemId) {
         this.isEditMode = isEditMode;
@@ -85,8 +85,7 @@ public class AddEditItemController extends BaseController {
     }
 
     /**
-     * NOTE: Gửi thông tin sản phẩm thô lên Server thông qua biến 'outStream' thừa kế từ BaseController.
-     * Server sẽ tiếp nhận và áp dụng Design Pattern Factory Method để dựng thực thể Item phù hợp dưới Server[cite: 142].
+     * Gửi thông tin sản phẩm thô lên Server thông qua NetworkService
      */
     private void handleSaveItem() {
         errorLabel.setText("");
@@ -122,14 +121,18 @@ public class AddEditItemController extends BaseController {
             itemJson.addProperty("startTime", startTimeMillis);
             itemJson.addProperty("endTime", endTimeMillis);
 
-            // Bắn gói tin Object mạng tuần tự hóa bằng outStream của lớp cha BaseController
-            if (outStream != null) {
-                NetworkMessage message = new NetworkMessage(MessageType.PLACE_BID_REQUEST, itemJson.toString());
-                outStream.writeObject(message);
-                outStream.flush();
-                DialogUtil.showInfo("Đã gửi yêu cầu lưu sản phẩm lên hệ thống Máy chủ.");
+            // ĐÃ SỬA: Xóa khối outStream cũ, sử dụng NetworkService để gửi gói tin JSON
+            NetworkMessage message = new NetworkMessage(MessageType.PLACE_BID_REQUEST, itemJson.toString());
+            NetworkService.getInstance().sendNetworkMessage(message);
+
+            DialogUtil.showInfo("Đã gửi yêu cầu lưu sản phẩm lên hệ thống Máy chủ.");
+
+            // Đóng cửa sổ sau khi gửi thành công
+            if (saveButton.getScene() != null && saveButton.getScene().getWindow() != null) {
+                ((Stage) saveButton.getScene().getWindow()).close();
             }
-        } catch (IOException e) {
+
+        } catch (Exception e) {
             LoggerUtil.error("Sự cố truyền tin Socket tạo sản phẩm.", e);
         }
     }

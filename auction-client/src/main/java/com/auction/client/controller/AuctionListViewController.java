@@ -1,14 +1,13 @@
 package com.auction.client.controller;
 
-import com.auction.client.network.ServerListener;
 import com.auction.client.util.DialogUtil;
 import com.auction.client.util.LoggerUtil;
-import com.auction.client.util.ValidationUtil;
 import com.auction.model.auction.Auction;
 import com.auction.network.NetworkMessage;
 import com.auction.network.MessageType;
 import com.google.gson.Gson;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -25,7 +24,6 @@ import javafx.scene.layout.VBox;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -34,20 +32,13 @@ import java.util.ResourceBundle;
  */
 public class AuctionListViewController extends BaseController implements Initializable {
 
-    @FXML
-    private Label totalItemsLabel;
-    @FXML
-    private TextField searchField;
-    @FXML
-    private ComboBox<String> categoryCombo;
-    @FXML
-    private ComboBox<String> sortCombo;
-    @FXML
-    private TabPane statusTabPane;
-    @FXML
-    private FlowPane auctionGridPane;
-    @FXML
-    private VBox noResultsArea;
+    @FXML private Label totalItemsLabel;
+    @FXML private TextField searchField;
+    @FXML private ComboBox<String> categoryCombo;
+    @FXML private ComboBox<String> sortCombo;
+    @FXML private TabPane statusTabPane;
+    @FXML private FlowPane auctionGridPane;
+    @FXML private VBox noResultsArea;
 
     private final ObservableList<Auction> auctionMasterData = FXCollections.observableArrayList();
     private final Gson gson = new Gson();
@@ -56,72 +47,57 @@ public class AuctionListViewController extends BaseController implements Initial
     public void initialize(URL url, ResourceBundle rb) {
         LoggerUtil.info("Khởi tạo danh sách sản phẩm đấu giá trực tuyến.");
 
-        categoryCombo.setItems(FXCollections.observableArrayList("Điện tử", "Thời trang", "Gia dụng", "Khác"));
+        categoryCombo.setItems(FXCollections.observableArrayList("Electronics", "Vehicles", "Arts", "Others"));
         sortCombo.setItems(FXCollections.observableArrayList("Giá tăng dần", "Giá giảm dần", "Sắp kết thúc"));
 
         fetchAuctionItems();
     }
 
     /**
-     * TẢI DỮ LIỆU THẬT QUA MẠNG (Bất đồng bộ)
+     * Gửi yêu cầu lấy danh sách lên Server (Chỉ gửi, không đợi nhận ở đây)
      */
     private void fetchAuctionItems() {
-        Task<List<Auction>> loadItemsTask = new Task<List<Auction>>() {
+        Task<Void> sendRequestTask = new Task<>() {
             @Override
-            protected List<Auction> call() throws Exception {
-                if (outStream == null) {
-                    throw new IllegalStateException("Cổng mạng outStream chưa được thiết lập. Hãy đăng nhập lại!");
-                }
+            protected Void call() throws Exception {
+                LoggerUtil.info("Đang gửi yêu cầu GET_ALL_AUCTIONS_REQUEST lên máy chủ...");
+                NetworkMessage request = new NetworkMessage(MessageType.GET_ALL_AUCTIONS_REQUEST, "GET_ALL_AUCTIONS");
+                // ĐÃ SỬA: Đẩy gói tin cho NetworkService xử lý ngầm (Tự động chuyển thành JSON và gửi đi)
+                com.auction.client.network.NetworkService.getInstance().sendNetworkMessage(request);
 
-                LoggerUtil.info("Đang gửi yêu cầu GET_ALL_AUCTIONS lên máy chủ...");
-
-                // ⚠️ LƯU Ý LOGIC: Bạn đang mượn tạm MessageType.PLACE_BID_REQUEST để kéo danh sách đấu giá.
-                // Nếu Server yêu cầu đúng loại tin, hãy cân nhắc sửa thành MessageType.GET_ALL_AUCTIONS nếu có.
-                NetworkMessage request = new NetworkMessage(MessageType.PLACE_BID_REQUEST, "GET_ALL_AUCTIONS");
-
-                outStream.writeObject(request);
-                outStream.flush();
-
-                return executeFetchRequest();
+                return null;
             }
         };
 
-        loadItemsTask.setOnSucceeded(e -> {
-            List<Auction> serverAuctions = loadItemsTask.getValue();
-            if (serverAuctions != null) {
-                auctionMasterData.setAll(serverAuctions);
-                totalItemsLabel.setText(auctionMasterData.size() + " phiên đấu giá trực tuyến hiện có");
-
-                renderGrid();
-            }
-        });
-
-        loadItemsTask.setOnFailed(e -> {
-            Throwable exception = loadItemsTask.getException();
-            LoggerUtil.error("Lỗi mạng: Không thể lấy danh sách sản phẩm từ Server.", exception);
+        sendRequestTask.setOnFailed(e -> {
+            LoggerUtil.error("Lỗi mạng: Không thể gửi yêu cầu lấy danh sách sản phẩm.", sendRequestTask.getException());
             DialogUtil.showError("Hệ thống mạng gặp sự cố. Không thể tải danh sách sản phẩm!");
         });
 
-        runAsyncTask(loadItemsTask);
-    }
-
-    private List<Auction> executeFetchRequest() {
-        try {
-            return new ArrayList<>();
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
+        runAsyncTask(sendRequestTask);
     }
 
     /**
-     * KẾT XUẤT ĐỒ HỌA: Đổ dữ liệu thật lên card mẫu
+     * HÀM MỚI: ServerListener sẽ gọi hàm này và truyền danh sách vào khi nhận được phản hồi từ Server
+     */
+    public void updateAuctionListFromServer(List<Auction> serverAuctions) {
+        Platform.runLater(() -> {
+            if (serverAuctions != null) {
+                auctionMasterData.setAll(serverAuctions);
+                totalItemsLabel.setText(auctionMasterData.size() + " phiên đấu giá trực tuyến hiện có");
+                renderGrid();
+            }
+        });
+    }
+
+    /**
+     * KẾT XUẤT ĐỒ HỌA: Duyệt vòng lặp vẽ và đổ dữ liệu thực thể lên các tấm Card mẫu
      */
     private void renderGrid() {
         auctionGridPane.getChildren().clear();
 
         if (auctionMasterData.isEmpty()) {
             noResultsArea.setVisible(true);
-            LoggerUtil.info("Mạng trống: Hiện tại chưa có phiên đấu giá nào được đăng tải.");
             return;
         }
         noResultsArea.setVisible(false);
@@ -132,41 +108,42 @@ public class AuctionListViewController extends BaseController implements Initial
                 Parent cardNode = loader.load();
 
                 ItemCardController cardController = loader.getController();
-
-                // ĐÃ SỬA: Gọi đúng hàm setAuctionData(auction) đã sửa ở bước trước của ItemCardController
                 cardController.setAuctionData(auction);
 
-                // Đồng bộ hành vi click: Mở phòng đấu giá Realtime
+                // Đồng bộ hành vi click vào thẻ Card
                 cardNode.setOnMouseClicked(event -> {
-                    LoggerUtil.info("Người dùng chọn xem phiên đấu giá ID: " + auction.getId());
+                    LoggerUtil.info("Người dùng click chọn thẻ Card phiên đấu giá ID: " + auction.getId());
                     navigateToAuctionRoom(auction);
                 });
 
                 auctionGridPane.getChildren().add(cardNode);
             } catch (IOException e) {
-                LoggerUtil.error("Lỗi render thẻ sản phẩm: " + e.getMessage(), e);
+                LoggerUtil.error("Lỗi render đồ họa thẻ sản phẩm: " + e.getMessage(), e);
             }
         }
-        LoggerUtil.info("Đã kết xuất thành công " + auctionMasterData.size() + " phiên đấu giá thật lên màn hình.");
     }
 
     /**
-     * ĐIỀU HƯỚNG MÀN HÌNH: Chuyển sang phòng đấu giá Realtime
+     * ĐIỀU HƯỚNG MÀN HÌNH: Đã sửa lỗi Load FXML 2 lần gây mất dữ liệu
      */
     private void navigateToAuctionRoom(Auction auction) {
         try {
-            // ĐÃ SỬA: Đồng bộ đúng tên file FXML phòng đấu giá trực tiếp của bạn là "product-details.fxml" hoặc "RealTimeBiddingView.fxml"
-            // (Hãy đảm bảo chuỗi đường dẫn này trỏ chính xác đến giao diện RealTimeBiddingController của bạn)
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/RealTimeBiddingView.fxml"));
+            // 1. Nạp file FXML duy nhất 1 lần
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ProductDetailsView.fxml"));
             Parent root = loader.load();
 
-            RealTimeBiddingController biddingController = loader.getController();
-            biddingController.setAuctionContext(auction);
+            // 2. Lấy Controller đích và truyền dữ liệu
+            ProductDetailsController detailsController = loader.getController();
+            if (detailsController != null) {
+                detailsController.setAuctionDetails(auction);
+            }
 
+            // 3. Gắn giao diện mới lên Scene hiện tại
             auctionGridPane.getScene().setRoot(root);
-        } catch (IOException e) {
-            LoggerUtil.error("Không thể mở phòng đấu giá trực tiếp.", e);
-            DialogUtil.showError("Lỗi hệ thống: Không thể truy cập phòng đấu giá!");
+
+        } catch (Exception e) {
+            LoggerUtil.error("Không thể mở màn hình chi tiết sản phẩm.", e);
+            DialogUtil.showError("Lỗi hệ thống: Không thể truy cập phân vùng chi tiết!");
         }
     }
 }

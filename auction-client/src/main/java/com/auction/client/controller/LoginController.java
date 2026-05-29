@@ -127,63 +127,56 @@ public class LoginController extends BaseController {
     /**
      * LOGIC LẬP TRÌNH MẠNG: Thiết lập cổng kết nối Object Stream song phương với Server.
      */
-    private User executeNetworkAuth(String username, String password) throws IOException, ClassNotFoundException {
+    private User executeNetworkAuth(String username, String password) throws Exception {
         // 1. Tạo kết nối Socket mới đến Server
         Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
 
-        // 2. Thiết lập cấu hình Object Stream gửi nhận dữ liệu tuần tự
-        ObjectOutputStream tempOut = new ObjectOutputStream(socket.getOutputStream());
-        tempOut.flush(); // Giải phóng vùng đệm stream đầu ra
-        ObjectInputStream tempIn = new ObjectInputStream(socket.getInputStream());
+        // 2. ĐÃ SỬA: Chuyển sang luồng Text (PrintWriter / BufferedReader)
+        java.io.PrintWriter tempOut = new java.io.PrintWriter(socket.getOutputStream(), true);
+        java.io.BufferedReader tempIn = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
 
-        // 3. Đóng gói thông tin đăng nhập thành chuỗi cấu trúc JSON
+        // 3. Đóng gói thông tin đăng nhập
         JsonObject loginPayload = new JsonObject();
         loginPayload.addProperty("username", username);
         loginPayload.addProperty("password", password);
 
-        // 4. Bắn gói tin LOGIN_REQUEST lên Server theo đúng sơ đồ cấu trúc
+        // 4. Bắn gói tin gửi lên dạng Text JSON
         NetworkMessage authRequest = new NetworkMessage(MessageType.LOGIN_REQUEST, loginPayload.toString());
-        tempOut.writeObject(authRequest);
-        tempOut.flush();
+        tempOut.println(gson.toJson(authRequest));
 
-        // 5. Đợi phản hồi tối cao từ Máy chủ trả về (Lệnh nghẽn - Blocking)
-        Object receivedObject = tempIn.readObject();
-        if (receivedObject instanceof NetworkMessage) {
-            NetworkMessage response = (NetworkMessage) receivedObject;
+        // 5. Đợi Server trả lời
+        String responseLine = tempIn.readLine();
+        NetworkMessage response = gson.fromJson(responseLine, NetworkMessage.class);
 
-            if (response.getType() == MessageType.LOGIN_RESPONSE) {
-                JsonObject resultJson = com.google.gson.JsonParser.parseString(response.getPayload()).getAsJsonObject();
-                String status = resultJson.get("status").getAsString();
+        if (response != null && response.getType() == MessageType.LOGIN_RESPONSE) {
+            JsonObject resultJson = com.google.gson.JsonParser.parseString(response.getPayload()).getAsJsonObject();
+            String status = resultJson.get("status").getAsString();
 
-                if ("SUCCESS".equalsIgnoreCase(status)) {
-                    // Trích xuất thông tin đối tượng User do Server tạo và trả về dựa theo đa hình vai trò
-                    String roleStr = resultJson.get("role").getAsString();
-                    User user;
-                    int id = resultJson.get("id").getAsInt();
-                    String email = resultJson.get("email").getAsString();
+            if ("SUCCESS".equalsIgnoreCase(status)) {
+                String roleStr = resultJson.get("role").getAsString();
+                User user;
+                int id = resultJson.get("id").getAsInt();
+                String email = resultJson.get("email").getAsString();
 
-                    // Sử dụng đa hình khởi tạo đúng đối tượng thực thể User con
-                    if ("ADMIN".equalsIgnoreCase(roleStr)) {
-                        user = new Admin(id, username, email, password);
-                    } else if ("SELLER".equalsIgnoreCase(roleStr)) {
-                        user = new Seller(id, username, email, password);
-                    } else {
-                        user = new Bidder(id, username, email, password);
-                    }
-
-                    // 6. KHỞI TẠO LUỒNG NGHE MẠNG NGẦM (SERVER LISTENER) ĐÃ ĐƯỢC ĐỒNG BỘ
-                    ServerListener listener = new ServerListener(socket);
-                    listener.start(); // Kích hoạt chạy ngầm song song
-
-                    // 7. LƯU TRỮ SESSION TĨNH TOÀN CỤC LÊN LỚP CHA BASECONTROLLER
-                    BaseController.setSessionContext(user, tempOut, listener);
-
-                    return user;
+                if ("ADMIN".equalsIgnoreCase(roleStr)) {
+                    user = new Admin(id, username, email, password);
+                } else if ("SELLER".equalsIgnoreCase(roleStr)) {
+                    user = new Seller(id, username, email, password);
+                } else {
+                    user = new Bidder(id, username, email, password);
                 }
+
+                // 6. ĐÃ SỬA: Bàn giao Socket cho NetworkService tiếp quản
+                com.auction.client.network.NetworkService.getInstance().attachConnection(socket, tempOut, tempIn);
+                ServerListener listener = com.auction.client.network.NetworkService.getInstance().getServerListener();
+
+                // 7. LƯU TRỮ SESSION
+                BaseController.setSessionContext(user, listener);
+
+                return user;
             }
         }
 
-        // Nếu không thành công, dọn dẹp đóng socket tạm thời
         socket.close();
         return null;
     }

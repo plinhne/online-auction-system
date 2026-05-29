@@ -152,3 +152,103 @@
 .text-muted {
     -fx-text-fill: #94a3b8;
 }
+/* ==================== BỔ SUNG CHO PRODUCT DETAILS ==================== */
+
+/* Cỡ chữ và màu cho Tiêu đề lớn */
+.label-title {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #0f172a;
+}
+
+/* Định dạng Thẻ Card trắng bo góc, có đổ bóng nhẹ */
+.card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-padding: 20px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.03), 10, 0, 0, 4);
+}
+
+.card-header {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: #0f172a;
+    -fx-padding: 0 0 10 0;
+}
+
+/* Số tiền màu xanh lá cây đậm */
+.price-green {
+    -fx-text-fill: #16a34a;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+/* Khung Current Leader nền xanh dương nhạt */
+.leader-box {
+    -fx-background-color: #f0f9ff;
+    -fx-background-radius: 8px;
+    -fx-padding: 12px 15px;
+    -fx-margin-top: 10px;
+}
+
+/* Container bo góc cho ảnh lớn */
+.image-container {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+    -fx-border-color: #e2e8f0;
+    -fx-overflow: hidden; /* Cắt góc ảnh bị tràn */
+}
+
+/* Badges (Nhãn dán góc ảnh) */
+.badge {
+    -fx-padding: 6px 12px;
+    -fx-background-radius: 6px;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+.badge-dark {
+    -fx-background-color: #0b1120;
+    -fx-text-fill: #ffffff;
+}
+
+.badge-light {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #0f172a;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 5, 0, 0, 2);
+}
+
+/* Nút Submit màu đen đậm y hệt web */
+.btn-dark {
+    -fx-background-color: #0b1120;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+}
+.btn-dark:hover {
+    -fx-background-color: #1e293b;
+}
+
+/* Làm bảng TableView (Recent Bids) trong suốt, tàng hình viền để giống danh sách List */
+.clean-table {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+.clean-table .column-header-background {
+    -fx-background-color: transparent;
+    -fx-border-width: 0 0 1px 0;
+    -fx-border-color: #e2e8f0;
+}
+.clean-table .table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-width: 0 0 1px 0;
+    -fx-border-color: #f1f5f9;
+    -fx-padding: 5px 0;
+}
+.clean-table .table-row-cell:hover {
+    -fx-background-color: #f8fafc;
+}
