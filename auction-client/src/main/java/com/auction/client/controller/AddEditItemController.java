@@ -56,9 +56,6 @@ public class AddEditItemController extends BaseController {
         saveButton.setOnAction(event -> handleSaveItem());
     }
 
-    /**
-     * Cấu hình chế độ form (Thêm mới/Sửa đổi).
-     */
     public void setFormMode(boolean isEditMode, int itemId) {
         this.isEditMode = isEditMode;
         this.editingItemId = itemId;
@@ -84,9 +81,6 @@ public class AddEditItemController extends BaseController {
         removeImageButton.setVisible(false);
     }
 
-    /**
-     * Gửi thông tin sản phẩm thô lên Server thông qua NetworkService
-     */
     private void handleSaveItem() {
         errorLabel.setText("");
 
@@ -121,8 +115,11 @@ public class AddEditItemController extends BaseController {
             itemJson.addProperty("startTime", startTimeMillis);
             itemJson.addProperty("endTime", endTimeMillis);
 
-            // ĐÃ SỬA: Xóa khối outStream cũ, sử dụng NetworkService để gửi gói tin JSON
-            NetworkMessage message = new NetworkMessage(MessageType.PLACE_BID_REQUEST, itemJson.toString());
+            // LOGIC MỚI: Tự động chọn MessageType tương ứng
+            MessageType type = isEditMode ? MessageType.EDIT_ITEM_REQUEST : MessageType.ADD_ITEM_REQUEST;
+
+            // ĐÃ SỬA: Dùng NetworkService gửi JSON
+            NetworkMessage message = new NetworkMessage(type, itemJson.toString());
             NetworkService.getInstance().sendNetworkMessage(message);
 
             DialogUtil.showInfo("Đã gửi yêu cầu lưu sản phẩm lên hệ thống Máy chủ.");
@@ -133,7 +130,7 @@ public class AddEditItemController extends BaseController {
             }
 
         } catch (Exception e) {
-            LoggerUtil.error("Sự cố truyền tin Socket tạo sản phẩm.", e);
+            LoggerUtil.error("Sự cố truyền tin Socket tạo/sửa sản phẩm.", e);
         }
     }
 }
