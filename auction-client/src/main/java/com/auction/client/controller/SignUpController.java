@@ -17,7 +17,8 @@ import java.io.IOException;
  * Controller chịu trách nhiệm điều khiển giao diện Đăng ký tài khoản (SignUpView.fxml)[cite: 64].
  * Thực hiện validate logic form và gửi yêu cầu đăng ký tài khoản mới lên hệ thống Máy chủ.
  */
-public class SignUpController extends BaseController {
+public class
+SignUpController extends BaseController {
 
     // --- CÁC THÀNH PHẦN ĐỒ HỌA FX INJECT TỪ FXML ---
     @FXML private TextField txtFullName;
