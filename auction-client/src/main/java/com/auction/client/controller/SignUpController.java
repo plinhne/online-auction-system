@@ -11,7 +11,6 @@ import com.google.gson.JsonObject;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import java.io.IOException;
 
 /**
  * Controller chịu trách nhiệm điều khiển giao diện Đăng ký tài khoản (SignUpView.fxml).
@@ -90,19 +89,13 @@ public class SignUpController extends BaseController {
             return;
         }
 
-        // 6. Gửi gói tin lên Server thông qua luồng outStream tĩnh kế thừa từ BaseController
         sendSignUpRequestToServer(fullName, username, email, selectedRole, password);
     }
 
     /**
-     * Đóng gói thông tin form thành cấu trúc JSON và đẩy qua đường truyền mạng Object Socket Stream.
+     * Đóng gói thông tin form thành cấu trúc JSON và đẩy qua đường truyền mạng.
      */
     private void sendSignUpRequestToServer(String fullName, String username, String email, UserRole role, String password) {
-        if (outStream == null) {
-            DialogUtil.showError("Không thể thực hiện đăng ký. Mất kết nối tới máy chủ hệ thống!");
-            return;
-        }
-
         try {
             // Đóng gói payload dữ liệu thô thành JsonObject
             JsonObject signUpPayload = new JsonObject();
@@ -115,14 +108,14 @@ public class SignUpController extends BaseController {
             // Tạo đối tượng NetworkMessage bọc chung theo cấu trúc sơ đồ lớp dữ liệu
             NetworkMessage message = new NetworkMessage(MessageType.SIGNUP_REQUEST, signUpPayload.toString());
 
-            // Đẩy đối tượng nhị phân qua đường ống mạng lên Server xử lý tập trung
-            outStream.writeObject(message);
-            outStream.flush();
+            // ĐÃ SỬA: Bắn gói tin qua NetworkService, giải quyết triệt để lỗi không có tín hiệu gửi lên
+            com.auction.client.network.NetworkService.getInstance().sendNetworkMessage(message);
 
             LoggerUtil.info("Đã gửi gói tin SIGNUP_REQUEST cho tài khoản: " + username);
             DialogUtil.showInfo("Yêu cầu đăng ký đã được gửi đi thành công! Vui lòng chờ phản hồi xác thực từ hệ thống.");
 
-        } catch (IOException e) {
+        } catch (Exception e) {
+            // ĐÃ SỬA: Bắt lỗi Exception chung để loại bỏ cảnh báo của IOException
             LoggerUtil.error("Sự cố nghẽn luồng truyền tải gói tin đăng ký qua Socket mạng.", e);
             DialogUtil.showError("Đường truyền Socket gặp sự cố bất ngờ. Không thể gửi yêu cầu đăng ký!");
         }

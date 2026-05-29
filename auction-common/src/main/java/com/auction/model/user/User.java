@@ -58,4 +58,7 @@ public abstract class User extends Entity {
 
         walletBalance -= amount;
     }
+
+    public void setWalletBalance(double newBalance) {
+    }
 }

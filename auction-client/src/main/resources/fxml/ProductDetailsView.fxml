@@ -12,7 +12,7 @@
             <Insets bottom="15.0" left="25.0" right="25.0" top="15.0" />
          </padding>
          <children>
-            <Button styleClass="button" text="← Quay lại danh sách" />
+            <Button fx:id="backButton" styleClass="button" text="← Quay lại danh sách" />
             <Region HBox.hgrow="ALWAYS" />
          </children>
       </HBox>
@@ -26,7 +26,6 @@
                   <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
                </padding>
                <children>
-                  <!-- Bên trái: Hình ảnh sản phẩm -->
                   <VBox prefWidth="450.0" spacing="20.0">
                      <children>
                         <StackPane style="-fx-padding: 10;" styleClass="card">
@@ -35,7 +34,6 @@
                            </children>
                         </StackPane>
 
-                        <!-- Timeline Card -->
                         <VBox spacing="15.0" styleClass="card">
                            <children>
                               <Label style="-fx-font-weight: bold;" styleClass="label" text="Thời gian đấu giá" />
@@ -60,10 +58,8 @@
                      </children>
                   </VBox>
 
-                  <!-- Bên phải: Thông tin chi tiết & Đặt giá -->
                   <VBox spacing="20.0" HBox.hgrow="ALWAYS">
                      <children>
-                        <!-- Header Info -->
                         <VBox spacing="10.0">
                            <children>
                               <Label fx:id="productNameLabel" style="-fx-font-size: 32;" styleClass="label, header" text="Tên sản phẩm cao cấp" />
@@ -76,7 +72,6 @@
                            </children>
                         </VBox>
 
-                        <!-- Bid Action Card -->
                         <VBox spacing="20.0" style="-fx-background-color: white;" styleClass="card">
                            <children>
                               <HBox alignment="CENTER_LEFT">
@@ -104,7 +99,7 @@
                                     <Label fx:id="currentLeaderLabel" style="-fx-font-weight: bold;" styleClass="text-primary" text="🏆 Người dẫn đầu: Nguyễn Văn A" />
                                     <HBox spacing="10.0">
                                        <children>
-                                          <TextField prefHeight="45.0" promptText="Nhập giá thầu của bạn..." styleClass="text-field" HBox.hgrow="ALWAYS" />
+                                          <TextField fx:id="bidAmountField" prefHeight="45.0" promptText="Nhập giá thầu của bạn..." styleClass="text-field" HBox.hgrow="ALWAYS" />
                                           <Button fx:id="placeBidButton" prefHeight="45.0" prefWidth="150.0" styleClass="button, primary" text="ĐẶT GIÁ NGAY" />
                                        </children>
                                     </HBox>
@@ -113,7 +108,6 @@
                            </children>
                         </VBox>
 
-                        <!-- Description -->
                         <VBox spacing="10.0" styleClass="card">
                            <children>
                               <Label style="-fx-font-weight: bold;" styleClass="label" text="Mô tả sản phẩm" />
@@ -121,14 +115,13 @@
                            </children>
                         </VBox>
 
-                        <!-- Recent Bids Table -->
                         <VBox spacing="10.0" styleClass="card" VBox.vgrow="ALWAYS">
                            <children>
                               <HBox alignment="CENTER_LEFT">
                                  <children>
                                     <Label style="-fx-font-weight: bold;" styleClass="label" text="Lịch sử đấu giá" />
                                     <Region HBox.hgrow="ALWAYS" />
-                                    <Label fx:id="bidCountLabel" styleClass="text-muted" text="12 lượt đặt" />
+                                    <Label fx:id="bidCountLabel" styleClass="text-muted" text="0 lượt đặt" />
                                  </children>
                               </HBox>
                               <TableView fx:id="bidsTable" prefHeight="200.0" styleClass="table-view">
