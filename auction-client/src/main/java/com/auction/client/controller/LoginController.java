@@ -35,6 +35,7 @@ public class LoginController extends BaseController {
     @FXML private Button bidderDemoButton;
     @FXML private Button sellerDemoButton;
     @FXML private Button adminDemoButton;
+    @FXML private Button signUpButton; // Cập nhật đồng bộ nút Sign Up mới từ FXML
 
     private final Gson gson = new Gson();
     private static final String SERVER_HOST = "localhost";
@@ -51,10 +52,13 @@ public class LoginController extends BaseController {
         // Gán sự kiện cho luồng đăng nhập chính thức
         loginButton.setOnAction(event -> handleLogin());
 
-        // Gán sự kiện cho luồng truy cập nhanh bằng tài khoản Demo để nghiệm thu BTL
-        bidderDemoButton.setOnAction(event -> handleDemoLogin("demo_bidder", "password123"));
-        sellerDemoButton.setOnAction(event -> handleDemoLogin("demo_seller", "password123"));
-        adminDemoButton.setOnAction(event -> handleDemoLogin("demo_admin", "password123"));
+        // Cập nhật thông tin tài khoản Demo chính xác theo bảng hiển thị Demo Credentials mới
+        bidderDemoButton.setOnAction(event -> handleDemoLogin("bidder", "bidder123"));
+        sellerDemoButton.setOnAction(event -> handleDemoLogin("seller", "seller123"));
+        adminDemoButton.setOnAction(event -> handleDemoLogin("admin", "admin123"));
+
+        // Gán sự kiện điều hướng chuyển cửa sổ sang màn hình Đăng ký tài khoản
+        signUpButton.setOnAction(event -> handleNavigateToSignUp());
     }
 
     /**
@@ -73,7 +77,7 @@ public class LoginController extends BaseController {
 
         // 2. Sử dụng hàm runAsyncTask kế thừa từ BaseController để chạy ngầm tác vụ mạng Socket
         // Giúp giao diện Client không bị đơ cứng (UI Freeze) khi Server xử lý chậm hoặc mất mạng
-        Task<User> loginTask = new Task() {
+        Task<User> loginTask = new Task<>() {
             @Override
             protected User call() throws Exception {
                 return executeNetworkAuth(username, password);
@@ -112,71 +116,73 @@ public class LoginController extends BaseController {
     }
 
     /**
-     * LOGIC LẬP TRÌNH MẠNG (TỰ HỌC TUẦN 9-10): Thiết lập cổng kết nối Object Stream song phương với Server[cite: 250, 265].
+     * ĐIỀU HƯỚNG SANG MÀN HÌNH ĐĂNG KÝ: Chuyển đổi ngữ cảnh Stage hiện tại sang SignUpView fxml.
      */
-    private User executeNetworkAuth(String username, String password) throws IOException, ClassNotFoundException {
+    private void handleNavigateToSignUp() {
+        LoggerUtil.info("Người dùng yêu cầu mở màn hình đăng ký hệ thống mới...");
+        // Sử dụng phương thức kế thừa switchWindow từ BaseController của bạn để điều hướng linh hoạt
+        switchWindow(signUpButton, "/fxml/SignUpView.fxml");
+    }
+
+    /**
+     * LOGIC LẬP TRÌNH MẠNG: Thiết lập cổng kết nối Object Stream song phương với Server.
+     */
+    private User executeNetworkAuth(String username, String password) throws Exception {
         // 1. Tạo kết nối Socket mới đến Server
         Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
 
-        // 2. Thiết lập cấu hình Object Stream gửi nhận dữ liệu tuần tự
-        ObjectOutputStream tempOut = new ObjectOutputStream(socket.getOutputStream());
-        tempOut.flush(); // Giải phóng vùng đệm stream đầu ra
-        ObjectInputStream tempIn = new ObjectInputStream(socket.getInputStream());
+        // 2. ĐÃ SỬA: Chuyển sang luồng Text (PrintWriter / BufferedReader)
+        java.io.PrintWriter tempOut = new java.io.PrintWriter(socket.getOutputStream(), true);
+        java.io.BufferedReader tempIn = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
 
-        // 3. Đóng gói thông tin đăng nhập thành chuỗi cấu trúc JSON
+        // 3. Đóng gói thông tin đăng nhập
         JsonObject loginPayload = new JsonObject();
         loginPayload.addProperty("username", username);
         loginPayload.addProperty("password", password);
 
-        // 4. Bắn gói tin LOGIN_REQUEST lên Server theo đúng sơ đồ cấu trúc
+        // 4. Bắn gói tin gửi lên dạng Text JSON
         NetworkMessage authRequest = new NetworkMessage(MessageType.LOGIN_REQUEST, loginPayload.toString());
-        tempOut.writeObject(authRequest);
-        tempOut.flush();
+        tempOut.println(gson.toJson(authRequest));
 
-        // 5. Đợi phản hồi tối cao từ Máy chủ trả về (Lệnh nghẽn - Blocking)
-        Object receivedObject = tempIn.readObject();
-        if (receivedObject instanceof NetworkMessage) {
-            NetworkMessage response = (NetworkMessage) receivedObject;
+        // 5. Đợi Server trả lời
+        String responseLine = tempIn.readLine();
+        NetworkMessage response = gson.fromJson(responseLine, NetworkMessage.class);
 
-            if (response.getType() == MessageType.LOGIN_RESPONSE) {
-                JsonObject resultJson = com.google.gson.JsonParser.parseString(response.getPayload()).getAsJsonObject();
-                String status = resultJson.get("status").getAsString();
+        if (response != null && response.getType() == MessageType.LOGIN_RESPONSE) {
+            JsonObject resultJson = com.google.gson.JsonParser.parseString(response.getPayload()).getAsJsonObject();
+            String status = resultJson.get("status").getAsString();
 
-                if ("SUCCESS".equalsIgnoreCase(status)) {
-                    // Trích xuất thông tin đối tượng User do Server tạo và trả về dựa theo đa hình vai trò
-                    String roleStr = resultJson.get("role").getAsString();
-                    User user;
-                    int id = resultJson.get("id").getAsInt();
-                    String email = resultJson.get("email").getAsString();
+            if ("SUCCESS".equalsIgnoreCase(status)) {
+                String roleStr = resultJson.get("role").getAsString();
+                User user;
+                int id = resultJson.get("id").getAsInt();
+                String email = resultJson.get("email").getAsString();
 
-                    // Sử dụng đa hình khởi tạo đúng đối tượng thực thể User con [cite: 114, 115, 121]
-                    if ("ADMIN".equalsIgnoreCase(roleStr)) {
-                        user = new Admin(id, username, email, password);
-                    } else if ("SELLER".equalsIgnoreCase(roleStr)) {
-                        user = new Seller(id, username, email, password);
-                    } else {
-                        user = new Bidder(id, username, email, password);
-                    }
-
-                    // 6. KHỞI TẠO LUỒNG NGHE MẠNG NGẦM (SERVER LISTENER) ĐÃ ĐƯỢC ĐỒNG BỘ
-                    ServerListener listener = new ServerListener(socket);
-                    listener.start(); // Kích hoạt chạy ngầm song song
-
-                    // 7. LƯU TRỮ SESSION TĨNH TOÀN CỤC LÊN LỚP CHA BASECONTROLLER
-                    BaseController.setSessionContext(user, tempOut, listener);
-
-                    return user;
+                if ("ADMIN".equalsIgnoreCase(roleStr)) {
+                    user = new Admin(id, username, email, password);
+                } else if ("SELLER".equalsIgnoreCase(roleStr)) {
+                    user = new Seller(id, username, email, password);
+                } else {
+                    user = new Bidder(id, username, email, password);
                 }
+
+                // 6. ĐÃ SỬA: Bàn giao Socket cho NetworkService tiếp quản
+                com.auction.client.network.NetworkService.getInstance().attachConnection(socket, tempOut, tempIn);
+                ServerListener listener = com.auction.client.network.NetworkService.getInstance().getServerListener();
+
+                // 7. LƯU TRỮ SESSION
+                BaseController.setSessionContext(user, listener);
+
+                return user;
             }
         }
 
-        // Nếu không thành công, dọn dẹp đóng socket tạm thời
         socket.close();
         return null;
     }
 
     /**
-     * THUẬT TOÁN ĐIỀU HƯỚNG VAI TRÒ (Phân quyền đồ họa UI): Tách biệt màn hình dựa theo chức năng của User[cite: 32].
+     * THUẬT TOÁN ĐIỀU HƯỚNG VAI TRÒ (Phân quyền đồ họa UI): Tách biệt màn hình dựa theo chức năng của User.
      */
     private void navigateToDashboard(User user) {
         LoggerUtil.info("Xác thực thành công. Điều hướng giao diện theo phân quyền: " + user.getRole());

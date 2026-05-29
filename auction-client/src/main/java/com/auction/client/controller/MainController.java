@@ -1,6 +1,7 @@
 package com.auction.client.controller;
 
 import com.auction.client.util.DialogUtil;
+import com.auction.client.util.FormatterUtil;
 import com.auction.client.util.LoggerUtil;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -10,6 +11,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 
 import java.io.IOException;
@@ -27,12 +29,14 @@ public class MainController extends BaseController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        LoggerUtil.log("Khởi tạo MainController với phân quyền nút Dashboard.");
+        LoggerUtil.info("Khởi tạo MainController - Phân luồng điều hướng Dashboard thông minh.");
 
         // Xử lý sự kiện click nút Dashboard trên Navbar chính
-        dashboardButton.setOnAction(e -> {
-            handleDashboardNavigation();
-        });
+        if (dashboardButton != null) {
+            dashboardButton.setOnAction(e -> {
+                handleDashboardNavigation();
+            });
+        }
 
         if (auctionsButton != null) {
             auctionsButton.setOnAction(e -> loadCenterView(contentArea, "/fxml/AuctionListView.fxml"));
@@ -40,8 +44,11 @@ public class MainController extends BaseController implements Initializable {
 
         // Khởi tạo và liên kết menu thả xuống của Avatar
         initUserContextMenu();
+
         avatarButton.setOnMouseClicked(event -> {
             if (userContextMenu != null) {
+                // Làm mới lại số dư trước khi hiển thị (phòng trường hợp số dư thay đổi trong phiên làm việc)
+                updateDropdownBalance();
                 userContextMenu.show(avatarButton, Side.BOTTOM, 0, 0);
             }
         });
@@ -51,39 +58,36 @@ public class MainController extends BaseController implements Initializable {
     }
 
     /**
-     * Hàm điều hướng Dashboard thông minh dựa vào vai trò (Role) của người dùng hiện tại
+     * Hàm điều hướng Dashboard dựa vào vai trò (Role) của người dùng hiện tại
      */
     private void handleDashboardNavigation() {
-        // Đảm bảo có session người dùng trước khi check role
         if (currentUser == null || currentUser.getRole() == null) {
-            LoggerUtil.log("Lỗi: Không tìm thấy thông tin phiên làm việc của User.");
+            LoggerUtil.error("Lỗi: Không tìm thấy thông tin phiên làm việc của User.");
             return;
         }
 
         String role = currentUser.getRole().name().toUpperCase();
-        LoggerUtil.log("Người dùng kích hoạt Dashboard với quyền hạn: " + role);
+        LoggerUtil.info("Người dùng kích hoạt Dashboard với quyền hạn: " + role);
 
         switch (role) {
             case "ADMIN":
-                // Nếu Admin bấm vào Dashboard trên thanh chung, nạp phân vùng AdminPanel vào vùng trung tâm
                 loadCenterView(contentArea, "/fxml/AdminPanelView.fxml");
                 break;
 
             case "SELLER":
-                // Nếu là Người bán, nạp giao diện Dashboard quản lý bán hàng
                 loadCenterView(contentArea, "/fxml/SellerDashboardView.fxml");
                 break;
 
             case "BUYER":
             default:
-                // Nếu bạn có màn hình thống kê hoặc Dashboard dành riêng cho người mua (Buyer)
-                loadCenterView(contentArea, "/fxml/BuyerDashboardView.fxml"); // hoặc một view mặc định bất kỳ
+                LoggerUtil.info("Tài khoản BUYER kích hoạt Dashboard -> Tự động nạp AuctionListView.");
+                loadCenterView(contentArea, "/fxml/AuctionListView.fxml");
                 break;
         }
     }
 
     /**
-     * Nạp file FXML menu nhỏ và cấu hình sự kiện cho các nút bên trong
+     * Nạp tệp FXML menu nhỏ thả xuống và cấu hình sự kiện cho các nút bên trong
      */
     private void initUserContextMenu() {
         try {
@@ -91,8 +95,11 @@ public class MainController extends BaseController implements Initializable {
             VBox menuContent = loader.load();
 
             Button profileMenuBtn = (Button) menuContent.lookup("#profileMenuBtn");
-            Button dashboardMenuBtn = (Button) menuContent.lookup("#dashboardMenuBtn"); // Nút Dashboard trong Menu nhỏ
+            Button dashboardMenuBtn = (Button) menuContent.lookup("#dashboardMenuBtn");
             Button logoutMenuBtn = (Button) menuContent.lookup("#logoutMenuBtn");
+
+            // Đổ số dư lần đầu
+            updateDropdownBalance(menuContent);
 
             if (profileMenuBtn != null) {
                 profileMenuBtn.setOnAction(e -> {
@@ -101,7 +108,6 @@ public class MainController extends BaseController implements Initializable {
                 });
             }
 
-            // Tận dụng chung hàm handleDashboardNavigation() cho nút Dashboard trong Menu nhỏ thả xuống
             if (dashboardMenuBtn != null) {
                 dashboardMenuBtn.setOnAction(e -> {
                     userContextMenu.hide();
@@ -122,14 +128,35 @@ public class MainController extends BaseController implements Initializable {
             userContextMenu.getItems().add(customMenuItem);
 
         } catch (IOException e) {
-            LoggerUtil.log("Không thể khởi tạo menu Avatar nhỏ: " + e.getMessage());
+            LoggerUtil.error("Không thể khởi tạo menu Avatar nhỏ: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Tiện ích giúp cập nhật số dư liên tục mà không cần nạp lại file FXML
+     */
+    private void updateDropdownBalance(VBox menuContent) {
+        if (menuContent != null && currentUser != null) {
+            Label dropdownBalanceLabel = (Label) menuContent.lookup("#dropdownBalanceLabel");
+            if (dropdownBalanceLabel != null) {
+                dropdownBalanceLabel.setText(FormatterUtil.formatCurrency(currentUser.getWalletBalance()));
+            }
+        }
+    }
+
+    private void updateDropdownBalance() {
+        if (userContextMenu != null && !userContextMenu.getItems().isEmpty()) {
+            CustomMenuItem customItem = (CustomMenuItem) userContextMenu.getItems().get(0);
+            if (customItem.getContent() instanceof VBox) {
+                updateDropdownBalance((VBox) customItem.getContent());
+            }
         }
     }
 
     private void handleLogout() {
         if (DialogUtil.showConfirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?")) {
-            LoggerUtil.log("Người dùng thực hiện đăng xuất.");
-            clearSessionContext(); // Xóa sạch session cũ trước khi chuyển cửa sổ
+            LoggerUtil.info("Người dùng thực hiện đăng xuất.");
+            clearSessionContext();
             switchWindow(avatarButton, "/fxml/LoginView.fxml");
         }
     }

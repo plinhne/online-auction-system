@@ -1,64 +1,157 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
 
-<BorderPane prefHeight="700.0" prefWidth="600.0" styleClass="bg-light" stylesheets="@../css/style.css" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.auction.client.controller.LoginController">
-   <center>
-      <VBox alignment="CENTER" maxWidth="450.0" spacing="25.0">
+<ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" styleClass="main-scroll-pane" stylesheets="@../css/style.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.LoginController">
+   <content>
+      <VBox alignment="CENTER" style="-fx-background-color: #f8fafc;">
+         <padding>
+            <Insets bottom="30.0" top="30.0" />
+         </padding>
          <children>
-            <!-- Logo & Title Section -->
-            <VBox alignment="CENTER" spacing="10.0">
-               <children>
-                  <Label style="-fx-font-size: 56;" text="🔨" />
-                  <Label styleClass="label, header" style="-fx-font-size: 36;" text="Auction Pro" />
-                  <Label styleClass="label, subtitle" text="Hệ thống đấu giá trực tuyến thế hệ mới" />
-               </children>
-            </VBox>
-
-            <!-- Main Login Form (Card) -->
-            <VBox spacing="20.0" styleClass="card">
+            <VBox maxWidth="400.0" minWidth="400.0" styleClass="card" VBox.vgrow="NEVER">
                <padding>
-                  <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
+                  <Insets bottom="25.0" left="30.0" right="30.0" top="25.0" />
                </padding>
                <children>
-                  <!-- Username -->
-                  <VBox spacing="8.0">
+                  <VBox alignment="CENTER" spacing="8.0">
                      <children>
-                        <Label style="-fx-font-weight: bold;" text="Tên đăng nhập" />
-                        <TextField fx:id="usernameField" prefHeight="45.0" promptText="Nhập tài khoản..." styleClass="text-field" />
+                        <StackPane>
+                           <Circle fill="#2563eb" radius="30.0" />
+                           <ImageView fitHeight="30.0" fitWidth="53.0" preserveRatio="true">
+                              <image>
+                                 <Image url="@../icons/BidIcon.png" />
+                              </image>
+                           </ImageView>
+                        </StackPane>
+                        <Label styleClass="label, header" text="Auction System" />
+                        <Label styleClass="label, subtitle" text="Sign in to your account to continue" />
                      </children>
                   </VBox>
 
-                  <!-- Password -->
-                  <VBox spacing="8.0">
+                  <Separator prefWidth="200.0">
+                     <VBox.margin>
+                        <Insets bottom="15.0" top="12.0" />
+                     </VBox.margin>
+                  </Separator>
+
+                  <VBox spacing="14.0">
                      <children>
-                        <Label style="-fx-font-weight: bold;" text="Mật khẩu" />
-                        <PasswordField fx:id="passwordField" prefHeight="45.0" promptText="Nhập mật khẩu..." styleClass="password-field" />
+                        <VBox spacing="6.0">
+                           <children>
+                              <Label style="-fx-font-weight: bold; -fx-text-fill: #334155; -fx-font-size: 13px;" text="Username" />
+                              <StackPane alignment="CENTER_LEFT">
+                                 <children>
+                                    <TextField fx:id="usernameField" prefHeight="38.0" promptText="Enter your username" styleClass="text-field">
+                                       <padding>
+                                          <Insets left="35.0" />
+                                       </padding>
+                                    </TextField>
+                                 </children>
+                              </StackPane>
+                           </children>
+                        </VBox>
+
+                        <VBox spacing="6.0">
+                           <children>
+                              <Label style="-fx-font-weight: bold; -fx-text-fill: #334155; -fx-font-size: 13px;" text="Password" />
+                              <StackPane alignment="CENTER_LEFT">
+                                 <children>
+                                    <PasswordField fx:id="passwordField" prefHeight="38.0" promptText="Enter your password" styleClass="password-field">
+                                       <padding>
+                                          <Insets left="35.0" />
+                                       </padding>
+                                    </PasswordField>
+                                 </children>
+                              </StackPane>
+                           </children>
+                        </VBox>
+
+                        <Label fx:id="errorLabel" styleClass="label, error" text="" />
+
+                        <Button fx:id="loginButton" maxWidth="Infinity" prefHeight="40.0" styleClass="button, primary" text="Sign In" />
                      </children>
                   </VBox>
 
-                  <Label fx:id="errorLabel" styleClass="label, error" text="" />
+                  <Separator prefWidth="200.0">
+                     <VBox.margin>
+                        <Insets bottom="12.0" top="15.0" />
+                     </VBox.margin>
+                  </Separator>
 
-                  <Button fx:id="loginButton" maxWidth="Infinity" prefHeight="45.0" styleClass="button, primary" text="Đăng Nhập" />
-               </children>
-            </VBox>
-
-            <!-- Demo Access Section -->
-            <VBox alignment="CENTER" spacing="15.0">
-               <children>
-                  <Label styleClass="text-muted" style="-fx-font-size: 11;" text="HOẶC TRUY CẬP NHANH BẰNG TÀI KHOẢN DEMO" />
-                  <HBox spacing="10.0">
+                  <VBox spacing="10.0">
                      <children>
-                        <Button fx:id="bidderDemoButton" styleClass="button, success" text="Người mua" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
-                        <Button fx:id="sellerDemoButton" style="-fx-background-color: #f59e0b; -fx-text-fill: white;" styleClass="button" text="Người bán" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
-                        <Button fx:id="adminDemoButton" styleClass="button, danger" text="Quản trị" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                        <Label alignment="CENTER" maxWidth="Infinity" style="-fx-font-size: 11px; -fx-font-weight: bold;" styleClass="text-muted" text="Demo Accounts" />
+                        <VBox spacing="8.0">
+                           <children>
+                              <Button fx:id="bidderDemoButton" maxWidth="Infinity" prefHeight="35.0" styleClass="button, gray-btn" text="Login as Bidder" />
+                              <Button fx:id="sellerDemoButton" maxWidth="Infinity" prefHeight="35.0" styleClass="button, gray-btn" text="Login as Seller" />
+                              <Button fx:id="adminDemoButton" maxWidth="Infinity" prefHeight="35.0" styleClass="button, gray-btn" text="Login as Admin" />
+                           </children>
+                        </VBox>
+                     </children>
+                  </VBox>
+
+                  <VBox style="-fx-background-color: #f1f5f9; -fx-border-color: #e2e8f0; -fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 12px;">
+                     <children>
+                        <Label style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #1e293b;" text="Demo Credentials:">
+                           <VBox.margin>
+                              <Insets bottom="6.0" />
+                           </VBox.margin>
+                        </Label>
+                        <VBox spacing="5.0" style="-fx-font-size: 12px; -fx-text-fill: #475569;">
+                           <children>
+                              <HBox alignment="CENTER_LEFT" spacing="4.0">
+                                 <children>
+                                    <Label text="• Bidder:" />
+                                    <Label style="-fx-background-color: #ffffff; -fx-background-radius: 4px; -fx-padding: 1px 5px; -fx-font-weight: bold;" styleClass="text-primary" text="bidder" />
+                                    <Label text="/" />
+                                    <Label text="password:" />
+                                    <Label style="-fx-background-color: #ffffff; -fx-background-radius: 4px; -fx-padding: 1px 5px; -fx-font-weight: bold;" styleClass="text-primary" text="bidder123" />
+                                 </children>
+                              </HBox>
+                              <HBox alignment="CENTER_LEFT" spacing="4.0">
+                                 <children>
+                                    <Label text="• Seller:" />
+                                    <Label style="-fx-background-color: #ffffff; -fx-background-radius: 4px; -fx-padding: 1px 5px; -fx-font-weight: bold;" styleClass="text-primary" text="seller" />
+                                    <Label text="/" />
+                                    <Label text="password:" />
+                                    <Label style="-fx-background-color: #ffffff; -fx-background-radius: 4px; -fx-padding: 1px 5px; -fx-font-weight: bold;" styleClass="text-primary" text="seller123" />
+                                 </children>
+                              </HBox>
+                              <HBox alignment="CENTER_LEFT" spacing="4.0">
+                                 <children>
+                                    <Label text="• Admin:" />
+                                    <Label style="-fx-background-color: #ffffff; -fx-background-radius: 4px; -fx-padding: 1px 5px; -fx-font-weight: bold;" styleClass="text-primary" text="admin" />
+                                    <Label text="/" />
+                                    <Label text="password:" />
+                                    <Label style="-fx-background-color: #ffffff; -fx-background-radius: 4px; -fx-padding: 1px 5px; -fx-font-weight: bold;" styleClass="text-primary" text="admin123" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </children>
+                     <VBox.margin>
+                        <Insets top="15.0" />
+                     </VBox.margin>
+                  </VBox>
+
+                  <HBox alignment="CENTER" spacing="5.0">
+                     <VBox.margin>
+                        <Insets top="15.0" />
+                     </VBox.margin>
+                     <children>
+                        <Label style="-fx-font-size: 13px;" styleClass="text-muted" text="Don't have an account?" />
+                        <Button fx:id="signUpButton" styleClass="button, link-button" text="Sign up" />
                      </children>
                   </HBox>
                </children>
             </VBox>
          </children>
       </VBox>
-   </center>
-</BorderPane>
+   </content>
+</ScrollPane>

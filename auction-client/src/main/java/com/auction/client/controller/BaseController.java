@@ -3,8 +3,10 @@ package com.auction.client.controller;
 import com.auction.client.util.DialogUtil;
 import com.auction.client.util.LoggerUtil;
 import com.auction.client.network.ServerListener;
+import com.auction.client.network.NetworkService;
 import com.auction.model.user.User;
 
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -14,43 +16,31 @@ import javafx.scene.control.Control;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import java.io.ObjectOutputStream;
 import java.io.IOException;
 
-/**
- * Lớp trừu tượng nền tảng (Abstract Base Class) cho toàn bộ các Controller trong hệ thống.
- * Cung cấp các công cụ tiện ích dùng chung về điều hướng màn hình, quản lý Session và đa luồng.
- */
 public abstract class BaseController {
 
-    // --- THÔNG TIN SESSION TOÀN CỤC (DÙNG CHUNG CHO TẤT CẢ MÀN HÌNH CON) ---
-    protected static User currentUser;                  // Người dùng đang đăng nhập hệ thống hiện tại
-    protected static ObjectOutputStream outStream;      // Luồng đẩy gói tin Object lên Server
-    protected static ServerListener serverListener;    // Luồng ngầm lắng nghe gói tin từ Server đổ về
+    protected static User currentUser;
+    // ĐÃ XÓA: protected static ObjectOutputStream outStream; (Không dùng luồng nhị phân nữa)
+    protected static ServerListener serverListener;
 
-    /**
-     * Thiết lập cấu hình Session mạng toàn cục một lần duy nhất sau khi đăng nhập thành công.
-     */
-    public static void setSessionContext(User user, ObjectOutputStream out, ServerListener listener) {
+    // ĐÃ SỬA: Bỏ tham số outStream
+    public static void setSessionContext(User user, ServerListener listener) {
         currentUser = user;
-        outStream = out;
         serverListener = listener;
         LoggerUtil.info("Đã thiết lập Session cho tài khoản: " + user.getName());
     }
 
-    /**
-     * Xóa sạch thông tin Session khi người dùng thực hiện hành động Đăng xuất (Logout).
-     */
     public static void clearSessionContext() {
         currentUser = null;
-        outStream = null;
         if (serverListener != null) {
             serverListener.stopListening();
             serverListener = null;
         }
+        // Gọi NetworkService đóng toàn bộ Socket và Thread
+        NetworkService.getInstance().close();
         LoggerUtil.info("Đã xóa sạch phiên làm việc (Session cleared).");
     }
-
     /**
      * Lấy Stage (Cửa sổ) hiện tại từ một Node bất kỳ trên giao diện (Hỗ trợ cả Control và các thẻ Layout).
      */
@@ -63,6 +53,7 @@ public abstract class BaseController {
 
     /**
      * NÂNG CẤP: Thay đổi toàn bộ giao diện hỗ trợ cho mọi cấu trúc Node (StackPane, VBox, Button,...)
+     * Đảm bảo cửa sổ mới luôn được phóng to tối đa vừa khít màn hình bằng cách ép luồng render chạy Maximized sau cùng.
      *
      * @param triggerNode Node kích hoạt sự kiện để tìm Stage nền (Nút bấm, StackPane avatar,...)
      * @param fxmlPath Đường dẫn tuyệt đối đến file FXML mới
@@ -85,7 +76,15 @@ public abstract class BaseController {
             }
 
             stage.setScene(scene);
-            stage.centerOnScreen();
+
+            // CẬP NHẬT SỬA LỖI KHÔNG FULL MÀN HÌNH:
+            // Đặt lệnh maximized vào Platform.runLater để JavaFX tái cấu trúc kích thước sau khi layout đã ổn định ổn định ổn định
+            Platform.runLater(() -> {
+                stage.setMaximized(false); // Đưa về trạng thái thường để xóa bộ nhớ đệm render của HĐH
+                stage.setMaximized(true);  // Ép buộc bung lấp đầy toàn bộ màn hình chính một cách đồng bộ
+            });
+
+            stage.show();
         } catch (IOException e) {
             LoggerUtil.error("Lỗi nghiêm trọng khi nạp file FXML tại đường dẫn: " + fxmlPath, e);
             DialogUtil.showError("Có lỗi hệ thống xảy ra khi chuyển đổi màn hình.");

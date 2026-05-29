@@ -109,10 +109,6 @@ public class RealTimeBiddingController extends BaseController {
     }
 
     private void sendBidRequestToServer(double amount) {
-        if (outStream == null) {
-            DialogUtil.showError("Mất kết nối kết nối máy chủ!");
-            return;
-        }
         try {
             JsonObject bidJson = new JsonObject();
             bidJson.addProperty("auctionId", currentAuction.getId()); // Kế thừa từ Entity cha
@@ -125,12 +121,13 @@ public class RealTimeBiddingController extends BaseController {
             }
 
             NetworkMessage message = new NetworkMessage(MessageType.PLACE_BID_REQUEST, gson.toJson(bidJson));
-            outStream.writeObject(message);
-            outStream.flush();
+
+            // ĐÃ SỬA: Dùng NetworkService thay vì gọi trực tiếp outStream
+            com.auction.client.network.NetworkService.getInstance().sendNetworkMessage(message);
 
             bidAmountField.clear();
             LoggerUtil.info("Đã gửi lệnh đặt giá " + amount + "đ lên Server.");
-        } catch (IOException | NumberFormatException e) {
+        } catch (NumberFormatException e) {
             LoggerUtil.error("Lỗi gửi gói tin đặt giá.", e);
         }
     }

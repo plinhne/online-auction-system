@@ -11,10 +11,9 @@ import com.google.gson.JsonObject;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import java.io.IOException;
 
 /**
- * Controller chịu trách nhiệm điều khiển giao diện Đăng ký tài khoản (SignUpView.fxml)[cite: 64].
+ * Controller chịu trách nhiệm điều khiển giao diện Đăng ký tài khoản (SignUpView.fxml).
  * Thực hiện validate logic form và gửi yêu cầu đăng ký tài khoản mới lên hệ thống Máy chủ.
  */
 public class SignUpController extends BaseController {
@@ -27,7 +26,9 @@ public class SignUpController extends BaseController {
     @FXML private PasswordField txtPassword;
     @FXML private PasswordField txtConfirmPassword;
     @FXML private Button btnSignUp;
-    @FXML private Hyperlink linkLogin;
+
+    // ĐÃ CẬP NHẬT: Thay thế Hyperlink sang Button để đồng bộ với FXML mới, xóa bỏ hộp viền bằng CSS
+    @FXML private Button linkLogin;
 
     /**
      * Hàm tự động chạy sau khi file FXML được nạp thành công.
@@ -41,7 +42,7 @@ public class SignUpController extends BaseController {
         cbAccountType.setItems(FXCollections.observableArrayList(UserRole.BIDDER, UserRole.SELLER));
         cbAccountType.getSelectionModel().select(UserRole.BIDDER); // Mặc định chọn vai trò Người đấu giá
 
-        // 2. Gán hành động sự kiện cho Nút đăng ký và Hyperlink chuyển màn hình
+        // 2. Gán hành động sự kiện cho Nút đăng ký và Nút chuyển màn hình dạng liên kết văn bản
         btnSignUp.setOnAction(event -> handleSignUp());
         linkLogin.setOnAction(event -> handleSwitchToLogin());
     }
@@ -88,19 +89,13 @@ public class SignUpController extends BaseController {
             return;
         }
 
-        // 6. Gửi gói tin lên Server thông qua luồng outStream tĩnh kế thừa từ BaseController
         sendSignUpRequestToServer(fullName, username, email, selectedRole, password);
     }
 
     /**
-     * Đóng gói thông tin form thành cấu trúc JSON và đẩy qua đường truyền mạng Object Socket Stream.
+     * Đóng gói thông tin form thành cấu trúc JSON và đẩy qua đường truyền mạng.
      */
     private void sendSignUpRequestToServer(String fullName, String username, String email, UserRole role, String password) {
-        if (outStream == null) {
-            DialogUtil.showError("Không thể thực hiện đăng ký. Mất kết nối tới máy chủ hệ thống!");
-            return;
-        }
-
         try {
             // Đóng gói payload dữ liệu thô thành JsonObject
             JsonObject signUpPayload = new JsonObject();
@@ -113,14 +108,14 @@ public class SignUpController extends BaseController {
             // Tạo đối tượng NetworkMessage bọc chung theo cấu trúc sơ đồ lớp dữ liệu
             NetworkMessage message = new NetworkMessage(MessageType.SIGNUP_REQUEST, signUpPayload.toString());
 
-            // Đẩy đối tượng nhị phân qua đường ống mạng lên Server xử lý tập trung
-            outStream.writeObject(message);
-            outStream.flush();
+            // ĐÃ SỬA: Bắn gói tin qua NetworkService, giải quyết triệt để lỗi không có tín hiệu gửi lên
+            com.auction.client.network.NetworkService.getInstance().sendNetworkMessage(message);
 
             LoggerUtil.info("Đã gửi gói tin SIGNUP_REQUEST cho tài khoản: " + username);
             DialogUtil.showInfo("Yêu cầu đăng ký đã được gửi đi thành công! Vui lòng chờ phản hồi xác thực từ hệ thống.");
 
-        } catch (IOException e) {
+        } catch (Exception e) {
+            // ĐÃ SỬA: Bắt lỗi Exception chung để loại bỏ cảnh báo của IOException
             LoggerUtil.error("Sự cố nghẽn luồng truyền tải gói tin đăng ký qua Socket mạng.", e);
             DialogUtil.showError("Đường truyền Socket gặp sự cố bất ngờ. Không thể gửi yêu cầu đăng ký!");
         }
@@ -131,7 +126,7 @@ public class SignUpController extends BaseController {
      */
     private void handleSwitchToLogin() {
         LoggerUtil.info("Người dùng chuyển hướng sang giao diện Đăng nhập.");
-        // Sử dụng hàm switchWindow tiện ích của lớp cha BaseController để đổi Scene
+        // Sử dụng hàm switchWindow tiện ích của lớp cha BaseController để đổi Scene an toàn
         switchWindow(linkLogin, "/fxml/LoginView.fxml");
     }
 }
