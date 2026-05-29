@@ -104,7 +104,20 @@ public class MessageRouter {
                         auctionController.handleGetMyBids(response, currentUser);
                     }
                 }
+                //ITEM
+                case "ADD_ITEM", "ADD_ITEM_REQUEST" -> {
+                    requireLogin(response);
+                    if (isOk(response)) {
+                        itemController.handleCreateItem(request, response, currentUser);
+                    }
+                }
 
+                case "EDIT_ITEM", "EDIT_ITEM_REQUEST" -> {
+                    requireLogin(response);
+                    if (isOk(response)) {
+                        itemController.handleUpdateItem(request, response, currentUser);
+                    }
+                }
                 // ── BID ───────────────────────────────────────────────────────
                 case "PLACE_BID" -> {
                     requireLogin(response);
