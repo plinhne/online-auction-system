@@ -252,3 +252,28 @@
 .clean-table .table-row-cell:hover {
     -fx-background-color: #f8fafc;
 }
+/* --- COMPONENT: NOTIFICATION BOX --- */
+.notification-box {
+    -fx-background-color: #333333;
+    -fx-padding: 10px 15px;
+    -fx-background-radius: 5px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 2); /* Thêm đổ bóng cho đẹp */
+}
+
+.notification-label {
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.notification-close-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #aaaaaa;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.notification-close-btn:hover {
+    -fx-text-fill: #ff4c4c; /* Hover chuột vào nút X sẽ đổi màu đỏ */
+}
