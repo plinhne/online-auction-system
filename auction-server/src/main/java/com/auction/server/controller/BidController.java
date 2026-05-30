@@ -26,7 +26,9 @@ public class BidController {
 
     public void handlePlaceBid(JsonObject request, JsonObject response, User bidder) throws Exception {
         int auctionId = request.get("auctionId").getAsInt();
-        double amount = request.get("amount").getAsDouble();
+
+        // ĐÃ SỬA: Đổi từ "amount" thành "bidAmount" để khớp với JSON của Client gửi lên
+        double amount = request.get("bidAmount").getAsDouble();
 
         // placeBid trả về bid thủ công đã được accept
         Bid bid = bidService.placeBid(auctionId, bidder.getId(), amount);

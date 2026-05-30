@@ -6,15 +6,19 @@ import com.auction.server.controller.AuctionController;
 import com.auction.server.controller.AuthController;
 import com.auction.server.controller.BidController;
 import com.auction.server.controller.ItemController;
+import com.auction.network.NetworkMessage;
+import com.auction.network.MessageType;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * MessageRouter: nhận raw JSON string từ ClientHandler,
- * parse action và điều phối sang đúng controller.
- * Giữ session state: currentUser, currentAuctionId.
+ * MessageRouter: Nhận raw JSON string từ ClientHandler,
+ * giải mã thành đối tượng NetworkMessage, xác định MessageType
+ * và phối hợp điều hướng sang đúng Controller xử lý.
+ * Giữ session state riêng biệt cho mỗi Client kết nối: currentUser, currentAuctionId.
  */
 public class MessageRouter {
     private static final Logger logger = LoggerFactory.getLogger(MessageRouter.class);
@@ -23,8 +27,9 @@ public class MessageRouter {
     private final AuctionController auctionController;
     private final BidController bidController;
     private final ItemController itemController;
+    private final Gson gson = new Gson();
 
-    // Session state — mỗi ClientHandler có 1 MessageRouter riêng
+    // Session state — Mỗi kết nối ClientHandler sở hữu riêng một instance MessageRouter
     private User currentUser = null;
     private int currentAuctionId = -1;
 
@@ -38,130 +43,166 @@ public class MessageRouter {
         this.itemController = itemController;
     }
 
+    /**
+     * Hàm điều phối xử lý gói tin chính.
+     * @param rawJson Chuỗi JSON thuần nhận được từ luồng đọc Socket của Client.
+     * @return Chuỗi JSON đã được bọc trong cấu trúc NetworkMessage tiêu chuẩn để phản hồi về Client.
+     */
     public String route(String rawJson) {
-        JsonObject response = new JsonObject();
+        JsonObject responsePayload = new JsonObject();
+        MessageType responseType = null;
+
         try {
-            JsonObject request = JsonParser.parseString(rawJson).getAsJsonObject();
-            String action = request.get("action").getAsString();
-            logger.debug("Routing action={}, userId={}", action, currentUser != null ? currentUser.getId() : "guest");
+            // 1. Dịch ngược chuỗi thô từ Client thành cấu trúc gói tin NetworkMessage tiêu chuẩn
+            NetworkMessage clientMsg = gson.fromJson(rawJson, NetworkMessage.class);
+            if (clientMsg == null || clientMsg.getType() == null) {
+                responsePayload.addProperty("status", "ERROR");
+                responsePayload.addProperty("message", "Định dạng gói tin mạng không hợp lệ.");
+                return gson.toJson(new NetworkMessage(null, responsePayload.toString()));
+            }
 
-            switch (action) {
-                case "PING" -> {
-                    response.addProperty("status", "OK");
-                    response.addProperty("message", "PONG");
+            MessageType type = clientMsg.getType();
+
+            // 2. Thiết lập trước kiểu tin nhắn phản hồi (Response Type) tương ứng với Request Type
+            responseType = switch (type) {
+                case LOGIN_REQUEST            -> MessageType.LOGIN_RESPONSE;
+                case SIGNUP_REQUEST           -> MessageType.SIGNUP_RESPONSE;
+                case LOGOUT_REQUEST           -> MessageType.LOGOUT_RESPONSE;
+                case GET_ALL_AUCTIONS_REQUEST -> MessageType.GET_ALL_AUCTIONS_RESPONSE;
+                case JOIN_AUCTION_REQUEST     -> MessageType.JOIN_AUCTION_RESPONSE;
+                case LEAVE_AUCTION_REQUEST    -> MessageType.LEAVE_AUCTION_RESPONSE;
+                case CREATE_AUCTION_REQUEST   -> MessageType.CREATE_AUCTION_RESPONSE;
+                case CANCEL_AUCTION_REQUEST   -> MessageType.CANCEL_AUCTION_RESPONSE;
+                case GET_MY_AUCTIONS_REQUEST  -> MessageType.GET_MY_AUCTIONS_RESPONSE;
+                case GET_MY_BIDS_REQUEST      -> MessageType.GET_MY_BIDS_RESPONSE;
+                case PLACE_BID_REQUEST        -> MessageType.PLACE_BID_RESPONSE;
+                case SET_AUTO_BID_REQUEST     -> MessageType.SET_AUTO_BID_RESPONSE;
+                case PING                     -> MessageType.PONG;
+                default                       -> null;
+            };
+
+            // 3. Trích xuất phần dữ liệu lõi (Payload) của yêu cầu dưới dạng JsonObject
+            JsonObject request = null;
+            if (clientMsg.getPayload() != null && !clientMsg.getPayload().isEmpty()) {
+                request = JsonParser.parseString(clientMsg.getPayload()).getAsJsonObject();
+            }
+
+            logger.info("Đang điều phối gói tin: type={}, userId={}", type, currentUser != null ? currentUser.getId() : "Khách");
+
+            // 4. Cây quyết định switch-case định tuyến xử lý logic theo từng gói tin mạng cụ thể
+            switch (type) {
+                case PING -> {
+                    responsePayload.addProperty("status", "OK");
+                    responsePayload.addProperty("message", "PONG");
                 }
 
-                // ── AUTH ──────────────────────────────────────────────────────
-                case "REGISTER" -> authController.handleRegister(request, response);
+                // ── LUỒNG AUTHENTICATION (XÁC THỰC TÀI KHOẢN) ──────────────────
+                case SIGNUP_REQUEST -> authController.handleRegister(request, responsePayload);
 
-                case "LOGIN" -> {
-                    currentUser = authController.handleLogin(request, response);
+                case LOGIN_REQUEST -> {
+                    currentUser = authController.handleLogin(request, responsePayload);
                 }
 
-                case "LOGOUT" -> {
-                    authController.handleLogout(response);
+                case LOGOUT_REQUEST -> {
+                    authController.handleLogout(responsePayload);
                     currentUser = null;
                     currentAuctionId = -1;
                 }
 
-                // ── AUCTION ───────────────────────────────────────────────────
-                case "GET_AUCTIONS" -> auctionController.handleGetAuctions(response);
+                // ── LUỒNG AUCTION (QUẢN LÝ PHIÊN ĐẤU GIÁ) ──────────────────────
+                case GET_ALL_AUCTIONS_REQUEST -> auctionController.handleGetAuctions(responsePayload);
 
-                case "JOIN_AUCTION" -> {
-                    Auction auction = auctionController.handleJoinAuction(request, response);
+                case JOIN_AUCTION_REQUEST -> {
+                    Auction auction = auctionController.handleJoinAuction(request, responsePayload);
                     if (auction != null) currentAuctionId = auction.getId();
                 }
 
-                case "LEAVE_AUCTION" -> {
-                    auctionController.handleLeaveAuction(response);
+                case LEAVE_AUCTION_REQUEST -> {
+                    auctionController.handleLeaveAuction(responsePayload);
                     currentAuctionId = -1;
                 }
 
-                case "CREATE_AUCTION" -> {
-                    requireLogin(response);
-                    if (isOk(response)) {
-                        auctionController.handleCreateAuction(request, response, currentUser);
+                case CREATE_AUCTION_REQUEST -> {
+                    requireLogin(responsePayload);
+                    if (isOk(responsePayload)) {
+                        auctionController.handleCreateAuction(request, responsePayload, currentUser);
                     }
                 }
 
-                case "CANCEL_AUCTION" -> {
-                    requireLogin(response);
-                    if (isOk(response)) {
-                        auctionController.handleCancelAuction(request, response, currentUser);
+                case CANCEL_AUCTION_REQUEST -> {
+                    requireLogin(responsePayload);
+                    if (isOk(responsePayload)) {
+                        auctionController.handleCancelAuction(request, responsePayload, currentUser);
                     }
                 }
 
-                case "GET_MY_AUCTIONS" -> {
-                    requireLogin(response);
-                    if (isOk(response)) {
-                        auctionController.handleGetMyAuctions(response, currentUser);
+                case GET_MY_AUCTIONS_REQUEST -> {
+                    requireLogin(responsePayload);
+                    if (isOk(responsePayload)) {
+                        auctionController.handleGetMyAuctions(responsePayload, currentUser);
                     }
                 }
 
-                case "GET_MY_BIDS" -> {
-                    requireLogin(response);
-                    if (isOk(response)) {
-                        auctionController.handleGetMyBids(response, currentUser);
-                    }
-                }
-                //ITEM
-                case "ADD_ITEM", "ADD_ITEM_REQUEST" -> {
-                    requireLogin(response);
-                    if (isOk(response)) {
-                        itemController.handleCreateItem(request, response, currentUser);
+                case GET_MY_BIDS_REQUEST -> {
+                    requireLogin(responsePayload);
+                    if (isOk(responsePayload)) {
+                        auctionController.handleGetMyBids(responsePayload, currentUser);
                     }
                 }
 
-                case "EDIT_ITEM", "EDIT_ITEM_REQUEST" -> {
-                    requireLogin(response);
-                    if (isOk(response)) {
-                        itemController.handleUpdateItem(request, response, currentUser);
-                    }
-                }
-                // ── BID ───────────────────────────────────────────────────────
-                case "PLACE_BID" -> {
-                    requireLogin(response);
-                    if (isOk(response)) {
-                        bidController.handlePlaceBid(request, response, currentUser);
+                // ── LUỒNG BIDDING (ĐẶT GIÁ THẦU) ───────────────────────────────
+                case PLACE_BID_REQUEST -> {
+                    requireLogin(responsePayload);
+                    if (isOk(responsePayload)) {
+                        bidController.handlePlaceBid(request, responsePayload, currentUser);
                     }
                 }
 
-                case "SET_AUTO_BID" -> {
-                    requireLogin(response);
-                    if (isOk(response)) {
-                        bidController.handleSetAutoBid(request, response, currentUser);
+                case SET_AUTO_BID_REQUEST -> {
+                    requireLogin(responsePayload);
+                    if (isOk(responsePayload)) {
+                        bidController.handleSetAutoBid(request, responsePayload, currentUser);
                     }
                 }
 
                 default -> {
-                    response.addProperty("status", "ERROR");
-                    response.addProperty("message", "Unknown action: " + action);
-                    logger.warn("Unknown action received: {}", action);
+                    responsePayload.addProperty("status", "ERROR");
+                    responsePayload.addProperty("message", "Kiểu thông điệp mạng chưa được Server hỗ trợ: " + type);
+                    logger.warn("Nhận được gói tin chưa có cấu hình định tuyến: {}", type);
                 }
             }
         } catch (IllegalArgumentException | IllegalStateException e) {
-            response.addProperty("status", "ERROR");
-            response.addProperty("message", e.getMessage());
+            responsePayload.addProperty("status", "ERROR");
+            responsePayload.addProperty("message", e.getMessage());
         } catch (Exception e) {
-            response.addProperty("status", "ERROR");
-            response.addProperty("message", "Server error: " + e.getMessage());
-            logger.error("Unexpected error routing action", e);
+            responsePayload.addProperty("status", "ERROR");
+            responsePayload.addProperty("message", "Lỗi xử lý hệ thống tại máy chủ: " + e.getMessage());
+            logger.error("Gặp sự cố nghiêm trọng không lường trước khi định tuyến gói tin", e);
         }
 
-        return response.toString();
+        // 5. Đồng bộ cấu trúc mạng: Bọc toàn bộ payload kết quả vào thực thể NetworkMessage chuẩn và trả về chuỗi text JSON công khai
+        NetworkMessage outMsg = new NetworkMessage(responseType, responsePayload.toString());
+        return gson.toJson(outMsg);
     }
 
+    /**
+     * Phương thức kiểm soát bảo mật tầng biên đảm bảo người dùng bắt buộc phải đăng nhập.
+     */
     private void requireLogin(JsonObject response) {
         if (currentUser == null) {
             response.addProperty("status", "ERROR");
-            response.addProperty("message", "Not logged in");
+            response.addProperty("message", "Hành động yêu cầu quyền truy cập. Bạn chưa đăng nhập tài khoản!");
         }
     }
 
+    /**
+     * Kiểm tra trạng thái hiện thời của gói tin trung gian.
+     */
     private boolean isOk(JsonObject response) {
         return !response.has("status") || "OK".equals(response.get("status").getAsString());
     }
 
+    // Các phương thức getter hỗ trợ lấy trạng thái ngữ cảnh Session
     public User getCurrentUser() { return currentUser; }
     public int getCurrentAuctionId() { return currentAuctionId; }
 }
