@@ -5,9 +5,15 @@ MERGE INTO users (name, email, password, role)
     VALUES ('Admin',        'admin@auction.com',  'admin123',  'ADMIN'),
            ('Alice Seller', 'alice@auction.com',  'alice123',  'SELLER'),
            ('Bob Bidder',   'bob@auction.com',    'bob123',    'BIDDER'),
-           ('Carol Bidder', 'carol@auction.com',  'carol123',  'BIDDER');
+           ('Carol Bidder', 'carol@auction.com',  'carol123',  'BIDDER'),
+           ('bidder', 'bidder@example.com', 'bidder123', 'BIDDER'),
+           ('seller', 'seller@example.com', 'seller123', 'SELLER'),
+           ('admin', 'admin@example.com', 'admin123', 'ADMIN');
 
-MERGE INTO items (name, description, seller_id, category)
+
+
+
+        MERGE INTO items (name, description, seller_id, category)
     KEY(name)
     VALUES (
                'Vintage Porsche 911 Carrera',

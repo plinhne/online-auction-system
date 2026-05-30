@@ -20,6 +20,10 @@ public enum MessageType implements Serializable {
     ADD_ITEM_RESPONSE,
     EDIT_ITEM_REQUEST,
     EDIT_ITEM_RESPONSE,
+    DELETE_ITEM_REQUEST,
+    DELETE_ITEM_RESPONSE,
+    GET_MY_ITEMS_REQUEST,
+    GET_MY_ITEMS_RESPONSE,
 
     // ── Luồng Quản lý Phiên đấu giá (Của Seller) ──
     CREATE_AUCTION_REQUEST,  // MỚI THÊM: Tạo phiên đấu giá
@@ -48,6 +52,8 @@ public enum MessageType implements Serializable {
     CHAT_MESSAGE_NOTIFICATION,
     USER_BANNED_NOTIFICATION,
     USER_BALANCE_UPDATE_NOTIFICATION, // Tín hiệu đẩy Realtime về số dư
+    AUCTION_STARTED_NOTIFICATION,
+    AUCTION_ENDED_NOTIFICATION,
 
     // ── Luồng quản trị của Admin ──
     ADMIN_ACTION_REQUEST,
