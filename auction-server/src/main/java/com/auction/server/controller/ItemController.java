@@ -62,4 +62,30 @@ public class ItemController {
         response.addProperty("status", "OK");
         response.addProperty("message", "Item deleted: " + itemId);
     }
+
+    public void handleGetItemDetails(JsonObject request, JsonObject response) {
+        try {
+            if (!request.has("itemId")) {
+                response.addProperty("status", "ERROR");
+                response.addProperty("message", "Thiếu mã sản phẩm (itemId)");
+                return;
+            }
+
+            int itemId = request.get("itemId").getAsInt();
+
+            Item item = itemService.getItemById(itemId);
+
+            if (item != null) {
+                response.addProperty("status", "OK");
+                response.add("item", gson.toJsonTree(item));
+            } else {
+                response.addProperty("status", "ERROR");
+                response.addProperty("message", "Không tìm thấy sản phẩm với ID: " + itemId);
+            }
+        } catch (Exception e) {
+            response.addProperty("status", "ERROR");
+            response.addProperty("message", "Lỗi Server khi lấy chi tiết sản phẩm: " + e.getMessage());
+            logger.error("Lỗi khi lấy chi tiết sản phẩm", e);
+        }
+    }
 }

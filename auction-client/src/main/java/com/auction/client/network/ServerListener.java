@@ -29,6 +29,9 @@ public class ServerListener extends Thread {
     private RealTimeBiddingController biddingController;
     private AuctionListViewController auctionListController;
 
+    // ĐÃ BỔ SUNG: Khai báo biến controller cho chi tiết sản phẩm
+    private com.auction.client.controller.ProductDetailsController productDetailsController;
+
     // Constructor nhận BufferedReader đã được khởi tạo từ NetworkService
     public ServerListener(Socket socket, BufferedReader in) {
         this.socket = socket;
@@ -44,6 +47,11 @@ public class ServerListener extends Thread {
 
     public void setAuctionListController(AuctionListViewController controller) {
         this.auctionListController = controller;
+    }
+
+    // ĐÃ BỔ SUNG: Hàm setter cho ProductDetailsController để sửa lỗi "cannot find symbol"
+    public void setProductDetailsController(com.auction.client.controller.ProductDetailsController controller) {
+        this.productDetailsController = controller;
     }
 
     public void removeBiddingController() {
@@ -116,6 +124,20 @@ public class ServerListener extends Thread {
                 }
                 break;
 
+            // ĐÃ BỔ SUNG: Xử lý tín hiệu trả về chi tiết Item
+            case GET_ITEM_DETAILS_RESPONSE:
+                LoggerUtil.info("Nhận thông tin chi tiết Item từ Server.");
+                if (payload != null && !payload.isEmpty()) {
+                    JsonObject resp = JsonParser.parseString(payload).getAsJsonObject();
+                    if (resp.has("item")) {
+                        com.auction.model.item.Item itemDetail = gson.fromJson(resp.get("item"), com.auction.model.item.Item.class);
+                        if (productDetailsController != null) {
+                            Platform.runLater(() -> productDetailsController.setItemDetails(itemDetail));
+                        }
+                    }
+                }
+                break;
+
             case AUCTION_UPDATE_NOTIFICATION:
                 LoggerUtil.info("Nhận tín hiệu Broadcast cập nhật phiên đấu giá Realtime.");
                 if (biddingController != null) {
@@ -158,6 +180,7 @@ public class ServerListener extends Thread {
         this.isRunning = false;
         this.biddingController = null;
         this.auctionListController = null;
+        this.productDetailsController = null;
 
         try {
             if (in != null) in.close();

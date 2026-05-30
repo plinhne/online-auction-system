@@ -13,6 +13,8 @@ public abstract class Item extends Entity {
     private ItemStatus status;
     private String description;
 
+    private ItemCategory category;
+
     private List<Bid> bids = new ArrayList<>();
 
     public Item(int id, String name, double price, ItemCategory category) {
@@ -20,44 +22,24 @@ public abstract class Item extends Entity {
         this.name = name;
         this.price = price;
         this.status = ItemStatus.ACTIVE;
+        this.category = category; // ĐÃ LƯU BIẾN NÀY
     }
 
     // getter setter
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
+    public double getPrice() { return price; }
+    public ItemStatus getStatus() { return status; }
+    public List<Bid> getBids() { return bids; }
+    public String getDescription() { return description; }
 
-    public double getPrice() {
-        return price;
-    }
+    // item category
+    public ItemCategory getCategory() { return category; }
 
-    public ItemStatus getStatus() {
-        return status;
-    }
-
-    public List<Bid> getBids() {
-        return bids;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    public void setStatus(ItemStatus status) {
-        this.status = status;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public void setName(String name) { this.name = name; }
+    public void setPrice(double price) { this.price = price; }
+    public void setStatus(ItemStatus status) { this.status = status; }
+    public void setDescription(String description) { this.description = description; }
+    public void setCategory(ItemCategory category) { this.category = category; }
 
     // polymorphism
     public abstract void printInfor();

@@ -3,63 +3,35 @@ package com.auction.network;
 import java.io.Serializable;
 
 public enum MessageType implements Serializable {
-    // ── Luồng Authentication (Xác thực tài khoản) ──
-    LOGIN_REQUEST,
-    LOGIN_RESPONSE,
-    SIGNUP_REQUEST,
-    SIGNUP_RESPONSE,
-    LOGOUT_REQUEST,          // MỚI THÊM: Xử lý đăng xuất
-    LOGOUT_RESPONSE,         // MỚI THÊM
+    LOGIN_REQUEST, LOGIN_RESPONSE,
+    SIGNUP_REQUEST, SIGNUP_RESPONSE,
+    LOGOUT_REQUEST, LOGOUT_RESPONSE,
 
-    // ── Luồng Truy vấn dữ liệu Sản phẩm chung ──
-    GET_ALL_AUCTIONS_REQUEST,
-    GET_ALL_AUCTIONS_RESPONSE,
+    GET_ALL_AUCTIONS_REQUEST, GET_ALL_AUCTIONS_RESPONSE,
 
-    // ── Luồng Quản lý Sản phẩm (Của Seller/Admin) ──
-    ADD_ITEM_REQUEST,
-    ADD_ITEM_RESPONSE,
-    EDIT_ITEM_REQUEST,
-    EDIT_ITEM_RESPONSE,
-    DELETE_ITEM_REQUEST,
-    DELETE_ITEM_RESPONSE,
-    GET_MY_ITEMS_REQUEST,
-    GET_MY_ITEMS_RESPONSE,
+    // ĐÂY CHÍNH LÀ 2 LỆNH GIÚP BẠN HẾT BÁO ĐỎ
+    GET_ITEM_DETAILS_REQUEST, GET_ITEM_DETAILS_RESPONSE,
 
-    // ── Luồng Quản lý Phiên đấu giá (Của Seller) ──
-    CREATE_AUCTION_REQUEST,  // MỚI THÊM: Tạo phiên đấu giá
-    CREATE_AUCTION_RESPONSE, // MỚI THÊM
-    CANCEL_AUCTION_REQUEST,  // MỚI THÊM: Hủy phiên đấu giá
-    CANCEL_AUCTION_RESPONSE, // MỚI THÊM
-    GET_MY_AUCTIONS_REQUEST, // MỚI THÊM: Lấy danh sách phiên đấu giá của tôi (Seller)
-    GET_MY_AUCTIONS_RESPONSE,// MỚI THÊM
+    ADD_ITEM_REQUEST, ADD_ITEM_RESPONSE,
+    EDIT_ITEM_REQUEST, EDIT_ITEM_RESPONSE,
+    DELETE_ITEM_REQUEST, DELETE_ITEM_RESPONSE,
+    GET_MY_ITEMS_REQUEST, GET_MY_ITEMS_RESPONSE,
 
-    // ── Luồng Phòng đấu giá (Join / Leave) ──
-    JOIN_AUCTION_REQUEST,    // MỚI THÊM: Vào phòng đấu giá
-    JOIN_AUCTION_RESPONSE,   // MỚI THÊM
-    LEAVE_AUCTION_REQUEST,   // MỚI THÊM: Thoát phòng đấu giá
-    LEAVE_AUCTION_RESPONSE,  // MỚI THÊM
+    CREATE_AUCTION_REQUEST, CREATE_AUCTION_RESPONSE,
+    CANCEL_AUCTION_REQUEST, CANCEL_AUCTION_RESPONSE,
+    GET_MY_AUCTIONS_REQUEST, GET_MY_AUCTIONS_RESPONSE,
 
-    // ── Luồng Đấu giá chính (Bidding) ──
-    PLACE_BID_REQUEST,
-    PLACE_BID_RESPONSE,
-    SET_AUTO_BID_REQUEST,    // MỚI THÊM: Thiết lập đấu giá tự động (Auto-bid)
-    SET_AUTO_BID_RESPONSE,   // MỚI THÊM
-    GET_MY_BIDS_REQUEST,     // MỚI THÊM: Lịch sử đấu giá của tôi (Bidder)
-    GET_MY_BIDS_RESPONSE,    // MỚI THÊM
+    JOIN_AUCTION_REQUEST, JOIN_AUCTION_RESPONSE,
+    LEAVE_AUCTION_REQUEST, LEAVE_AUCTION_RESPONSE,
 
-    // ── Gói tin đẩy Realtime từ Server xuống (Broadcast) ──
-    AUCTION_UPDATE_NOTIFICATION,
-    CHAT_MESSAGE_NOTIFICATION,
-    USER_BANNED_NOTIFICATION,
-    USER_BALANCE_UPDATE_NOTIFICATION, // Tín hiệu đẩy Realtime về số dư
-    AUCTION_STARTED_NOTIFICATION,
-    AUCTION_ENDED_NOTIFICATION,
+    PLACE_BID_REQUEST, PLACE_BID_RESPONSE,
+    SET_AUTO_BID_REQUEST, SET_AUTO_BID_RESPONSE,
+    GET_MY_BIDS_REQUEST, GET_MY_BIDS_RESPONSE,
 
-    // ── Luồng quản trị của Admin ──
-    ADMIN_ACTION_REQUEST,
-    ADMIN_ACTION_RESPONSE,
+    AUCTION_UPDATE_NOTIFICATION, CHAT_MESSAGE_NOTIFICATION,
+    USER_BANNED_NOTIFICATION, USER_BALANCE_UPDATE_NOTIFICATION,
+    AUCTION_STARTED_NOTIFICATION, AUCTION_ENDED_NOTIFICATION,
 
-    // ── Ping/Pong kiểm tra kết nối mạng ──
-    PING,                    // MỚI THÊM: Dành cho chức năng Heartbeat giữ kết nối
-    PONG                     // MỚI THÊM
+    ADMIN_ACTION_REQUEST, ADMIN_ACTION_RESPONSE,
+    PING, PONG
 }

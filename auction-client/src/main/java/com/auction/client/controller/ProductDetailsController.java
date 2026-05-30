@@ -5,10 +5,14 @@ import com.auction.client.util.LoggerUtil;
 import com.auction.client.util.ValidationUtil;
 import com.auction.model.auction.Auction;
 import com.auction.model.bid.Bid;
+import com.auction.model.item.Item;
 import com.auction.network.NetworkMessage;
 import com.auction.network.MessageType;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -49,7 +53,6 @@ public class ProductDetailsController extends BaseController {
     public void initialize() {
         LoggerUtil.info("Khởi tạo cấu trúc bảng Lịch sử thầu TableView.");
 
-        // Gán sự kiện cho nút Quay lại danh sách
         if (backButton != null) {
             backButton.setOnAction(e -> switchWindow(backButton, "/fxml/AuctionListView.fxml"));
         }
@@ -58,7 +61,10 @@ public class ProductDetailsController extends BaseController {
         amountColumn.setCellValueFactory(cellData -> new SimpleStringProperty(String.format("%,.0fđ", cellData.getValue().getAmount())));
 
         timeColumn.setCellValueFactory(cellData -> {
-            return new SimpleStringProperty("Mã phòng: " + cellData.getValue().getAuctionId());
+            if (cellData.getValue().getPlacedAt() != null) {
+                return new SimpleStringProperty(cellData.getValue().getPlacedAt().format(dateTimeFormatter));
+            }
+            return new SimpleStringProperty("N/A");
         });
 
         bidsTable.setItems(bidHistoryList);
@@ -68,15 +74,52 @@ public class ProductDetailsController extends BaseController {
     public void setAuctionDetails(Auction auction) {
         this.currentAuction = auction;
         if (auction != null) {
-            productNameLabel.setText("Sản phẩm đấu giá #" + auction.getItemId());
-            descriptionArea.setText("Chi tiết phòng đấu giá mã số: " + auction.getId());
-            categoryLabel.setText("Mã sản phẩm: " + auction.getItemId());
             statusLabel.setText("● " + auction.getStatus().name());
-
             startTimeLabel.setText(auction.getStartTime().format(dateTimeFormatter));
             endTimeLabel.setText(auction.getEndTime().format(dateTimeFormatter));
 
             updateRealtimeDetails(auction);
+
+            productNameLabel.setText("Đang tải...");
+            descriptionArea.setText("Đang tải chi tiết...");
+            categoryLabel.setText("...");
+
+            if (com.auction.client.network.NetworkService.getInstance().getServerListener() != null) {
+                com.auction.client.network.NetworkService.getInstance().getServerListener().setProductDetailsController(this);
+            }
+            fetchItemDetails(auction.getItemId());
+        }
+    }
+
+    private void fetchItemDetails(int itemId) {
+        try {
+            JsonObject req = new JsonObject();
+            req.addProperty("itemId", itemId);
+            NetworkMessage msg = new NetworkMessage(MessageType.GET_ITEM_DETAILS_REQUEST, req.toString());
+            com.auction.client.network.NetworkService.getInstance().sendNetworkMessage(msg);
+        } catch (Exception e) {
+            LoggerUtil.error("Lỗi khi gửi yêu cầu lấy thông tin sản phẩm", e);
+        }
+    }
+
+    // Xử lý phản hồi từ Server
+    public void onMessageReceived(NetworkMessage message) {
+        if (message.getType() == MessageType.GET_ITEM_DETAILS_RESPONSE) {
+            JsonObject payload = JsonParser.parseString(message.getPayload()).getAsJsonObject();
+            if ("SUCCESS".equals(payload.get("status").getAsString())) {
+                Item item = new Gson().fromJson(payload.get("item"), Item.class);
+                setItemDetails(item);
+            }
+        }
+    }
+
+    public void setItemDetails(Item item) {
+        if (item != null) {
+            Platform.runLater(() -> {
+                productNameLabel.setText(item.getName());
+                descriptionArea.setText(item.getDescription());
+                categoryLabel.setText(item.getCategory() != null ? "Danh mục: " + item.getCategory().name() : "Danh mục: Khác");
+            });
         }
     }
 
@@ -93,33 +136,31 @@ public class ProductDetailsController extends BaseController {
     }
 
     private void handlePlaceBid() {
-        // Kiểm tra quyền truy cập (Session)
         if (currentUser == null) {
-            DialogUtil.showWarning("Vui lòng đăng nhập để thực hiện đặt giá!");
+            DialogUtil.showWarning("Vui lòng đăng nhập!");
             return;
         }
 
         if (ValidationUtil.isEmpty(bidAmountField.getText())) {
-            DialogUtil.showWarning("Vui lòng điền giá tiền thầu!");
+            DialogUtil.showWarning("Vui lòng điền giá!");
             return;
         }
 
         double amount;
-        // Bắt lỗi NumberFormatException tránh sập App
         try {
             amount = Double.parseDouble(bidAmountField.getText().trim());
         } catch (NumberFormatException ex) {
-            DialogUtil.showWarning("Vui lòng chỉ nhập số hợp lệ vào ô giá thầu!");
+            DialogUtil.showWarning("Giá không hợp lệ!");
             return;
         }
 
         double minIncrement = currentAuction.getMinIncrement();
         if (!ValidationUtil.isValidBidAmount(amount, currentAuction.getCurrentPrice(), minIncrement)) {
-            DialogUtil.showError("Mức giá đặt thầu không hợp lệ so với bước nhảy tối thiểu!");
+            DialogUtil.showError("Mức giá không hợp lệ!");
             return;
         }
 
-        // Đóng gói JSON & Đẩy lệnh lên Server ngầm
+        placeBidButton.setDisable(true);
         Task<Void> bidTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
@@ -129,21 +170,19 @@ public class ProductDetailsController extends BaseController {
                 bidRequestJson.addProperty("bidAmount", amount);
 
                 NetworkMessage message = new NetworkMessage(MessageType.PLACE_BID_REQUEST, bidRequestJson.toString());
-
-                //ĐÃ SỬA: Gửi đi qua NetworkService (Nó sẽ tự chuyển sang JSON và gửi bằng PrintWriter)
                 com.auction.client.network.NetworkService.getInstance().sendNetworkMessage(message);
                 return null;
             }
         };
 
         bidTask.setOnSucceeded(e -> {
-            LoggerUtil.info("Đã gửi lệnh đặt thầu thành công.");
+            placeBidButton.setDisable(false);
             bidAmountField.clear();
         });
 
         bidTask.setOnFailed(e -> {
-            LoggerUtil.error("Sự cố gửi lệnh đặt thầu.", bidTask.getException());
-            DialogUtil.showError("Lỗi kết nối mạng, không thể gửi yêu cầu đặt giá!");
+            placeBidButton.setDisable(false);
+            DialogUtil.showError("Lỗi kết nối!");
         });
 
         runAsyncTask(bidTask);
@@ -153,7 +192,7 @@ public class ProductDetailsController extends BaseController {
         if (bids != null) {
             bidCountLabel.setText(bids.size() + " lượt đặt");
             bidHistoryList.setAll(bids);
-            FXCollections.reverse(bidHistoryList); // Đảo ngược để bid mới nhất lên đầu
+            FXCollections.reverse(bidHistoryList);
         }
     }
 }

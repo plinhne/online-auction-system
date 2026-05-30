@@ -79,8 +79,9 @@ public class MainController extends BaseController implements Initializable {
                 break;
 
             case "BUYER":
+            case "BIDDER": // Đề phòng trường hợp Role là BIDDER
             default:
-                LoggerUtil.info("Tài khoản BUYER kích hoạt Dashboard -> Tự động nạp AuctionListView.");
+                LoggerUtil.info("Tài khoản BUYER/BIDDER kích hoạt Dashboard -> Tự động nạp AuctionListView.");
                 loadCenterView(contentArea, "/fxml/AuctionListView.fxml");
                 break;
         }
@@ -153,9 +154,25 @@ public class MainController extends BaseController implements Initializable {
         }
     }
 
+    /**
+     * ĐÃ SỬA: Hàm xử lý Đăng xuất, nay đã gửi thêm gói tin LOGOUT_REQUEST cho Server
+     */
     private void handleLogout() {
         if (DialogUtil.showConfirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?")) {
             LoggerUtil.info("Người dùng thực hiện đăng xuất.");
+
+            // BỔ SUNG: Gửi thông điệp LOGOUT lên Server để Server dọn dẹp Session
+            try {
+                com.auction.network.NetworkMessage logoutMsg = new com.auction.network.NetworkMessage(
+                        com.auction.network.MessageType.LOGOUT_REQUEST,
+                        "{}" // Payload rỗng vì chỉ cần type là đủ
+                );
+                com.auction.client.network.NetworkService.getInstance().sendNetworkMessage(logoutMsg);
+            } catch (Exception e) {
+                LoggerUtil.error("Lỗi mạng: Không thể gửi tín hiệu đăng xuất lên Server.", e);
+            }
+
+            // Xóa session ở Client và chuyển về màn hình đăng nhập
             clearSessionContext();
             switchWindow(avatarButton, "/fxml/LoginView.fxml");
         }

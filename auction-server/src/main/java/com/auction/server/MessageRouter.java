@@ -17,24 +17,14 @@ import org.slf4j.LoggerFactory;
 import java.util.EnumMap;
 import java.util.Map;
 
-/**
- * MessageRouter: parse NetworkMessage → điều phối sang Controller.
- * Dùng EnumMap<MessageType, RouteHandler> thay vì switch → đảm bảo OCP:
- * thêm MessageType mới chỉ cần đăng ký handler, không sửa route().
- */
 public class MessageRouter {
     private static final Logger logger = LoggerFactory.getLogger(MessageRouter.class);
 
     private final Gson gson = new Gson();
-
-    // Session state — mỗi ClientHandler có 1 MessageRouter riêng
     private User currentUser = null;
     private int currentAuctionId = -1;
 
-    // Map: REQUEST type → handler xử lý
     private final Map<MessageType, RouteHandler> handlers = new EnumMap<>(MessageType.class);
-
-    // Map: REQUEST type → RESPONSE type tương ứng
     private final Map<MessageType, MessageType> responseTypeMap = new EnumMap<>(MessageType.class);
 
     public MessageRouter(AuthController authController,
@@ -45,20 +35,17 @@ public class MessageRouter {
         registerResponseTypes();
     }
 
-    /**
-     * Đăng ký tất cả handler — thêm MessageType mới chỉ cần thêm dòng ở đây.
-     */
     private void registerHandlers(AuthController auth,
                                   AuctionController auction,
                                   BidController bid,
                                   ItemController item) {
-        // ── PING ─────────────────────────────────────────────────────────────
+        // ── PING ──
         handlers.put(MessageType.PING, (req, res) -> {
             res.addProperty("status", "OK");
             res.addProperty("message", "PONG");
         });
 
-        // ── AUTH ──────────────────────────────────────────────────────────────
+        // ── AUTH ──
         handlers.put(MessageType.SIGNUP_REQUEST,  (req, res) -> auth.handleRegister(req, res));
         handlers.put(MessageType.LOGIN_REQUEST,   (req, res) -> currentUser = auth.handleLogin(req, res));
         handlers.put(MessageType.LOGOUT_REQUEST,  (req, res) -> {
@@ -67,7 +54,7 @@ public class MessageRouter {
             currentAuctionId = -1;
         });
 
-        // ── AUCTION ───────────────────────────────────────────────────────────
+        // ── AUCTION ──
         handlers.put(MessageType.GET_ALL_AUCTIONS_REQUEST, (req, res) -> auction.handleGetAuctions(res));
         handlers.put(MessageType.JOIN_AUCTION_REQUEST, (req, res) -> {
             Auction a = auction.handleJoinAuction(req, res);
@@ -82,26 +69,57 @@ public class MessageRouter {
         handlers.put(MessageType.GET_MY_AUCTIONS_REQUEST, requireLogin((req, res) -> auction.handleGetMyAuctions(res, currentUser)));
         handlers.put(MessageType.GET_MY_BIDS_REQUEST,     requireLogin((req, res) -> auction.handleGetMyBids(res, currentUser)));
 
-        // ── ITEM ──────────────────────────────────────────────────────────────
-        handlers.put(MessageType.ADD_ITEM_REQUEST,      requireLogin((req, res) -> item.handleCreateItem(req, res, currentUser)));
+        // ── ITEM (ĐÃ CHUẨN HÓA LIÊN HOÀN & LẤY CHI TIẾT) ──
+        handlers.put(MessageType.GET_ITEM_DETAILS_REQUEST, (req, res) -> item.handleGetItemDetails(req, res));
+
+        handlers.put(MessageType.ADD_ITEM_REQUEST, requireLogin((req, res) -> {
+            // 1. Lưu Item
+            item.handleCreateItem(req, res, currentUser);
+            boolean isOk = !res.has("status") || "OK".equals(res.get("status").getAsString());
+
+            // 2. Chuyển tiếp ID để tạo Auction
+            if (isOk && res.has("item")) {
+                int newItemId = res.get("item").getAsJsonObject().get("id").getAsInt();
+                req.addProperty("itemId", newItemId);
+
+                JsonObject auctionResponse = new JsonObject();
+                auction.handleCreateAuction(req, auctionResponse, currentUser);
+
+                boolean isAuctionOk = !auctionResponse.has("status") || "OK".equals(auctionResponse.get("status").getAsString());
+                if (isAuctionOk) {
+                    res.add("auction", auctionResponse.get("auction"));
+                    res.addProperty("message", "Đã tạo Sản phẩm và Phiên đấu giá thành công!");
+                } else {
+                    res.addProperty("status", "ERROR");
+                    res.addProperty("message", "Lỗi tạo phòng đấu giá: " + auctionResponse.get("message").getAsString());
+                }
+            }
+        }));
+
         handlers.put(MessageType.EDIT_ITEM_REQUEST,     requireLogin((req, res) -> item.handleUpdateItem(req, res, currentUser)));
         handlers.put(MessageType.DELETE_ITEM_REQUEST,   requireLogin((req, res) -> item.handleDeleteItem(req, res, currentUser)));
         handlers.put(MessageType.GET_MY_ITEMS_REQUEST,  requireLogin((req, res) -> item.handleGetMyItems(res, currentUser)));
 
-        // ── BID ───────────────────────────────────────────────────────────────
+        // ── BID ──
         handlers.put(MessageType.PLACE_BID_REQUEST,   requireLogin((req, res) -> bid.handlePlaceBid(req, res, currentUser)));
         handlers.put(MessageType.SET_AUTO_BID_REQUEST, requireLogin((req, res) -> bid.handleSetAutoBid(req, res, currentUser)));
+
+        // ── ADMIN ──
+        handlers.put(MessageType.ADMIN_ACTION_REQUEST, requireLogin((req, res) -> {
+            res.addProperty("status", "OK");
+            res.addProperty("message", "Đã tiếp nhận lệnh Admin");
+        }));
     }
 
-    /**
-     * Map REQUEST → RESPONSE type.
-     */
     private void registerResponseTypes() {
         responseTypeMap.put(MessageType.PING,                     MessageType.PONG);
         responseTypeMap.put(MessageType.SIGNUP_REQUEST,           MessageType.SIGNUP_RESPONSE);
         responseTypeMap.put(MessageType.LOGIN_REQUEST,            MessageType.LOGIN_RESPONSE);
         responseTypeMap.put(MessageType.LOGOUT_REQUEST,           MessageType.LOGOUT_RESPONSE);
+
         responseTypeMap.put(MessageType.GET_ALL_AUCTIONS_REQUEST, MessageType.GET_ALL_AUCTIONS_RESPONSE);
+        responseTypeMap.put(MessageType.GET_ITEM_DETAILS_REQUEST, MessageType.GET_ITEM_DETAILS_RESPONSE); // Map mới
+
         responseTypeMap.put(MessageType.JOIN_AUCTION_REQUEST,     MessageType.JOIN_AUCTION_RESPONSE);
         responseTypeMap.put(MessageType.LEAVE_AUCTION_REQUEST,    MessageType.LEAVE_AUCTION_RESPONSE);
         responseTypeMap.put(MessageType.CREATE_AUCTION_REQUEST,   MessageType.CREATE_AUCTION_RESPONSE);
@@ -114,6 +132,7 @@ public class MessageRouter {
         responseTypeMap.put(MessageType.GET_MY_ITEMS_REQUEST,     MessageType.GET_MY_ITEMS_RESPONSE);
         responseTypeMap.put(MessageType.PLACE_BID_REQUEST,        MessageType.PLACE_BID_RESPONSE);
         responseTypeMap.put(MessageType.SET_AUTO_BID_REQUEST,     MessageType.SET_AUTO_BID_RESPONSE);
+        responseTypeMap.put(MessageType.ADMIN_ACTION_REQUEST,     MessageType.ADMIN_ACTION_RESPONSE); // Map mới
     }
 
     public String route(String rawJson) {
@@ -160,10 +179,6 @@ public class MessageRouter {
         return gson.toJson(new NetworkMessage(responseType, responsePayload.toString()));
     }
 
-    /**
-     * Wrapper đảm bảo user đã login trước khi gọi handler.
-     * Dùng để tránh lặp code requireLogin trong mỗi handler.
-     */
     private RouteHandler requireLogin(RouteHandler handler) {
         return (req, res) -> {
             if (currentUser == null) {
@@ -178,7 +193,6 @@ public class MessageRouter {
     public User getCurrentUser() { return currentUser; }
     public int getCurrentAuctionId() { return currentAuctionId; }
 
-    // ── Functional interface ──────────────────────────────────────────────────
     @FunctionalInterface
     private interface RouteHandler {
         void handle(JsonObject request, JsonObject response) throws Exception;
