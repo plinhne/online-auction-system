@@ -3,7 +3,7 @@ package com.auction.client.controller;
 import com.auction.client.util.DialogUtil;
 import com.auction.client.util.LoggerUtil;
 import com.auction.client.util.ValidationUtil;
-import com.auction.model.auction.Auction; // Đảm bảo import đúng class Auction bạn vừa gửi
+import com.auction.model.auction.Auction;
 import com.auction.network.NetworkMessage;
 import com.auction.network.MessageType;
 import com.google.gson.Gson;
@@ -39,7 +39,7 @@ public class RealTimeBiddingController extends BaseController {
     @FXML private TextField autoBidIncrementField;
     @FXML private ListView<String> bidActivityList;
 
-    private Auction currentAuction; // Khai báo đúng kiểu Auction
+    private Auction currentAuction;
     private final Gson gson = new Gson();
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
     private final XYChart.Series<String, Number> priceSeries = new XYChart.Series<>();
@@ -62,18 +62,12 @@ public class RealTimeBiddingController extends BaseController {
         });
     }
 
-    /**
-     * Nhận chính xác context là đối tượng com.auction.model.auction.Auction
-     */
     public void setAuctionContext(Auction auction) {
         this.currentAuction = auction;
         if (auction != null) {
-            // Vì Auction chỉ có itemId, tạm thời hiển thị ID sản phẩm hoặc mã phiên
             productNameLabel.setText("Mã sản phẩm: " + auction.getItemId());
             updateAuctionRealtimeView(auction);
         }
-
-        // Đăng ký controller với ServerListener
         if (serverListener != null) {
             serverListener.setBiddingController(this);
         }
@@ -89,8 +83,6 @@ public class RealTimeBiddingController extends BaseController {
         }
 
         double bidAmount = Double.parseDouble(amountText);
-
-        // ĐÃ SỬA: Lấy bước giá tối thiểu thông qua hàm getMinIncrement() thực tế của Auction
         double minIncrement = currentAuction.getMinIncrement();
 
         if (!ValidationUtil.isValidBidAmount(bidAmount, currentAuction.getCurrentPrice(), minIncrement)) {
@@ -110,46 +102,47 @@ public class RealTimeBiddingController extends BaseController {
 
     private void sendBidRequestToServer(double amount) {
         try {
+            // 1. GỬI LỆNH ĐẤU GIÁ THỦ CÔNG (BID)
             JsonObject bidJson = new JsonObject();
-            bidJson.addProperty("auctionId", currentAuction.getId()); // Kế thừa từ Entity cha
+            bidJson.addProperty("auctionId", currentAuction.getId());
+            // Giữ nguyên là "bidAmount" (Do BidController ở Server đã được sửa thành bidAmount ở lượt trước)
             bidJson.addProperty("bidAmount", amount);
-            bidJson.addProperty("isAutoBid", autoBidCheckBox.isSelected());
-
-            if (autoBidCheckBox.isSelected()) {
-                bidJson.addProperty("maxBid", Double.parseDouble(autoBidMaxField.getText()));
-                bidJson.addProperty("increment", Double.parseDouble(autoBidIncrementField.getText()));
-            }
 
             NetworkMessage message = new NetworkMessage(MessageType.PLACE_BID_REQUEST, gson.toJson(bidJson));
-
-            // ĐÃ SỬA: Dùng NetworkService thay vì gọi trực tiếp outStream
             com.auction.client.network.NetworkService.getInstance().sendNetworkMessage(message);
+
+            // 2. NẾU CHỌN AUTO BID -> TÁCH RA THÀNH LỆNH SET_AUTO_BID_REQUEST RIÊNG BIỆT
+            if (autoBidCheckBox.isSelected()) {
+                JsonObject autoBidJson = new JsonObject();
+                autoBidJson.addProperty("auctionId", currentAuction.getId());
+                autoBidJson.addProperty("maxBid", Double.parseDouble(autoBidMaxField.getText()));
+                autoBidJson.addProperty("increment", Double.parseDouble(autoBidIncrementField.getText()));
+
+                NetworkMessage autoMsg = new NetworkMessage(MessageType.SET_AUTO_BID_REQUEST, gson.toJson(autoBidJson));
+                com.auction.client.network.NetworkService.getInstance().sendNetworkMessage(autoMsg);
+                LoggerUtil.info("Đã gửi gói lệnh thiết lập Auto-Bid lên Server.");
+            }
 
             bidAmountField.clear();
             LoggerUtil.info("Đã gửi lệnh đặt giá " + amount + "đ lên Server.");
         } catch (NumberFormatException e) {
+            DialogUtil.showWarning("Lỗi định dạng cấu hình Auto-Bid. Vui lòng nhập số hợp lệ.");
             LoggerUtil.error("Lỗi gửi gói tin đặt giá.", e);
         }
     }
 
-    /**
-     * 🌟 Hàm realtime được gọi từ ServerListener
-     */
     public void updateAuctionRealtimeView(Auction auction) {
         this.currentAuction = auction;
 
-        // Bọc vào chạy trên UI Thread của JavaFX
         Platform.runLater(() -> {
             currentPriceLabel.setText(String.format("%,.0fđ", auction.getCurrentPrice()));
 
-            // ĐÃ SỬA: Kiểm tra leadingBidderId thay vì getHighestBidder()
             if (auction.getLeadingBidderId() > 0) {
                 currentLeaderLabel.setText("🏆 ID Người dẫn đầu: " + auction.getLeadingBidderId());
             } else {
                 currentLeaderLabel.setText("🏆 Dẫn đầu: Chưa có");
             }
 
-            // Vẽ đồ thị và cập nhật danh sách hoạt động
             String timeNow = LocalTime.now().format(timeFormatter);
             priceSeries.getData().add(new XYChart.Data<>(timeNow, auction.getCurrentPrice()));
             activities.add(0, "[" + timeNow + "] Giá mới: " + String.format("%,.0fđ", auction.getCurrentPrice()));

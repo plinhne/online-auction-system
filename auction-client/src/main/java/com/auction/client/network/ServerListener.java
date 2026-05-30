@@ -7,6 +7,8 @@ import com.auction.network.NetworkMessage;
 import com.auction.network.MessageType;
 import com.auction.model.auction.Auction;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 
 import javafx.application.Platform;
@@ -19,7 +21,7 @@ import java.util.List;
 public class ServerListener extends Thread {
     private final Socket socket;
 
-    // ĐÃ CHUYỂN ĐỔI: Dùng BufferedReader thay vì ObjectInputStream
+    // Dùng BufferedReader thay vì ObjectInputStream
     private final BufferedReader in;
     private final Gson gson;
     private volatile boolean isRunning;
@@ -27,7 +29,7 @@ public class ServerListener extends Thread {
     private RealTimeBiddingController biddingController;
     private AuctionListViewController auctionListController;
 
-    // Thay đổi Constructor để nhận BufferedReader đã được khởi tạo từ NetworkService
+    // Constructor nhận BufferedReader đã được khởi tạo từ NetworkService
     public ServerListener(Socket socket, BufferedReader in) {
         this.socket = socket;
         this.in = in;
@@ -54,14 +56,13 @@ public class ServerListener extends Thread {
         String jsonLine;
 
         try {
-            // ĐÃ CHUYỂN ĐỔI: Đọc từng dòng Text bằng readLine()
+            // Đọc từng dòng Text bằng readLine()
             while (isRunning && !socket.isClosed() && (jsonLine = in.readLine()) != null) {
-
                 try {
                     // Dịch ngược chuỗi JSON thành đối tượng NetworkMessage
                     NetworkMessage message = gson.fromJson(jsonLine, NetworkMessage.class);
 
-                    if (message != null) {
+                    if (message != null && message.getType() != null) {
                         handleIncomingMessage(message);
                     }
                 } catch (Exception e) {
@@ -84,7 +85,26 @@ public class ServerListener extends Thread {
 
         switch (type) {
             case LOGIN_RESPONSE:
-                LoggerUtil.info("Nhận phản hồi Đăng nhập từ Server.");
+                LoggerUtil.info("Nhận phản hồi Đăng nhập từ Server (Đã xử lý ở LoginController).");
+                break;
+
+            case SIGNUP_RESPONSE:
+                LoggerUtil.info("Nhận phản hồi Đăng ký từ Server.");
+                if (payload != null && !payload.isEmpty()) {
+                    JsonObject resp = JsonParser.parseString(payload).getAsJsonObject();
+                    String status = resp.has("status") ? resp.get("status").getAsString() : "ERROR";
+
+                    if ("OK".equals(status)) {
+                        Platform.runLater(() -> {
+                            com.auction.client.util.DialogUtil.showInfo("Đăng ký thành công! Vui lòng quay lại màn hình và đăng nhập.");
+                        });
+                    } else {
+                        String errMsg = resp.has("message") ? resp.get("message").getAsString() : "Đăng ký thất bại không rõ nguyên nhân.";
+                        Platform.runLater(() -> {
+                            com.auction.client.util.DialogUtil.showError("Lỗi đăng ký: " + errMsg);
+                        });
+                    }
+                }
                 break;
 
             case GET_ALL_AUCTIONS_RESPONSE:
@@ -117,8 +137,12 @@ public class ServerListener extends Thread {
                 }
                 break;
 
+            case PONG:
+                LoggerUtil.info("Đã nhận PONG từ Server - Kết nối mạng ổn định.");
+                break;
+
             default:
-                LoggerUtil.warning("Gói tin MessageType chưa được hỗ trợ: " + type);
+                LoggerUtil.warning("Gói tin MessageType chưa được hỗ trợ lắng nghe ở Client: " + type);
                 break;
         }
     }

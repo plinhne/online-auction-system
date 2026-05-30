@@ -17,8 +17,6 @@ import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 /**
@@ -27,7 +25,6 @@ import java.net.Socket;
  */
 public class LoginController extends BaseController {
 
-    // --- CÁC THÀNH PHẦN ĐỒ HỌA FX INJECT TỪ FXML ---
     @FXML private TextField usernameField;
     @FXML private PasswordField passwordField;
     @FXML private Label errorLabel;
@@ -35,56 +32,39 @@ public class LoginController extends BaseController {
     @FXML private Button bidderDemoButton;
     @FXML private Button sellerDemoButton;
     @FXML private Button adminDemoButton;
-    @FXML private Button signUpButton; // Cập nhật đồng bộ nút Sign Up mới từ FXML
+    @FXML private Button signUpButton;
 
     private final Gson gson = new Gson();
     private static final String SERVER_HOST = "localhost";
     private static final int SERVER_PORT = 8080;
 
-    /**
-     * Hàm tự động chạy sau khi file FXML được nạp thành công.
-     * Gán sự kiện cho nút đăng nhập chính thống và các nút truy cập nhanh Demo.
-     */
     @FXML
     public void initialize() {
         LoggerUtil.info("Đang khởi tạo màn hình Đăng nhập (Login Pro)...");
-
-        // Gán sự kiện cho luồng đăng nhập chính thức
         loginButton.setOnAction(event -> handleLogin());
-
-        // Cập nhật thông tin tài khoản Demo chính xác theo bảng hiển thị Demo Credentials mới
-        bidderDemoButton.setOnAction(event -> handleDemoLogin("bidder", "bidder123"));
-        sellerDemoButton.setOnAction(event -> handleDemoLogin("seller", "seller123"));
-        adminDemoButton.setOnAction(event -> handleDemoLogin("admin", "admin123"));
-
-        // Gán sự kiện điều hướng chuyển cửa sổ sang màn hình Đăng ký tài khoản
+        bidderDemoButton.setOnAction(event -> handleDemoLogin("bidder@example.com", "bidder123"));
+        sellerDemoButton.setOnAction(event -> handleDemoLogin("seller@example.com", "seller123"));
+        adminDemoButton.setOnAction(event -> handleDemoLogin("admin@example.com", "admin123"));
         signUpButton.setOnAction(event -> handleNavigateToSignUp());
     }
 
-    /**
-     * THUẬT TOÁN ĐĂNG NHẬP CHÍNH THỨC: Validate form tuyến đầu và kích hoạt Task chạy mạng ngầm.
-     */
     private void handleLogin() {
-        errorLabel.setText(""); // Xóa thông báo lỗi cũ
-        String username = usernameField.getText() != null ? usernameField.getText().trim() : "";
+        errorLabel.setText("");
+        String emailOrUsername = usernameField.getText() != null ? usernameField.getText().trim() : "";
         String password = passwordField.getText();
 
-        // 1. Tiền kiểm tra dữ liệu thô tại chỗ (Client-side Validation)
-        if (ValidationUtil.isEmpty(username) || ValidationUtil.isEmpty(password)) {
+        if (ValidationUtil.isEmpty(emailOrUsername) || ValidationUtil.isEmpty(password)) {
             showLoginError("Tên đăng nhập và mật khẩu không được để trống!");
             return;
         }
 
-        // 2. Sử dụng hàm runAsyncTask kế thừa từ BaseController để chạy ngầm tác vụ mạng Socket
-        // Giúp giao diện Client không bị đơ cứng (UI Freeze) khi Server xử lý chậm hoặc mất mạng
         Task<User> loginTask = new Task<>() {
             @Override
             protected User call() throws Exception {
-                return executeNetworkAuth(username, password);
+                return executeNetworkAuth(emailOrUsername, password);
             }
         };
 
-        // Lắng nghe khi tác vụ mạng kết thúc thành công
         loginTask.setOnSucceeded(workerStateEvent -> {
             User authenticatedUser = loginTask.getValue();
             if (authenticatedUser != null) {
@@ -94,83 +74,66 @@ public class LoginController extends BaseController {
             }
         });
 
-        // Lắng nghe khi tác vụ mạng thất bại (Lỗi kết nối Socket, Server sập,...)
         loginTask.setOnFailed(workerStateEvent -> {
             Throwable exception = loginTask.getException();
             LoggerUtil.error("Đăng nhập thất bại do sự cố mạng kết nối.", (Exception) exception);
             DialogUtil.showError("Không thể kết nối đến Máy chủ đấu giá. Vui lòng bật Server và thử lại!");
         });
 
-        // Kích hoạt chạy luồng ngầm cho Task qua BaseController
         runAsyncTask(loginTask);
     }
 
-    /**
-     * THUẬT TOÁN DEMO ACCESS: Tự động điền tài khoản mẫu và kích hoạt đăng nhập nhanh.
-     */
-    private void handleDemoLogin(String username, String password) {
-        LoggerUtil.info("Kích hoạt chế độ truy cập nhanh Demo bằng tài khoản: " + username);
-        usernameField.setText(username);
+    private void handleDemoLogin(String email, String password) {
+        LoggerUtil.info("Kích hoạt chế độ truy cập nhanh Demo bằng tài khoản: " + email);
+        usernameField.setText(email);
         passwordField.setText(password);
         handleLogin();
     }
 
-    /**
-     * ĐIỀU HƯỚNG SANG MÀN HÌNH ĐĂNG KÝ: Chuyển đổi ngữ cảnh Stage hiện tại sang SignUpView fxml.
-     */
     private void handleNavigateToSignUp() {
         LoggerUtil.info("Người dùng yêu cầu mở màn hình đăng ký hệ thống mới...");
-        // Sử dụng phương thức kế thừa switchWindow từ BaseController của bạn để điều hướng linh hoạt
         switchWindow(signUpButton, "/fxml/SignUpView.fxml");
     }
 
-    /**
-     * LOGIC LẬP TRÌNH MẠNG: Thiết lập cổng kết nối Object Stream song phương với Server.
-     */
-    private User executeNetworkAuth(String username, String password) throws Exception {
-        // 1. Tạo kết nối Socket mới đến Server
+    private User executeNetworkAuth(String email, String password) throws Exception {
         Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
-
-        // 2. ĐÃ SỬA: Chuyển sang luồng Text (PrintWriter / BufferedReader)
         java.io.PrintWriter tempOut = new java.io.PrintWriter(socket.getOutputStream(), true);
         java.io.BufferedReader tempIn = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
 
-        // 3. Đóng gói thông tin đăng nhập
         JsonObject loginPayload = new JsonObject();
-        loginPayload.addProperty("username", username);
+        // ĐÃ SỬA: Đổi từ "username" sang "email" để khớp với Server
+        loginPayload.addProperty("email", email);
         loginPayload.addProperty("password", password);
 
-        // 4. Bắn gói tin gửi lên dạng Text JSON
         NetworkMessage authRequest = new NetworkMessage(MessageType.LOGIN_REQUEST, loginPayload.toString());
         tempOut.println(gson.toJson(authRequest));
 
-        // 5. Đợi Server trả lời
         String responseLine = tempIn.readLine();
         NetworkMessage response = gson.fromJson(responseLine, NetworkMessage.class);
 
         if (response != null && response.getType() == MessageType.LOGIN_RESPONSE) {
             JsonObject resultJson = com.google.gson.JsonParser.parseString(response.getPayload()).getAsJsonObject();
-            String status = resultJson.get("status").getAsString();
+            String status = resultJson.has("status") ? resultJson.get("status").getAsString() : "ERROR";
 
-            if ("SUCCESS".equalsIgnoreCase(status)) {
+            // ĐÃ SỬA: Kiểm tra status "OK" thay vì "SUCCESS"
+            if ("OK".equalsIgnoreCase(status)) {
                 String roleStr = resultJson.get("role").getAsString();
-                User user;
-                int id = resultJson.get("id").getAsInt();
-                String email = resultJson.get("email").getAsString();
 
+                // ĐÃ SỬA: Lấy "userId" thay vì "id", và lấy "name" thay vì "email"
+                int id = resultJson.get("userId").getAsInt();
+                String name = resultJson.has("name") ? resultJson.get("name").getAsString() : "User";
+
+                User user;
                 if ("ADMIN".equalsIgnoreCase(roleStr)) {
-                    user = new Admin(id, username, email, password);
+                    user = new Admin(id, name, email, password);
                 } else if ("SELLER".equalsIgnoreCase(roleStr)) {
-                    user = new Seller(id, username, email, password);
+                    user = new Seller(id, name, email, password);
                 } else {
-                    user = new Bidder(id, username, email, password);
+                    user = new Bidder(id, name, email, password);
                 }
 
-                // 6. ĐÃ SỬA: Bàn giao Socket cho NetworkService tiếp quản
                 com.auction.client.network.NetworkService.getInstance().attachConnection(socket, tempOut, tempIn);
                 ServerListener listener = com.auction.client.network.NetworkService.getInstance().getServerListener();
-
-                // 7. LƯU TRỮ SESSION
                 BaseController.setSessionContext(user, listener);
 
                 return user;
@@ -181,16 +144,12 @@ public class LoginController extends BaseController {
         return null;
     }
 
-    /**
-     * THUẬT TOÁN ĐIỀU HƯỚNG VAI TRÒ (Phân quyền đồ họa UI): Tách biệt màn hình dựa theo chức năng của User.
-     */
     private void navigateToDashboard(User user) {
         LoggerUtil.info("Xác thực thành công. Điều hướng giao diện theo phân quyền: " + user.getRole());
-
         switch (user.getRole()) {
-            case ADMIN -> switchWindow(loginButton, "/fxml/AdminPanelView.fxml"); // Chuyển sang bảng quản trị Admin
-            case SELLER -> switchWindow(loginButton, "/fxml/SellerDashboardView.fxml"); // Chuyển sang Dashboard của người bán
-            case BIDDER -> switchWindow(loginButton, "/fxml/MainView.fxml"); // Chuyển sang giao diện lưới sản phẩm của người mua
+            case ADMIN -> switchWindow(loginButton, "/fxml/AdminPanelView.fxml");
+            case SELLER -> switchWindow(loginButton, "/fxml/SellerDashboardView.fxml");
+            case BIDDER -> switchWindow(loginButton, "/fxml/MainView.fxml");
             default -> DialogUtil.showError("Vai trò tài khoản hệ thống không được nhận diện!");
         }
     }
