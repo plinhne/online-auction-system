@@ -20,8 +20,10 @@ import java.util.Map;
 public class MessageRouter {
     private static final Logger logger = LoggerFactory.getLogger(MessageRouter.class);
 
-    private final Gson gson = new Gson();
-    private User currentUser = null;
+    private final Gson gson = new com.google.gson.GsonBuilder()
+            .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonSerializer<java.time.LocalDateTime>) (src, typeOfSrc, context) -> new com.google.gson.JsonPrimitive(src.toString()))
+            .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonDeserializer<java.time.LocalDateTime>) (json, typeOfT, context) -> java.time.LocalDateTime.parse(json.getAsString()))
+            .create();    private User currentUser = null;
     private int currentAuctionId = -1;
 
     private final Map<MessageType, RouteHandler> handlers = new EnumMap<>(MessageType.class);

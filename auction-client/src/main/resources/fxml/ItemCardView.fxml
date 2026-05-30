@@ -46,7 +46,7 @@
                   <VBox>
                      <children>
                         <Label styleClass="text-muted" style="-fx-font-size: 10;" text="Giá hiện tại" />
-                        <Label fx:id="currentPriceLabel" styleClass="text-success" style="-fx-font-size: 18; -fx-font-weight: bold;" text="1.500.000đ" />
+                        <Label fx:id="priceLabel" styleClass="text-success" style="-fx-font-size: 18; -fx-font-weight: bold;" text="1.500.000đ" />
                      </children>
                   </VBox>
                   <Region HBox.hgrow="ALWAYS" />

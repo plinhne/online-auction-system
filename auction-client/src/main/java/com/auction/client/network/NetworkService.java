@@ -23,8 +23,10 @@ public class NetworkService {
 
     private volatile User currentUser;
     private boolean isRunning = false;
-    private final Gson gson = new Gson(); // Công cụ chuyển đổi Object <-> JSON
-
+    private final Gson gson = new com.google.gson.GsonBuilder()
+            .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonSerializer<java.time.LocalDateTime>) (src, typeOfSrc, context) -> new com.google.gson.JsonPrimitive(src.toString()))
+            .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonDeserializer<java.time.LocalDateTime>) (json, typeOfT, context) -> java.time.LocalDateTime.parse(json.getAsString()))
+            .create();
     private final BlockingQueue<NetworkMessage> outbox = new LinkedBlockingQueue<>();
     private Thread senderThread;
     private Thread listenerThread;

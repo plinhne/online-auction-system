@@ -36,8 +36,10 @@ public class ServerListener extends Thread {
     public ServerListener(Socket socket, BufferedReader in) {
         this.socket = socket;
         this.in = in;
-        this.gson = new Gson();
-        this.isRunning = true;
+        this.gson = new com.google.gson.GsonBuilder()
+                .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonSerializer<java.time.LocalDateTime>) (src, typeOfSrc, context) -> new com.google.gson.JsonPrimitive(src.toString()))
+                .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonDeserializer<java.time.LocalDateTime>) (json, typeOfT, context) -> java.time.LocalDateTime.parse(json.getAsString()))
+                .create();        this.isRunning = true;
         this.setName("Thread-Client-ServerListener");
     }
 
@@ -116,11 +118,25 @@ public class ServerListener extends Thread {
                 break;
 
             case GET_ALL_AUCTIONS_RESPONSE:
+                LoggerUtil.info("--- TRẠM 1: Đã nhận dữ liệu JSON ---");
                 LoggerUtil.info("Nhận dữ liệu danh sách sản phẩm từ Server.");
-                if (auctionListController != null) {
-                    Type listType = new TypeToken<List<Auction>>(){}.getType();
-                    List<Auction> auctions = gson.fromJson(payload, listType);
-                    auctionListController.updateAuctionListFromServer(auctions);
+                if (auctionListController != null && payload != null) {
+                    try {
+                        // 1. Chuyển chuỗi payload thành JsonObject
+                        JsonObject resp = JsonParser.parseString(payload).getAsJsonObject();
+
+                        // 2. Lấy đúng cái mảng "auctions" bên trong Object đó ra để ép kiểu
+                        if (resp.has("auctions")) {
+                            Type listType = new TypeToken<List<Auction>>(){}.getType();
+                            List<Auction> auctions = gson.fromJson(resp.get("auctions"), listType);
+
+                            Platform.runLater(() -> auctionListController.updateAuctionListFromServer(auctions));
+                        } else if (resp.has("status") && "ERROR".equals(resp.get("status").getAsString())) {
+                            LoggerUtil.error("Server báo lỗi: " + resp.get("message").getAsString());
+                        }
+                    } catch (Exception e) {
+                        LoggerUtil.error("Lỗi bóc tách dữ liệu danh sách đấu giá: " + e.getMessage(), e);
+                    }
                 }
                 break;
 

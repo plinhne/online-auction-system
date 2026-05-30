@@ -36,15 +36,15 @@ MERGE INTO auctions (item_id, seller_id, starting_price, current_price, min_incr
     VALUES (
                1, 2, 150000.00, 285000.00, 1000.00, 'ACTIVE',
                PARSEDATETIME('2026-05-27 11:51:00', 'yyyy-MM-dd HH:mm:ss'),
-               PARSEDATETIME('2026-05-29 14:51:00', 'yyyy-MM-dd HH:mm:ss')
+               PARSEDATETIME('2026-06-05 14:51:00', 'yyyy-MM-dd HH:mm:ss')
            ),
            (
                2, 2, 50000.00, 125000.00, 500.00, 'ACTIVE',
                PARSEDATETIME('2026-05-24 12:03:00', 'yyyy-MM-dd HH:mm:ss'),
-               PARSEDATETIME('2026-05-29 13:03:00', 'yyyy-MM-dd HH:mm:ss')
+               PARSEDATETIME('2026-06-05 13:03:00', 'yyyy-MM-dd HH:mm:ss')
            ),
            (
                3, 2, 1500.00, 1500.00, 50.00, 'SCHEDULED',
-               PARSEDATETIME('2026-05-29 14:03:00', 'yyyy-MM-dd HH:mm:ss'),
-               PARSEDATETIME('2026-05-30 14:03:00', 'yyyy-MM-dd HH:mm:ss')
+               PARSEDATETIME('2026-06-05 14:03:00', 'yyyy-MM-dd HH:mm:ss'),
+               PARSEDATETIME('2026-06-10 14:03:00', 'yyyy-MM-dd HH:mm:ss')
            );

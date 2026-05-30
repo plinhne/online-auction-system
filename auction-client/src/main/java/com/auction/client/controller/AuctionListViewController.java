@@ -50,6 +50,10 @@ public class AuctionListViewController extends BaseController implements Initial
         categoryCombo.setItems(FXCollections.observableArrayList("Electronics", "Vehicles", "Arts", "Others"));
         sortCombo.setItems(FXCollections.observableArrayList("Giá tăng dần", "Giá giảm dần", "Sắp kết thúc"));
 
+        com.auction.client.network.NetworkService.getInstance()
+                .getServerListener()
+                .setAuctionListController(this);
+
         fetchAuctionItems();
     }
 
@@ -61,8 +65,7 @@ public class AuctionListViewController extends BaseController implements Initial
             @Override
             protected Void call() throws Exception {
                 LoggerUtil.info("Đang gửi yêu cầu GET_ALL_AUCTIONS_REQUEST lên máy chủ...");
-                NetworkMessage request = new NetworkMessage(MessageType.GET_ALL_AUCTIONS_REQUEST, "GET_ALL_AUCTIONS");
-                // ĐÃ SỬA: Đẩy gói tin cho NetworkService xử lý ngầm (Tự động chuyển thành JSON và gửi đi)
+                NetworkMessage request = new NetworkMessage(MessageType.GET_ALL_AUCTIONS_REQUEST, "{}");
                 com.auction.client.network.NetworkService.getInstance().sendNetworkMessage(request);
 
                 return null;
@@ -81,6 +84,7 @@ public class AuctionListViewController extends BaseController implements Initial
      * HÀM MỚI: ServerListener sẽ gọi hàm này và truyền danh sách vào khi nhận được phản hồi từ Server
      */
     public void updateAuctionListFromServer(List<Auction> serverAuctions) {
+        LoggerUtil.info("--- TRẠM 3: Giao diện đã nhận được lệnh update ---");
         Platform.runLater(() -> {
             if (serverAuctions != null) {
                 auctionMasterData.setAll(serverAuctions);
@@ -104,7 +108,7 @@ public class AuctionListViewController extends BaseController implements Initial
 
         for (Auction auction : auctionMasterData) {
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/item-card.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ItemCardView.fxml"));
                 Parent cardNode = loader.load();
 
                 ItemCardController cardController = loader.getController();
