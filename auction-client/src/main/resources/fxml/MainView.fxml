@@ -41,15 +41,13 @@
                 <HBox alignment="CENTER_RIGHT" spacing="24.0">
                     <children>
                         <!-- Nút Auctions -->
-                        <Button mnemonicParsing="false" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-font-family: 'Segoe UI'; -fx-font-size: 14.0; -fx-font-weight: 500; -fx-text-fill: #334155;" text="Auctions" />
-
+                        <Button fx:id="auctionsButton" mnemonicParsing="false" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-font-family: 'Segoe UI'; -fx-font-size: 14.0; -fx-font-weight: 500; -fx-text-fill: #334155;" text="Auctions" />
                         <!-- Nút Dashboard -->
-                        <Button graphicTextGap="8.0" mnemonicParsing="false" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-font-family: 'Segoe UI'; -fx-font-size: 14.0; -fx-font-weight: 500; -fx-text-fill: #334155;" text="Dashboard">
+                        <Button fx:id="dashboardButton" graphicTextGap="8.0" mnemonicParsing="false" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-font-family: 'Segoe UI'; -fx-font-size: 14.0; -fx-font-weight: 500; -fx-text-fill: #334155;" text="Dashboard">
                             <graphic>
                                 <SVGPath content="M4 4h4v4H4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4z" fill="#64748b" scaleX="1.0" scaleY="1.0" />
                             </graphic>
                         </Button>
-
                         <!-- AVATAR ĐƯỢC CHUYỂN THÀNH STACKPANE CÓ FX:ID ĐỂ BẮT SỰ KIỆN CLICK -->
                         <StackPane fx:id="avatarButton" maxHeight="40.0" maxWidth="40.0" minHeight="40.0" minWidth="40.0" style="-fx-background-color: #1a66ff; -fx-background-radius: 50%; -fx-cursor: hand;">
                             <children>

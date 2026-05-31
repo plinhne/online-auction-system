@@ -1,9 +1,10 @@
 package com.auction.client.controller;
 
 import com.auction.client.network.NetworkService;
+import com.auction.client.network.ServerListener;
 import com.auction.client.util.DialogUtil;
 import com.auction.client.util.LoggerUtil;
-import com.auction.model.auction.Auction;
+import com.auction.dto.AuctionDTO;
 import com.auction.model.auction.AuctionStatus;
 import com.auction.model.user.User;
 import com.auction.model.user.UserRole;
@@ -29,11 +30,13 @@ public class AdminPanelController extends BaseController {
     // --- Auction Tab ---
     @FXML private Button approveAuctionButton;
     @FXML private Button deleteAuctionButton;
-    @FXML private TableView<Auction> auctionsTable;
-    @FXML private TableColumn<Auction, String> auctionIdColumn;
-    @FXML private TableColumn<Auction, String> auctionNameColumn;
-    @FXML private TableColumn<Auction, String> sellerColumn;
-    @FXML private TableColumn<Auction, String> statusColumn;
+
+    // ĐÃ NÂNG CẤP LÊN DTO
+    @FXML private TableView<AuctionDTO> auctionsTable;
+    @FXML private TableColumn<AuctionDTO, String> auctionIdColumn;
+    @FXML private TableColumn<AuctionDTO, String> auctionNameColumn;
+    @FXML private TableColumn<AuctionDTO, String> sellerColumn;
+    @FXML private TableColumn<AuctionDTO, String> statusColumn;
 
     // --- User Tab ---
     @FXML private Button addUserButton;
@@ -44,21 +47,20 @@ public class AdminPanelController extends BaseController {
     @FXML private TableColumn<User, String> usernameColumn;
     @FXML private TableColumn<User, String> emailColumn;
     @FXML private TableColumn<User, String> roleColumn;
-
-    // Nút và Cột hiển thị số dư bạn vừa thêm
     @FXML private TableColumn<User, String> balanceColumn;
     @FXML private Button changeBalanceButton;
 
-    private final ObservableList<Auction> masterAuctionList = FXCollections.observableArrayList();
+    // ĐÃ NÂNG CẤP LÊN DTO
+    private final ObservableList<AuctionDTO> masterAuctionList = FXCollections.observableArrayList();
     private final ObservableList<User> masterUserList = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
         LoggerUtil.info("Khởi tạo bảng quản trị dữ liệu của Admin.");
 
-        // 1. Cấu hình bảng Đấu giá
+        // 1. Cấu hình bảng Đấu giá (Sử dụng dữ liệu thật từ DTO)
         auctionIdColumn.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().getId())));
-        auctionNameColumn.setCellValueFactory(data -> new SimpleStringProperty("Mã sản phẩm: " + data.getValue().getItemId()));
+        auctionNameColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getItemName())); // Lấy tên thật
         sellerColumn.setCellValueFactory(data -> new SimpleStringProperty("Seller ID: " + data.getValue().getSellerId()));
         statusColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getStatus().name()));
         auctionsTable.setItems(masterAuctionList);
@@ -69,7 +71,6 @@ public class AdminPanelController extends BaseController {
         emailColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getEmail()));
         roleColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getRole().name()));
 
-        // Cột số dư của bạn
         if (balanceColumn != null) {
             balanceColumn.setCellValueFactory(data -> new SimpleStringProperty(String.format("%,.0fđ", data.getValue().getWalletBalance())));
         }
@@ -81,20 +82,35 @@ public class AdminPanelController extends BaseController {
         deleteAuctionButton.setOnAction(event -> handleDeleteAuction());
         deleteUserButton.setOnAction(event -> handleDeleteUser());
 
-        // Gán sự kiện nút đổi số dư của bạn
         if (changeBalanceButton != null) {
             changeBalanceButton.setOnAction(event -> handleChangeBalance());
         }
+
+        refreshAdminDataFromServer();
     }
 
     public void refreshAdminDataFromServer() {
+        LoggerUtil.info("AdminPanel đang gửi yêu cầu tải dữ liệu Dashboard...");
+        ServerListener listener = NetworkService.getInstance().getServerListener();
+        if (listener != null) {
+            listener.setAdminPanelController(this);
+        }
+
+        try {
+            NetworkMessage getAuctionsMsg = new NetworkMessage(MessageType.GET_ALL_AUCTIONS_REQUEST, "{}");
+            NetworkService.getInstance().sendNetworkMessage(getAuctionsMsg);
+        } catch (Exception e) {
+            LoggerUtil.error("Lỗi khi yêu cầu dữ liệu Admin từ Server.", e);
+        }
     }
 
-    public void updateAdminDashboard(List<Auction> auctions, List<User> users) {
+    // ĐÃ NÂNG CẤP LÊN DTO
+    public void updateAdminDashboard(List<AuctionDTO> auctions, List<User> users) {
+        LoggerUtil.info("--- TRẠM 2: Đang đổ dữ liệu vào giao diện Admin ---");
         totalAuctionsLabel.setText(String.valueOf(auctions.size()));
         totalUsersLabel.setText(String.valueOf(users.size()));
 
-        double revenue = auctions.stream().mapToDouble(Auction::getCurrentPrice).sum() * 0.1;
+        double revenue = auctions.stream().mapToDouble(AuctionDTO::getCurrentPrice).sum() * 0.1;
         totalRevenueLabel.setText(String.format("%,.0fđ", revenue));
 
         masterAuctionList.setAll(auctions);
@@ -102,7 +118,7 @@ public class AdminPanelController extends BaseController {
     }
 
     private void handleApproveAuction() {
-        Auction selected = auctionsTable.getSelectionModel().getSelectedItem();
+        AuctionDTO selected = auctionsTable.getSelectionModel().getSelectedItem();
         if (selected == null || selected.getStatus() != AuctionStatus.SCHEDULED) {
             DialogUtil.showWarning("Vui lòng chọn một cuộc đấu giá hợp lệ đang chờ duyệt (SCHEDULED)!");
             return;
@@ -111,7 +127,7 @@ public class AdminPanelController extends BaseController {
     }
 
     private void handleDeleteAuction() {
-        Auction selected = auctionsTable.getSelectionModel().getSelectedItem();
+        AuctionDTO selected = auctionsTable.getSelectionModel().getSelectedItem();
         if (selected != null && DialogUtil.showConfirm("Xác nhận", "Xóa phiên đấu giá này?")) {
             sendAdminActionToServer("DELETE_AUCTION", selected.getId());
         }
@@ -126,7 +142,6 @@ public class AdminPanelController extends BaseController {
         }
     }
 
-    // Logic đổi số dư CHUẨN XÁC của bạn (đã thêm check số âm)
     private void handleChangeBalance() {
         User selected = usersTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
@@ -143,7 +158,6 @@ public class AdminPanelController extends BaseController {
             try {
                 double newBalance = Double.parseDouble(input.trim());
 
-                // Bổ sung kiểm tra số âm
                 if (newBalance < 0) {
                     DialogUtil.showWarning("Số dư không thể là số âm!");
                     return;
@@ -173,7 +187,6 @@ public class AdminPanelController extends BaseController {
 
             NetworkMessage message = new NetworkMessage(MessageType.ADMIN_ACTION_REQUEST, adminPayload.toString());
             NetworkService.getInstance().sendNetworkMessage(message);
-
             LoggerUtil.info("Admin thực thi lệnh: " + subAction + " trên đối tượng ID: " + targetId);
         } catch (Exception e) {
             LoggerUtil.error("Lỗi gửi gói tin lệnh Admin.", e);

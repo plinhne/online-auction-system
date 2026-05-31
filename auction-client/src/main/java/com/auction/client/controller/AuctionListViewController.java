@@ -2,6 +2,7 @@ package com.auction.client.controller;
 
 import com.auction.client.util.DialogUtil;
 import com.auction.client.util.LoggerUtil;
+import com.auction.dto.AuctionDTO;
 import com.auction.model.auction.Auction;
 import com.auction.network.NetworkMessage;
 import com.auction.network.MessageType;
@@ -40,8 +41,7 @@ public class AuctionListViewController extends BaseController implements Initial
     @FXML private FlowPane auctionGridPane;
     @FXML private VBox noResultsArea;
 
-    private final ObservableList<Auction> auctionMasterData = FXCollections.observableArrayList();
-    private final Gson gson = new Gson();
+    private final ObservableList<com.auction.dto.AuctionDTO> auctionMasterData = FXCollections.observableArrayList();    private final Gson gson = new Gson();
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -83,8 +83,7 @@ public class AuctionListViewController extends BaseController implements Initial
     /**
      * HÀM MỚI: ServerListener sẽ gọi hàm này và truyền danh sách vào khi nhận được phản hồi từ Server
      */
-    public void updateAuctionListFromServer(List<Auction> serverAuctions) {
-        LoggerUtil.info("--- TRẠM 3: Giao diện đã nhận được lệnh update ---");
+    public void updateAuctionListFromServer(List<com.auction.dto.AuctionDTO> serverAuctions) {
         Platform.runLater(() -> {
             if (serverAuctions != null) {
                 auctionMasterData.setAll(serverAuctions);
@@ -106,18 +105,22 @@ public class AuctionListViewController extends BaseController implements Initial
         }
         noResultsArea.setVisible(false);
 
-        for (Auction auction : auctionMasterData) {
+        // Duyệt qua danh sách DTO
+        for (com.auction.dto.AuctionDTO dto : auctionMasterData) {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ItemCardView.fxml"));
                 Parent cardNode = loader.load();
 
+                // Lấy controller của thẻ con
                 ItemCardController cardController = loader.getController();
-                cardController.setAuctionData(auction);
 
-                // Đồng bộ hành vi click vào thẻ Card
+                // TRUYỀN DTO VÀO ĐÂY (Bước này quan trọng để hiển thị tên thật)
+                cardController.setAuctionData(dto);
+
+                // Đồng bộ hành vi click (Sửa lại kiểu dữ liệu ở đây nếu cần)
                 cardNode.setOnMouseClicked(event -> {
-                    LoggerUtil.info("Người dùng click chọn thẻ Card phiên đấu giá ID: " + auction.getId());
-                    navigateToAuctionRoom(auction);
+                    LoggerUtil.info("Người dùng click chọn phiên đấu giá ID: " + dto.getId());
+                    navigateToAuctionRoom(dto);
                 });
 
                 auctionGridPane.getChildren().add(cardNode);
@@ -130,24 +133,22 @@ public class AuctionListViewController extends BaseController implements Initial
     /**
      * ĐIỀU HƯỚNG MÀN HÌNH: Đã sửa lỗi Load FXML 2 lần gây mất dữ liệu
      */
-    private void navigateToAuctionRoom(Auction auction) {
+    private void navigateToAuctionRoom(com.auction.dto.AuctionDTO dto) {
         try {
-            // 1. Nạp file FXML duy nhất 1 lần
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ProductDetailsView.fxml"));
             Parent root = loader.load();
 
-            // 2. Lấy Controller đích và truyền dữ liệu
             ProductDetailsController detailsController = loader.getController();
             if (detailsController != null) {
-                detailsController.setAuctionDetails(auction);
+                // Hãy vào file ProductDetailsController.java và đảm bảo hàm setAuctionDetails
+                // chấp nhận tham số kiểu AuctionDTO thay vì Auction
+                detailsController.setAuctionDetails(dto);
             }
 
-            // 3. Gắn giao diện mới lên Scene hiện tại
             auctionGridPane.getScene().setRoot(root);
-
         } catch (Exception e) {
             LoggerUtil.error("Không thể mở màn hình chi tiết sản phẩm.", e);
-            DialogUtil.showError("Lỗi hệ thống: Không thể truy cập phân vùng chi tiết!");
+            DialogUtil.showError("Lỗi hệ thống khi tải chi tiết!");
         }
     }
 }

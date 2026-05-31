@@ -146,12 +146,7 @@ public class LoginController extends BaseController {
 
     private void navigateToDashboard(User user) {
         LoggerUtil.info("Xác thực thành công. Điều hướng giao diện theo phân quyền: " + user.getRole());
-        switch (user.getRole()) {
-            case ADMIN -> switchWindow(loginButton, "/fxml/AdminPanelView.fxml");
-            case SELLER -> switchWindow(loginButton, "/fxml/SellerDashboardView.fxml");
-            case BIDDER -> switchWindow(loginButton, "/fxml/MainView.fxml");
-            default -> DialogUtil.showError("Vai trò tài khoản hệ thống không được nhận diện!");
-        }
+        switchWindow(loginButton, "/fxml/MainView.fxml");
     }
 
     private void showLoginError(String errorMsg) {

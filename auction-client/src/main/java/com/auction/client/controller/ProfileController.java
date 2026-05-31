@@ -27,8 +27,7 @@ public class ProfileController extends BaseController {
 
         // Cấu hình sự kiện nút quay lại (chuyển về màn hình danh sách đấu giá)
         if (btnBack != null) {
-            btnBack.setOnAction(e -> switchWindow(btnBack, "/fxml/AuctionListView.fxml"));
-        }
+            btnBack.setOnAction(e -> switchWindow(btnBack, "/fxml/MainView.fxml"));        }
 
         // Kích hoạt luồng tải dữ liệu an toàn
         loadUserProfile();

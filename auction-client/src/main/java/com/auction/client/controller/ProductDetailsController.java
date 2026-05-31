@@ -3,7 +3,7 @@ package com.auction.client.controller;
 import com.auction.client.util.DialogUtil;
 import com.auction.client.util.LoggerUtil;
 import com.auction.client.util.ValidationUtil;
-import com.auction.model.auction.Auction;
+import com.auction.dto.AuctionDTO;
 import com.auction.model.bid.Bid;
 import com.auction.model.item.Item;
 import com.auction.network.NetworkMessage;
@@ -45,7 +45,7 @@ public class ProductDetailsController extends BaseController {
     @FXML private TableColumn<Bid, String> amountColumn;
     @FXML private TableColumn<Bid, String> timeColumn;
 
-    private Auction currentAuction;
+    private AuctionDTO currentAuction;
     private final ObservableList<Bid> bidHistoryList = FXCollections.observableArrayList();
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -54,7 +54,7 @@ public class ProductDetailsController extends BaseController {
         LoggerUtil.info("Khởi tạo cấu trúc bảng Lịch sử thầu TableView.");
 
         if (backButton != null) {
-            backButton.setOnAction(e -> switchWindow(backButton, "/fxml/AuctionListView.fxml"));
+            backButton.setOnAction(e -> switchWindow(backButton, "/fxml/MainView.fxml"));
         }
 
         bidderColumn.setCellValueFactory(cellData -> new SimpleStringProperty("User ID: " + cellData.getValue().getBidderId()));
@@ -71,8 +71,7 @@ public class ProductDetailsController extends BaseController {
         placeBidButton.setOnAction(event -> handlePlaceBid());
     }
 
-    public void setAuctionDetails(Auction auction) {
-        this.currentAuction = auction;
+    public void setAuctionDetails(AuctionDTO auction) {        this.currentAuction = auction;
         if (auction != null) {
             statusLabel.setText("● " + auction.getStatus().name());
             startTimeLabel.setText(auction.getStartTime().format(dateTimeFormatter));
@@ -123,7 +122,7 @@ public class ProductDetailsController extends BaseController {
         }
     }
 
-    public void updateRealtimeDetails(Auction auction) {
+    public void updateRealtimeDetails(AuctionDTO auction) {
         this.currentAuction = auction;
         currentPriceLabel.setText(String.format("%,.0fđ", auction.getCurrentPrice()));
         startingPriceLabel.setText(String.format("%,.0fđ", auction.getStartingPrice()));
