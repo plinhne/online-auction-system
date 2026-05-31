@@ -5,9 +5,15 @@ MERGE INTO users (name, email, password, role)
     VALUES ('Admin',        'admin@auction.com',  'admin123',  'ADMIN'),
            ('Alice Seller', 'alice@auction.com',  'alice123',  'SELLER'),
            ('Bob Bidder',   'bob@auction.com',    'bob123',    'BIDDER'),
-           ('Carol Bidder', 'carol@auction.com',  'carol123',  'BIDDER');
+           ('Carol Bidder', 'carol@auction.com',  'carol123',  'BIDDER'),
+           ('bidder', 'bidder@example.com', 'bidder123', 'BIDDER'),
+           ('seller', 'seller@example.com', 'seller123', 'SELLER'),
+           ('admin', 'admin@example.com', 'admin123', 'ADMIN');
 
-MERGE INTO items (name, description, seller_id, category)
+
+
+
+        MERGE INTO items (name, description, seller_id, category)
     KEY(name)
     VALUES (
                'Vintage Porsche 911 Carrera',
@@ -25,20 +31,10 @@ MERGE INTO items (name, description, seller_id, category)
                2, 'ELECTRONICS'
            );
 
-MERGE INTO auctions (item_id, seller_id, starting_price, current_price, min_increment, status, start_time, end_time)
-    KEY(item_id)
-    VALUES (
-               1, 2, 150000.00, 285000.00, 1000.00, 'ACTIVE',
-               PARSEDATETIME('2026-05-27 11:51:00', 'yyyy-MM-dd HH:mm:ss'),
-               PARSEDATETIME('2026-05-29 14:51:00', 'yyyy-MM-dd HH:mm:ss')
-           ),
-           (
-               2, 2, 50000.00, 125000.00, 500.00, 'ACTIVE',
-               PARSEDATETIME('2026-05-24 12:03:00', 'yyyy-MM-dd HH:mm:ss'),
-               PARSEDATETIME('2026-05-29 13:03:00', 'yyyy-MM-dd HH:mm:ss')
-           ),
-           (
-               3, 2, 1500.00, 1500.00, 50.00, 'SCHEDULED',
-               PARSEDATETIME('2026-05-29 14:03:00', 'yyyy-MM-dd HH:mm:ss'),
-               PARSEDATETIME('2026-05-30 14:03:00', 'yyyy-MM-dd HH:mm:ss')
-           );
+MERGE INTO bid_transactions (auction_id, bidder_id, amount, placed_at)
+    KEY(auction_id, bidder_id)
+    VALUES (1, 3, 200000.00, PARSEDATETIME('2026-05-27 12:00:00', 'yyyy-MM-dd HH:mm:ss')),
+    (1, 4, 250000.00, PARSEDATETIME('2026-05-27 13:00:00', 'yyyy-MM-dd HH:mm:ss')),
+    (1, 5, 285000.00, PARSEDATETIME('2026-05-27 14:00:00', 'yyyy-MM-dd HH:mm:ss')),
+    (2, 3, 75000.00,  PARSEDATETIME('2026-05-24 13:00:00', 'yyyy-MM-dd HH:mm:ss')),
+    (2, 5, 125000.00, PARSEDATETIME('2026-05-24 14:00:00', 'yyyy-MM-dd HH:mm:ss'));

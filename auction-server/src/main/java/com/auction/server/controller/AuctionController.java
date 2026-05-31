@@ -15,18 +15,50 @@ public class AuctionController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionController.class);
 
     private final AuctionService auctionService;
-    private final Gson gson = new Gson();
+    private final com.auction.service.ItemService itemService;
+    private final Gson gson = new com.google.gson.GsonBuilder()
+            .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonSerializer<java.time.LocalDateTime>) (src, typeOfSrc, context) -> new com.google.gson.JsonPrimitive(src.toString()))
+            .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonDeserializer<java.time.LocalDateTime>) (json, typeOfT, context) -> java.time.LocalDateTime.parse(json.getAsString()))
+            .create();
 
-    public AuctionController(AuctionService auctionService) {
+    public AuctionController(AuctionService auctionService, com.auction.service.ItemService itemService) {
         this.auctionService = auctionService;
+        this.itemService = itemService;
     }
-
-    //Query
 
     public void handleGetAuctions(JsonObject response) throws Exception {
         List<Auction> auctions = auctionService.getAllAuctions();
+        List<com.auction.dto.AuctionDTO> dtos = new java.util.ArrayList<>();
+
+        for (Auction a : auctions) {
+            com.auction.dto.AuctionDTO dto = new com.auction.dto.AuctionDTO();
+            // Copy dữ liệu Auction
+            dto.setId(a.getId());
+            dto.setItemId(a.getItemId());
+            dto.setSellerId(a.getSellerId());
+            dto.setStartingPrice(a.getStartingPrice());
+            dto.setCurrentPrice(a.getCurrentPrice());
+            dto.setMinIncrement(a.getMinIncrement());
+            dto.setStatus(a.getStatus());
+            dto.setStartTime(a.getStartTime());
+            dto.setEndTime(a.getEndTime());
+
+            // Tra cứu dữ liệu Item
+            com.auction.model.item.Item item = itemService.getItemById(a.getItemId());
+            if (item != null) {
+                dto.setItemName(item.getName());
+                dto.setItemDescription(item.getDescription());
+                dto.setItemCategory(item.getCategory().name());
+            } else {
+                dto.setItemName("Sản phẩm #" + a.getItemId());
+                dto.setItemDescription("Đang cập nhật...");
+                dto.setItemCategory("OTHER");
+            }
+            dtos.add(dto);
+        }
+
         response.addProperty("status", "OK");
-        response.add("auctions", gson.toJsonTree(auctions));
+        response.add("auctions", gson.toJsonTree(dtos)); // Truyền mảng DTO xuống Client
     }
 
     public Auction handleJoinAuction(JsonObject request, JsonObject response) throws Exception {

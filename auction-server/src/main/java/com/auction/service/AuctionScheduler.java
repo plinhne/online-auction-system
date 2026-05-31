@@ -2,6 +2,8 @@ package com.auction.service;
 
 import com.auction.model.auction.Auction;
 import com.auction.model.auction.AuctionStatus;
+import com.auction.network.MessageType;
+import com.auction.network.NetworkMessage;
 import com.auction.server.MainServer;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -77,10 +79,16 @@ public class AuctionScheduler {
     }
 
     private void broadcastAuctionEvent(String event, int auctionId) {
-        JsonObject notify = new JsonObject();
-        notify.addProperty("event", event);
-        notify.addProperty("auctionId", auctionId);
-        MainServer.broadcastToAuction(auctionId, gson.toJson(notify));
+        MessageType type = "AUCTION_STARTED".equals(event)
+                ? MessageType.AUCTION_STARTED_NOTIFICATION
+                : MessageType.AUCTION_ENDED_NOTIFICATION;
+
+        JsonObject payload = new JsonObject();
+        payload.addProperty("auctionId", auctionId);
+        payload.addProperty("event", event);
+
+        NetworkMessage notification = new NetworkMessage(type, payload.toString());
+        MainServer.broadcastToAuction(auctionId, gson.toJson(notification));
         logger.info("Broadcast {}: auctionId={}", event, auctionId);
     }
 }

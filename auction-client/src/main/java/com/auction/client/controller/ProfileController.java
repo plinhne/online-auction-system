@@ -13,22 +13,21 @@ import javafx.scene.control.Label;
 public class ProfileController extends BaseController {
 
     // --- CÁC THÀNH PHẦN ĐỒ HỌA FX INJECT TỪ FXML ---
-    @FXML private Button btnBack; // Thêm nếu bạn muốn bắt sự kiện nút Quay lại
+    @FXML private Button btnBack;
     @FXML private Label fullNameLabel;
     @FXML private Label roleBadge;
     @FXML private Label usernameLabel;
     @FXML private Label emailLabel;
     @FXML private Label accountIdLabel;
-    @FXML private Label balanceLabel; // Nhãn hiển thị số dư mới bổ sung
+    @FXML private Label balanceLabel;
 
     @FXML
     public void initialize() {
         LoggerUtil.info("✓ ProfileController bắt đầu khởi tạo hồ sơ cá nhân.");
 
-        // Cấu hình sự kiện nút quay lại (nếu cần thiết, chuyển về màn hình danh sách đấu giá)
+        // Cấu hình sự kiện nút quay lại (chuyển về màn hình danh sách đấu giá)
         if (btnBack != null) {
-            btnBack.setOnAction(e -> switchWindow(btnBack, "/fxml/AuctionListView.fxml"));
-        }
+            btnBack.setOnAction(e -> switchWindow(btnBack, "/fxml/MainView.fxml"));        }
 
         // Kích hoạt luồng tải dữ liệu an toàn
         loadUserProfile();
@@ -60,7 +59,18 @@ public class ProfileController extends BaseController {
 
             // Đổ dữ liệu động vào các trường giao diện
             if (fullNameLabel != null) fullNameLabel.setText(user.getName());
-            if (usernameLabel != null) usernameLabel.setText(user.getName());
+
+            // ĐÃ SỬA: Khắc phục lỗi trùng lặp dữ liệu với fullNameLabel
+            // Dùng tạm phần tiền tố của Email làm Username hiển thị
+            if (usernameLabel != null) {
+                try {
+                    String displayUsername = user.getEmail().split("@")[0];
+                    usernameLabel.setText(displayUsername);
+                } catch (Exception ex) {
+                    usernameLabel.setText(user.getName()); // Backup nếu có lỗi
+                }
+            }
+
             if (emailLabel != null) emailLabel.setText(user.getEmail());
 
             // Định dạng mã tài khoản theo quy chuẩn thiết kế
@@ -82,7 +92,7 @@ public class ProfileController extends BaseController {
         // Xử lý khi xảy ra sự cố bất ngờ
         loadProfileTask.setOnFailed(e -> {
             Throwable exception = loadProfileTask.getException();
-            LoggerUtil.error("Lỗi khi nạp dữ liệu thông tin hồ sơ: ", exception);
+            LoggerUtil.error("Lỗi khi nạp dữ liệu thông tin hồ sơ: ", (Exception) exception);
             DialogUtil.showError("Không thể hiển thị thông tin hồ sơ cá nhân.");
         });
 

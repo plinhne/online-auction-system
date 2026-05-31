@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS users (
                                      name     VARCHAR(100) NOT NULL,
     email    VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role     VARCHAR(20)  NOT NULL
+    role     VARCHAR(20)  NOT NULL,
+    status   VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE'
     );
 
 CREATE TABLE IF NOT EXISTS items (
@@ -27,7 +28,7 @@ CREATE TABLE IF NOT EXISTS auctions (
     leading_bidder_id INT REFERENCES users(id)
     );
 
-CREATE TABLE IF NOT EXISTS bids (
+CREATE TABLE IF NOT EXISTS bid_transactions (
                                     id         INT AUTO_INCREMENT PRIMARY KEY,
                                     auction_id INT           NOT NULL REFERENCES auctions(id),
     bidder_id  INT           NOT NULL REFERENCES users(id),
@@ -37,5 +38,5 @@ CREATE TABLE IF NOT EXISTS bids (
 
 CREATE INDEX IF NOT EXISTS idx_auctions_status ON auctions(status);
 CREATE INDEX IF NOT EXISTS idx_auctions_seller ON auctions(seller_id);
-CREATE INDEX IF NOT EXISTS idx_bids_auction    ON bids(auction_id);
-CREATE INDEX IF NOT EXISTS idx_bids_bidder     ON bids(bidder_id);
+CREATE INDEX IF NOT EXISTS idx_bids_auction    ON bid_transactions(auction_id);
+CREATE INDEX IF NOT EXISTS idx_bids_bidder     ON bid_transactions(bidder_id);

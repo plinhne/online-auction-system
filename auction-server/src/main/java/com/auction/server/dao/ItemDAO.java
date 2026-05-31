@@ -19,7 +19,7 @@ public class ItemDAO {
     public Item findById(int id) throws SQLException {
         String sql = "SELECT * FROM items WHERE id = ?";
         try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) return mapRow(rs);
@@ -102,10 +102,9 @@ public class ItemDAO {
         int id           = rs.getInt("id");
         String name      = rs.getString("name");
         String desc      = rs.getString("description");
-        double price     = rs.getDouble("price");
         ItemCategory cat = ItemCategory.valueOf(rs.getString("category"));
 
-        Item item = ItemFactory.createItem(cat, id, name, price);
+        Item item = ItemFactory.createItem(cat, id, name, 0.0);
         item.setDescription(desc);
         return item;
     }

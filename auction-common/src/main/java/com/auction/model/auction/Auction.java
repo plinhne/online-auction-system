@@ -12,10 +12,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Auction extends Entity implements AuctionSubject {
 
-    private final ReentrantLock bidLock = new ReentrantLock();
+    private transient final ReentrantLock bidLock = new ReentrantLock();
 
     // Danh sách những người đang xem phiên đấu giá (Observer Pattern)
-    private final List<BidObserver> observers = new ArrayList<>();
+    private transient final List<BidObserver> observers = new ArrayList<>();
     private AuctionStatus status;
     private int itemId;              // id item đang đấu giá
     private double minIncrement;    // bước giá tối thiểu

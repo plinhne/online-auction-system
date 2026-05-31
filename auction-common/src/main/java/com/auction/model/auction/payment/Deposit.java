@@ -1,4 +1,4 @@
-package com.auction.model.payment;
+package com.auction.model.auction.payment;
 
 import com.auction.model.item.Item;
 import com.auction.model.user.User;

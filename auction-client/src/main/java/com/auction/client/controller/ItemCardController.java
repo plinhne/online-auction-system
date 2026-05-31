@@ -1,13 +1,12 @@
 package com.auction.client.controller;
 
-import com.auction.model.auction.Auction;
+import com.auction.dto.AuctionDTO;
 import com.auction.client.util.DialogUtil;
 import com.auction.client.util.FormatterUtil;
 import com.auction.client.util.LoggerUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import java.io.IOException;
@@ -18,36 +17,67 @@ import java.io.IOException;
  */
 public class ItemCardController extends BaseController {
 
+    // Các biến đã có
     @FXML private Label itemNameLabel;
     @FXML private Label priceLabel;
     @FXML private Button viewDetailsButton;
 
-    // Quản lý phiên đấu giá hiện tại của tấm thẻ này
-    private Auction currentAuction;
+    // BỔ SUNG CÁC BIẾN ĐỂ HIỂN THỊ THÊM THÔNG TIN TỪ FXML
+    @FXML private Label descriptionLabel;
+    @FXML private Label categoryBadge;
+    @FXML private Label statusBadge;
+    @FXML private Label timeRemainingBadge;
+
+    private AuctionDTO currentAuction;
 
     @FXML
     public void initialize() {
-        // Gán hành động sự kiện cho nút bấm "Xem chi tiết" nằm bên trong thẻ
         viewDetailsButton.setOnAction(e -> openProductDetails());
     }
 
     /**
-     * Nhận vào đối tượng Auction để hiển thị thông tin thô lên tấm Card mẫu
+     * Đổ dữ liệu THẬT từ DTO lên giao diện
      */
-    public void setAuctionData(Auction auction) {
+    public void setAuctionData(AuctionDTO auction) {
         if (auction == null) return;
         this.currentAuction = auction;
 
-        // Hiển thị tạm thời ID sản phẩm (Có thể đổi thành tên sản phẩm nếu có liên kết thực thể dữ liệu Item)
-        itemNameLabel.setText("Phòng đấu giá sản phẩm #" + auction.getItemId());
+        // 1. HIỂN THỊ TÊN THẬT TỪ DATABASE
+        itemNameLabel.setText(auction.getItemName());
 
-        // Đổ mức giá hiện tại (currentPrice) của phiên đấu giá lên nhãn hiển thị tiền tệ đã định dạng
+        // 2. HIỂN THỊ GIÁ TIỀN
         priceLabel.setText(FormatterUtil.formatCurrency(auction.getCurrentPrice()));
+
+        // 3. HIỂN THỊ MÔ TẢ VÀ DANH MỤC (Kiểm tra null đề phòng FXML chưa gắn ID)
+        if (descriptionLabel != null) {
+            descriptionLabel.setText(auction.getItemDescription());
+        }
+        if (categoryBadge != null) {
+            categoryBadge.setText(auction.getItemCategory());
+        }
+
+        // 4. HIỂN THỊ TRẠNG THÁI VÀ MÀU SẮC
+        if (statusBadge != null && auction.getStatus() != null) {
+            String status = auction.getStatus().name();
+            if ("ACTIVE".equals(status)) {
+                statusBadge.setText("ĐANG CHẠY");
+                statusBadge.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 4; -fx-font-size: 10; -fx-font-weight: bold;");
+            } else if ("SCHEDULED".equals(status)) {
+                statusBadge.setText("SẮP DIỄN RA");
+                statusBadge.setStyle("-fx-background-color: #ffc107; -fx-text-fill: black; -fx-padding: 2 8; -fx-background-radius: 4; -fx-font-size: 10; -fx-font-weight: bold;");
+            } else {
+                statusBadge.setText("ĐÃ KẾT THÚC");
+                statusBadge.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 4; -fx-font-size: 10; -fx-font-weight: bold;");
+            }
+        }
+
+        // 5. HIỂN THỊ THỜI GIAN
+        if (timeRemainingBadge != null && auction.getEndTime() != null) {
+            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM HH:mm");
+            timeRemainingBadge.setText("Hạn: " + auction.getEndTime().format(formatter));
+        }
     }
 
-    /**
-     * ĐÃ CHUẨN HÓA: Điều hướng chuyển đổi scene ngay trên cửa sổ chính, hỗ trợ bung full màn hình mượt mà
-     */
     private void openProductDetails() {
         if (currentAuction == null) {
             LoggerUtil.warning("Không có dữ liệu phiên đấu giá hiện tại để xem chi tiết.");
@@ -56,14 +86,9 @@ public class ItemCardController extends BaseController {
 
         try {
             LoggerUtil.info("→ Người dùng click nút xem chi tiết đấu giá ID: " + currentAuction.getId());
-
-            // 1. Chuyển đổi scene tập trung trên Stage hiện tại, không mở cửa sổ Stage phụ rác
             switchWindow(viewDetailsButton, "/fxml/ProductDetailsView.fxml");
-
-            // 2. Khởi tạo bộ nạp cục bộ để đẩy dữ liệu ngữ cảnh sang màn hình chi tiết
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ProductDetailsView.fxml"));
 
-            // Ép luồng đồ họa JavaFX render layout cửa sổ mới full màn hình ổn định rồi mới nạp dữ liệu vào
             Platform.runLater(() -> {
                 try {
                     loader.load();

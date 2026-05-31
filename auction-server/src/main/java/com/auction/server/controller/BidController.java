@@ -1,8 +1,12 @@
 package com.auction.server.controller;
 
+import com.auction.model.auction.Auction;
 import com.auction.model.bid.Bid;
 import com.auction.model.user.User;
+import com.auction.network.MessageType;
+import com.auction.network.NetworkMessage;
 import com.auction.server.MainServer;
+import com.auction.service.AuctionService;
 import com.auction.service.AutoBidService;
 import com.auction.service.BidService;
 import com.google.gson.Gson;
@@ -17,11 +21,13 @@ public class BidController {
 
     private final BidService bidService;
     private final AutoBidService autoBidService;
+    private final AuctionService auctionService;
     private final Gson gson = new Gson();
 
-    public BidController(BidService bidService, AutoBidService autoBidService) {
+    public BidController(BidService bidService, AutoBidService autoBidService, AuctionService auctionService) {
         this.bidService = bidService;
         this.autoBidService = autoBidService;
+        this.auctionService = auctionService;
     }
 
     public void handlePlaceBid(JsonObject request, JsonObject response, User bidder) throws Exception {
@@ -54,21 +60,32 @@ public class BidController {
         response.addProperty("message", "Auto-bid registered. Max: " + maxBid + ", Increment: " + increment);
     }
 
-    private void broadcastBidUpdate(int auctionId, Bid bid, String bidderName) {
-        JsonObject notify = new JsonObject();
-        notify.addProperty("event", "BID_UPDATE");
-        notify.addProperty("auctionId", auctionId);
-        notify.addProperty("newPrice", bid.getAmount());
-        notify.addProperty("bidderId", bid.getBidderId());
-        notify.addProperty("bidderName", bidderName);
+    private void broadcastBidUpdate(int auctionId, Bid bid, String bidderName) throws Exception {
+        // Lấy auction mới nhất để client update đầy đủ thông tin
+        Auction auction = auctionService.getAuctionById(auctionId);
 
-        // Tránh NPE nếu placedAt chưa được set
+        // Payload: full Auction object để client deserialize trực tiếp
+        // Client đang expect: AUCTION_UPDATE_NOTIFICATION với payload là Auction object
+        JsonObject payload = new JsonObject();
+        payload.addProperty("auctionId", auctionId);
+        payload.addProperty("currentPrice", bid.getAmount());
+        payload.addProperty("bidderId", bid.getBidderId());
+        payload.addProperty("bidderName", bidderName);
+        if (auction != null) {
+            payload.addProperty("endTime", auction.getEndTime().toString());
+        }
         String placedAt = bid.getPlacedAt() != null
                 ? bid.getPlacedAt().toString()
                 : LocalDateTime.now().toString();
-        notify.addProperty("placedAt", placedAt);
+        payload.addProperty("placedAt", placedAt);
 
-        MainServer.broadcastToAuction(auctionId, gson.toJson(notify));
-        logger.debug("BID_UPDATE broadcast: auctionId={}, price={}", auctionId, bid.getAmount());
+        // Bọc trong NetworkMessage chuẩn — client parse theo MessageType
+        NetworkMessage notification = new NetworkMessage(
+                MessageType.AUCTION_UPDATE_NOTIFICATION,
+                payload.toString()
+        );
+
+        MainServer.broadcastToAuction(auctionId, gson.toJson(notification));
+        logger.debug("AUCTION_UPDATE_NOTIFICATION broadcast: auctionId={}, price={}", auctionId, bid.getAmount());
     }
 }

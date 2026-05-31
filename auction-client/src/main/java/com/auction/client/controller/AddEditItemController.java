@@ -20,7 +20,6 @@ import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
 
 public class AddEditItemController extends BaseController {
 
@@ -49,11 +48,15 @@ public class AddEditItemController extends BaseController {
         categoryCombo.setItems(FXCollections.observableArrayList(ItemCategory.values()));
         startHourSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 12));
         endHourSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 18));
+
+        // Mặc định ngày bắt đầu là hôm nay, kết thúc là ngày mai
         startDatePicker.setValue(LocalDate.now());
+        endDatePicker.setValue(LocalDate.now().plusDays(1));
 
         uploadImageButton.setOnAction(event -> handleUploadImage());
         removeImageButton.setOnAction(event -> handleRemoveImage());
         saveButton.setOnAction(event -> handleSaveItem());
+        cancelButton.setOnAction(event -> closeWindow());
     }
 
     public void setFormMode(boolean isEditMode, int itemId) {
@@ -90,47 +93,64 @@ public class AddEditItemController extends BaseController {
         }
 
         if (!ValidationUtil.isNumber(startingPriceField.getText())) {
-            errorLabel.setText("Giá khởi điểm phải là chữ số!");
+            errorLabel.setText("Giá khởi điểm phải là chữ số hợp lệ!");
             return;
         }
 
-        LocalDateTime startDateTime = LocalDateTime.of(startDatePicker.getValue(), LocalTime.of(startHourSpinner.getValue(), 0));
-        LocalDateTime endDateTime = LocalDateTime.of(endDatePicker.getValue(), LocalTime.of(endHourSpinner.getValue(), 0));
-        long startTimeMillis = startDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-        long endTimeMillis = endDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        LocalDate startDate = startDatePicker.getValue();
+        LocalDate endDate = endDatePicker.getValue();
 
-        if (!ValidationUtil.isValidAuctionDuration(startTimeMillis, endTimeMillis)) {
+        if (startDate == null || endDate == null) {
+            errorLabel.setText("Vui lòng chọn ngày bắt đầu và kết thúc!");
+            return;
+        }
+
+        LocalDateTime startDateTime = LocalDateTime.of(startDate, LocalTime.of(startHourSpinner.getValue(), 0));
+        LocalDateTime endDateTime = LocalDateTime.of(endDate, LocalTime.of(endHourSpinner.getValue(), 0));
+
+        if (endDateTime.isBefore(startDateTime) || endDateTime.isEqual(startDateTime)) {
             errorLabel.setText("Ngày kết thúc phải nằm ở tương lai và sau ngày bắt đầu!");
             return;
         }
 
         try {
             JsonObject itemJson = new JsonObject();
-            itemJson.addProperty("isEditMode", isEditMode);
-            if (isEditMode) itemJson.addProperty("itemId", editingItemId);
-            itemJson.addProperty("title", itemNameField.getText().trim());
+            if (isEditMode) {
+                itemJson.addProperty("itemId", editingItemId);
+            }
+
+            // 1. Các trường dữ liệu dành cho ItemController tạo Item
+            itemJson.addProperty("name", itemNameField.getText().trim());
             itemJson.addProperty("description", descriptionArea.getText().trim());
             itemJson.addProperty("category", categoryCombo.getValue().name());
-            itemJson.addProperty("reservePrice", Double.parseDouble(startingPriceField.getText()));
-            itemJson.addProperty("startTime", startTimeMillis);
-            itemJson.addProperty("endTime", endTimeMillis);
+            itemJson.addProperty("startingPrice", Double.parseDouble(startingPriceField.getText()));
 
-            // LOGIC MỚI: Tự động chọn MessageType tương ứng
+            // 2. Các trường dữ liệu dành cho AuctionController tạo phòng đấu giá
+            // Gửi dưới dạng chuỗi ISO-8601 (yyyy-MM-dd'T'HH:mm) để Server parse trực tiếp được
+            itemJson.addProperty("startTime", startDateTime.toString());
+            itemJson.addProperty("endTime", endDateTime.toString());
+
+            // Min increment tạm thời thiết lập mặc định (bạn có thể thêm ô nhập liệu trên FXML sau nếu cần)
+            itemJson.addProperty("minIncrement", 1000.0);
+
             MessageType type = isEditMode ? MessageType.EDIT_ITEM_REQUEST : MessageType.ADD_ITEM_REQUEST;
-
-            // ĐÃ SỬA: Dùng NetworkService gửi JSON
             NetworkMessage message = new NetworkMessage(type, itemJson.toString());
+
+            // Đẩy lệnh đi
             NetworkService.getInstance().sendNetworkMessage(message);
 
             DialogUtil.showInfo("Đã gửi yêu cầu lưu sản phẩm lên hệ thống Máy chủ.");
-
-            // Đóng cửa sổ sau khi gửi thành công
-            if (saveButton.getScene() != null && saveButton.getScene().getWindow() != null) {
-                ((Stage) saveButton.getScene().getWindow()).close();
-            }
+            closeWindow();
 
         } catch (Exception e) {
             LoggerUtil.error("Sự cố truyền tin Socket tạo/sửa sản phẩm.", e);
+            errorLabel.setText("Đã xảy ra lỗi khi tạo dữ liệu. Vui lòng thử lại!");
+        }
+    }
+
+    private void closeWindow() {
+        if (saveButton.getScene() != null && saveButton.getScene().getWindow() != null) {
+            ((Stage) saveButton.getScene().getWindow()).close();
         }
     }
 }
