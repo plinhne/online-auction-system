@@ -140,16 +140,33 @@ public class ProductDetailsController extends BaseController {
         }
     }
 
-    public void updateRealtimeDetails(AuctionDTO auction) {
-        this.currentAuction = auction;
-        currentPriceLabel.setText(String.format("%,.0fđ", auction.getCurrentPrice()));
-        startingPriceLabel.setText(String.format("%,.0fđ", auction.getStartingPrice()));
+    public void updateRealtimeDetails(AuctionDTO update) {
 
-        if (auction.getLeadingBidderId() > 0) {
-            currentLeaderLabel.setText("🏆 Người dẫn đầu (ID): " + auction.getLeadingBidderId());
+        if (currentAuction == null) {
+            currentAuction = update;
         } else {
-            currentLeaderLabel.setText("🏆 Người dẫn đầu: Chưa có");
+            currentAuction.setCurrentPrice(update.getCurrentPrice());
+            currentAuction.setLeadingBidderId(update.getLeadingBidderId());
+            currentAuction.setLeadingBidderName(update.getLeadingBidderName());
+
+            if (update.getEndTime() != null) {
+                currentAuction.setEndTime(update.getEndTime());
+            }
         }
+
+        AuctionDTO auction = currentAuction;
+
+        Platform.runLater(() -> {
+            currentPriceLabel.setText(
+                    String.format("%,.0fđ", auction.getCurrentPrice())
+            );
+
+            currentLeaderLabel.setText(
+                    auction.getLeadingBidderName() != null
+                            ? "🏆 " + auction.getLeadingBidderName()
+                            : "Chưa có"
+            );
+        });
     }
 
     public void setBidHistory(List<Bid> bids) {
@@ -174,6 +191,20 @@ public class ProductDetailsController extends BaseController {
                     (javafx.scene.layout.VBox) currentScene.lookup("#contentArea") : null;
 
             if (contentArea != null) {
+                JsonObject req = new JsonObject();
+                req.addProperty("auctionId", currentAuction.getId());
+
+                NetworkMessage msg = new NetworkMessage(
+                        MessageType.JOIN_AUCTION_REQUEST,
+                        req.toString()
+                );
+
+                com.auction.client.network.NetworkService
+                        .getInstance()
+                        .sendNetworkMessage(msg);
+
+                LoggerUtil.info("JOIN_AUCTION_REQUEST sent: " + currentAuction.getId());
+
                 Object controller = loadCenterView(contentArea, "/fxml/RealTimeBiddingView.fxml");
 
                 if (controller instanceof RealTimeBiddingController) {

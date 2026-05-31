@@ -89,6 +89,7 @@ public class ServerListener extends Thread {
         try {
             while (isRunning && !socket.isClosed() && (jsonLine = in.readLine()) != null) {
                 try {
+                    LoggerUtil.info("RAW FROM SERVER = " + jsonLine);
                     NetworkMessage message = gson.fromJson(jsonLine, NetworkMessage.class);
                     if (message != null && message.getType() != null) {
                         handleIncomingMessage(message);
@@ -278,6 +279,7 @@ public class ServerListener extends Thread {
                 try {
                     JsonObject resp = JsonParser.parseString(payload).getAsJsonObject();
                     String status = resp.has("status") ? resp.get("status").getAsString() : "ERROR";
+                    LoggerUtil.info("PLACE_BID_RESPONSE payload = " + payload);
                     if (!"OK".equals(status)) {
                         String msg = resp.has("message") ? resp.get("message").getAsString() : "Đặt giá thất bại.";
                         Platform.runLater(() -> DialogUtil.showError("Đặt giá thất bại: " + msg));
@@ -300,6 +302,7 @@ public class ServerListener extends Thread {
             // ── BROADCAST NOTIFICATIONS ──────────────────────────────────────────
             case AUCTION_UPDATE_NOTIFICATION: {
                 LoggerUtil.info("Nhận broadcast cập nhật giá realtime.");
+                LoggerUtil.info("realTimeController = " + biddingController );
                 if (biddingController == null || payload == null) break;
                 try {
                     // Server gửi flat JSON: {auctionId, currentPrice, bidderId, bidderName, endTime, placedAt}

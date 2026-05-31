@@ -61,6 +61,11 @@ public class BidController {
     }
 
     private void broadcastBidUpdate(int auctionId, Bid bid, String bidderName) throws Exception {
+        logger.info(
+                "Broadcasting AUCTION_UPDATE_NOTIFICATION auction={} price={}",
+                auctionId,
+                bid.getAmount()
+        );
         // Lấy auction mới nhất để client update đầy đủ thông tin
         Auction auction = auctionService.getAuctionById(auctionId);
 
@@ -85,6 +90,7 @@ public class BidController {
                 payload.toString()
         );
 
+        logger.info("Broadcasting auction update: {}", payload);
         MainServer.broadcastToAuction(auctionId, gson.toJson(notification));
         logger.debug("AUCTION_UPDATE_NOTIFICATION broadcast: auctionId={}, price={}", auctionId, bid.getAmount());
     }

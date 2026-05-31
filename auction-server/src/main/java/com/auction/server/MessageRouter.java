@@ -58,8 +58,12 @@ public class MessageRouter {
         // ── AUCTION ──
         handlers.put(MessageType.GET_ALL_AUCTIONS_REQUEST, (req, res) -> auction.handleGetAuctions(res));
         handlers.put(MessageType.JOIN_AUCTION_REQUEST, (req, res) -> {
+            logger.info("JOIN_AUCTION_REQUEST received");
             Auction a = auction.handleJoinAuction(req, res);
-            if (a != null) currentAuctionId = a.getId();
+            if (a != null) {
+                currentAuctionId = a.getId();
+                logger.info("currentAuctionId = {}", currentAuctionId);
+            }
         });
         handlers.put(MessageType.LEAVE_AUCTION_REQUEST, (req, res) -> {
             auction.handleLeaveAuction(res);
