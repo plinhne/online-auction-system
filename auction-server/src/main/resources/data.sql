@@ -16,19 +16,19 @@ MERGE INTO items (name, description, seller_id, category, image_url)
                'Vintage Porsche 911 Carrera',
                'Rare 1973 Porsche 911 Carrera RS 2.7 in original condition.',
                2, 'VEHICLE',
-               'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600'
+               'uploads/items/car.jpg'
            ),
            (
                'Picasso Original Lithograph',
                'Authentic Pablo Picasso lithograph from 1960s.',
                2, 'ART',
-               'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600'
+               'uploads/items/art.jpg'
            ),
            (
                'DJI Mavic 3 Pro Drone',
                'Professional drone with Hasselblad camera system.',
                2, 'ELECTRONICS',
-               'https://images.unsplash.com/photo-1507582020474-9a35b7d455d9?w=600'
+               'uploads/items/drone.jpg'
            );
 
 -- 3. auctions

@@ -53,7 +53,7 @@ public class ClientHandler implements Runnable, BidObserver {
         AutoBidService autoBidService = bidService.getAutoBidService();
 
         AuthController authController       = new AuthController(authService, userService);
-        AuctionController auctionController = new AuctionController(auctionService, itemService);
+        AuctionController auctionController = new AuctionController(auctionService, itemService, userService);
         BidController bidController         = new BidController(bidService, autoBidService, auctionService);
         ItemController itemController       = new ItemController(itemService, imageService);
         UserController userController       = new UserController(userService, auctionService,gson);

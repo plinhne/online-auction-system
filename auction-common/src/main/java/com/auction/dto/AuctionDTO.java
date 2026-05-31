@@ -15,6 +15,7 @@ public class AuctionDTO {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private int leadingBidderId;
+    private String leadingBidderName;
 
     // 2. Dữ liệu lấy thêm từ Sản phẩm (Item)
     private String itemName;
@@ -63,5 +64,12 @@ public class AuctionDTO {
     }
     public void setItemImage_url(String itemImage_url) {
         this.itemImage_url = itemImage_url;
+    }
+
+    public String getLeadingBidderName() {
+        return leadingBidderName;
+    }
+    public void setLeadingBidderName(String leadingBidderName) {
+        this.leadingBidderName = leadingBidderName;
     }
 }

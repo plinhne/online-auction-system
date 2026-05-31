@@ -3,6 +3,8 @@ package com.auction.server.controller;
 import com.auction.model.auction.Auction;
 import com.auction.model.user.User;
 import com.auction.service.AuctionService;
+import com.auction.service.ItemService;
+import com.auction.service.UserService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -15,15 +17,17 @@ public class AuctionController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionController.class);
 
     private final AuctionService auctionService;
-    private final com.auction.service.ItemService itemService;
+    private final ItemService itemService;
+    private final UserService userService;
     private final Gson gson = new com.google.gson.GsonBuilder()
             .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonSerializer<java.time.LocalDateTime>) (src, typeOfSrc, context) -> new com.google.gson.JsonPrimitive(src.toString()))
             .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonDeserializer<java.time.LocalDateTime>) (json, typeOfT, context) -> java.time.LocalDateTime.parse(json.getAsString()))
             .create();
 
-    public AuctionController(AuctionService auctionService, com.auction.service.ItemService itemService) {
+    public AuctionController(AuctionService auctionService, ItemService itemService, UserService userService) {
         this.auctionService = auctionService;
         this.itemService = itemService;
+        this.userService = userService;
     }
 
     private com.auction.dto.AuctionDTO toDTO(Auction a) {
@@ -38,6 +42,18 @@ public class AuctionController {
         dto.setStartTime(a.getStartTime());
         dto.setEndTime(a.getEndTime());
         dto.setLeadingBidderId(a.getLeadingBidderId());
+
+        if (a.getLeadingBidderId() > 0) {
+            try {
+                com.auction.model.user.User bidder = userService.findById(a.getLeadingBidderId());
+                dto.setLeadingBidderName(bidder != null ? bidder.getName() : "Unknown");
+            } catch (Exception e) {
+                logger.warn("Cannot load leading bidder for auctionId={}", a.getId());
+                dto.setLeadingBidderName("Unknown");
+            }
+        } else {
+            dto.setLeadingBidderName("Chưa có");
+        }
 
         try {
             com.auction.model.item.Item item = itemService.getItemById(a.getItemId());
