@@ -19,7 +19,7 @@ public class ItemDAO {
     public Item findById(int id) throws SQLException {
         String sql = "SELECT * FROM items WHERE id = ?";
         try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) return mapRow(rs);
@@ -54,17 +54,18 @@ public class ItemDAO {
         return items;
     }
 
-    /**
-     * Lưu item mới, trả về id được DB generate.
-     */
     public int save(Item item, int sellerId, ItemCategory category) throws SQLException {
-        String sql = "INSERT INTO items (name, description, seller_id, category) VALUES (?, ?, ?, ?)";
+        String sql = """
+            INSERT INTO items (name, description, seller_id, category, image_url)
+            VALUES (?, ?, ?, ?, ?)
+            """;
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, item.getName());
             stmt.setString(2, item.getDescription());
             stmt.setInt(3, sellerId);
             stmt.setString(4, category.name());
+            stmt.setString(5, item.getImageUrl());
             stmt.executeUpdate();
             try (ResultSet keys = stmt.getGeneratedKeys()) {
                 if (keys.next()) return keys.getInt(1);
@@ -74,13 +75,24 @@ public class ItemDAO {
     }
 
     public void update(Item item, ItemCategory category) throws SQLException {
-        String sql = "UPDATE items SET name = ?, description = ?, category = ? WHERE id = ?";
+        String sql = "UPDATE items SET name = ?, description = ?, category = ?, image_url = ? WHERE id = ?";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, item.getName());
             stmt.setString(2, item.getDescription());
             stmt.setString(3, category.name());
-            stmt.setInt(4, item.getId());
+            stmt.setString(4, item.getImageUrl());
+            stmt.setInt(5, item.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void updateImageUrl(int itemId, String imageUrl) throws SQLException {
+        String sql = "UPDATE items SET image_url = ? WHERE id = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, imageUrl);
+            stmt.setInt(2, itemId);
             stmt.executeUpdate();
         }
     }
@@ -94,18 +106,16 @@ public class ItemDAO {
         }
     }
 
-    /**
-     * Map DB row → đúng subclass dựa vào category.
-     * Factory pattern: tạo Electronics/Art/Vehicle theo category.
-     */
     private Item mapRow(ResultSet rs) throws SQLException {
         int id           = rs.getInt("id");
         String name      = rs.getString("name");
         String desc      = rs.getString("description");
         ItemCategory cat = ItemCategory.valueOf(rs.getString("category"));
+        String imageUrl  = rs.getString("image_url");
 
         Item item = ItemFactory.createItem(cat, id, name, 0.0);
         item.setDescription(desc);
+        item.setImageUrl(imageUrl);
         return item;
     }
 }
