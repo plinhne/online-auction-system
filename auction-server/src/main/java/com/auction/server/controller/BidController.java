@@ -22,8 +22,12 @@ public class BidController {
     private final BidService bidService;
     private final AutoBidService autoBidService;
     private final AuctionService auctionService;
-    private final Gson gson = new Gson();
-
+    private final Gson gson = new com.google.gson.GsonBuilder()
+            .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonSerializer<java.time.LocalDateTime>) (src, typeOfSrc, context) ->
+                    new com.google.gson.JsonPrimitive(src.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+            .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonDeserializer<java.time.LocalDateTime>) (json, typeOfT, context) ->
+                    java.time.LocalDateTime.parse(json.getAsString(), java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+            .create();
     public BidController(BidService bidService, AutoBidService autoBidService, AuctionService auctionService) {
         this.bidService = bidService;
         this.autoBidService = autoBidService;
@@ -32,7 +36,7 @@ public class BidController {
 
     public void handlePlaceBid(JsonObject request, JsonObject response, User bidder) throws Exception {
         int auctionId = request.get("auctionId").getAsInt();
-        double amount = request.get("amount").getAsDouble();
+        double amount = request.get("bidAmount").getAsDouble();
 
         // placeBid trả về bid thủ công đã được accept
         Bid bid = bidService.placeBid(auctionId, bidder.getId(), amount);
@@ -61,31 +65,25 @@ public class BidController {
     }
 
     private void broadcastBidUpdate(int auctionId, Bid bid, String bidderName) throws Exception {
-        // Lấy auction mới nhất để client update đầy đủ thông tin
+        // Lấy auction mới nhất (đã cập nhật giá và số lượt đặt) từ Database
         Auction auction = auctionService.getAuctionById(auctionId);
 
-        // Payload: full Auction object để client deserialize trực tiếp
-        // Client đang expect: AUCTION_UPDATE_NOTIFICATION với payload là Auction object
-        JsonObject payload = new JsonObject();
-        payload.addProperty("auctionId", auctionId);
-        payload.addProperty("currentPrice", bid.getAmount());
-        payload.addProperty("bidderId", bid.getBidderId());
-        payload.addProperty("bidderName", bidderName);
         if (auction != null) {
-            payload.addProperty("endTime", auction.getEndTime().toString());
+            // Client (RealTimeBiddingController) đang expect nhận được 1 chuỗi JSON
+            // có thể cast thẳng thành class AuctionDTO, nên ta sẽ đóng gói toàn bộ đối tượng Auction.
+            // Biến gson đã được khai báo ở đầu file BidController sẽ tự động map các trường.
+            String auctionJsonPayload = gson.toJson(auction);
+
+            NetworkMessage notification = new NetworkMessage(
+                    MessageType.AUCTION_UPDATE_NOTIFICATION,
+                    auctionJsonPayload
+            );
+
+            // Gửi phát chùm (Broadcast) cho tất cả các Client đang ở trong phòng này
+            MainServer.broadcastToAuction(auctionId, gson.toJson(notification));
+            logger.debug("Đã phát AUCTION_UPDATE_NOTIFICATION cho phòng {}: Giá mới = {}", auctionId, bid.getAmount());
+        } else {
+            logger.error("Không tìm thấy Auction ID {} để broadcast cập nhật giá.", auctionId);
         }
-        String placedAt = bid.getPlacedAt() != null
-                ? bid.getPlacedAt().toString()
-                : LocalDateTime.now().toString();
-        payload.addProperty("placedAt", placedAt);
-
-        // Bọc trong NetworkMessage chuẩn — client parse theo MessageType
-        NetworkMessage notification = new NetworkMessage(
-                MessageType.AUCTION_UPDATE_NOTIFICATION,
-                payload.toString()
-        );
-
-        MainServer.broadcastToAuction(auctionId, gson.toJson(notification));
-        logger.debug("AUCTION_UPDATE_NOTIFICATION broadcast: auctionId={}, price={}", auctionId, bid.getAmount());
     }
 }

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane prefWidth="280.0" styleClass="card" stylesheets="@../css/style.css" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.auction.client.controller.ItemCardController">
+<BorderPane prefWidth="280.0" styleClass="card" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.ItemCardController">
    <top>
       <VBox styleClass="bg-light">
          <children>
@@ -22,10 +22,10 @@
                   <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                </padding>
                <children>
-                  <Label fx:id="statusBadge" styleClass="bg-success" style="-fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 4; -fx-font-size: 10; -fx-font-weight: bold;" text="ĐANG CHẠY" />
+                  <Label fx:id="statusBadge" style="-fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 4; -fx-font-size: 10; -fx-font-weight: bold;" styleClass="bg-success" text="ĐANG CHẠY" />
                   <Label fx:id="categoryBadge" style="-fx-border-color: #d1d5db; -fx-border-radius: 4; -fx-padding: 2 8; -fx-font-size: 10;" text="Điện tử" />
                   <Region HBox.hgrow="ALWAYS" />
-                  <Label fx:id="timeRemainingBadge" styleClass="bg-danger" style="-fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 4; -fx-font-size: 10; -fx-font-weight: bold;" text="3h 45m" />
+                  <Label fx:id="timeRemainingBadge" style="-fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 4; -fx-font-size: 10; -fx-font-weight: bold;" styleClass="bg-danger" text="3h 45m" />
                </children>
             </HBox>
          </children>
@@ -38,19 +38,18 @@
             <Insets bottom="15.0" left="12.0" right="12.0" top="5.0" />
          </padding>
          <children>
-            <Label fx:id="itemNameLabel" styleClass="label" style="-fx-font-size: 14; -fx-font-weight: bold;" text="Tên sản phẩm" wrapText="true" />
-            <Label fx:id="descriptionLabel" styleClass="label, subtitle" prefHeight="40.0" text="Mô tả ngắn gọn về sản phẩm đấu giá..." wrapText="true" />
+            <Label fx:id="itemNameLabel" style="-fx-font-size: 14; -fx-font-weight: bold;" styleClass="label" text="Tên sản phẩm" wrapText="true" />
+            <Label fx:id="descriptionLabel" prefHeight="40.0" styleClass="label, subtitle" text="Mô tả ngắn gọn về sản phẩm đấu giá..." wrapText="true" />
 
             <HBox alignment="BOTTOM_LEFT" spacing="5.0">
                <children>
                   <VBox>
                      <children>
-                        <Label styleClass="text-muted" style="-fx-font-size: 10;" text="Giá hiện tại" />
-                        <Label fx:id="priceLabel" styleClass="text-success" style="-fx-font-size: 18; -fx-font-weight: bold;" text="1.500.000đ" />
+                        <Label style="-fx-font-size: 10;" styleClass="text-muted" text="Giá hiện tại" />
+                        <Label fx:id="priceLabel" style="-fx-font-size: 18; -fx-font-weight: bold;" styleClass="text-success" text="1.500.000đ" />
                      </children>
                   </VBox>
                   <Region HBox.hgrow="ALWAYS" />
-                  <Label fx:id="bidsLabel" styleClass="text-muted" text="12 lượt đặt" />
                </children>
             </HBox>
          </children>
@@ -65,9 +64,8 @@
          <children>
             <HBox alignment="CENTER_LEFT">
                <children>
-                  <Label fx:id="viewsLabel" styleClass="text-muted" text="156 lượt xem" />
                   <Region HBox.hgrow="ALWAYS" />
-                  <Label fx:id="currentLeaderLabel" styleClass="text-primary" style="-fx-font-weight: bold; -fx-font-size: 10;" text="Bạn đang dẫn đầu" visible="false" />
+                  <Label fx:id="currentLeaderLabel" style="-fx-font-weight: bold; -fx-font-size: 10;" styleClass="text-primary" text="Bạn đang dẫn đầu" visible="false" />
                </children>
             </HBox>
             <Button fx:id="viewDetailsButton" maxWidth="Infinity" styleClass="button, primary" text="Xem chi tiết" />

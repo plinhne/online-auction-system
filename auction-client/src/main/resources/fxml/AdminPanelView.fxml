@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane styleClass="bg-light" stylesheets="@../css/style.css" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.auction.client.controller.AdminPanelController">
+<BorderPane styleClass="bg-light" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.AdminPanelController">
 
    <top>
-      <VBox styleClass="bg-white" style="-fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;">
+      <VBox style="-fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;" styleClass="bg-white">
          <padding>
             <Insets bottom="20.0" left="25.0" right="25.0" top="20.0" />
          </padding>
@@ -26,24 +26,17 @@
 
             <HBox spacing="15.0">
                <children>
-                  <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="card">
+                  <VBox spacing="8.0" styleClass="card" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="label, subtitle" text="Tổng số đấu giá" />
                         <Label fx:id="totalAuctionsLabel" styleClass="label, header" text="0" />
                      </children>
                   </VBox>
 
-                  <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="card">
+                  <VBox spacing="8.0" styleClass="card" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="label, subtitle" text="Người dùng hệ thống" />
                         <Label fx:id="totalUsersLabel" styleClass="label, header" text="0" />
-                     </children>
-                  </VBox>
-
-                  <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="card">
-                     <children>
-                        <Label styleClass="label, subtitle" text="Doanh thu dự kiến" />
-                        <Label fx:id="totalRevenueLabel" styleClass="label, header, text-success" text="0.00" />
                      </children>
                   </VBox>
                </children>
@@ -54,14 +47,14 @@
 
                   <Tab text="Quản lý Đấu giá">
                      <content>
-                        <VBox spacing="15.0" styleClass="card" style="-fx-background-color: white;">
+                        <VBox spacing="15.0" style="-fx-background-color: white;" styleClass="card">
                            <padding>
                               <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
                            </padding>
                            <children>
                               <HBox alignment="CENTER_LEFT" spacing="10.0">
                                  <children>
-                                    <Label styleClass="label" style="-fx-font-weight: bold; -fx-font-size: 16;" text="Danh sách cuộc đấu giá" />
+                                    <Label style="-fx-font-weight: bold; -fx-font-size: 16;" styleClass="label" text="Danh sách cuộc đấu giá" />
                                     <Region HBox.hgrow="ALWAYS" />
                                     <Button fx:id="approveAuctionButton" styleClass="button, success" text="✓ Duyệt Đấu Giá" />
                                     <Button fx:id="deleteAuctionButton" styleClass="button, danger" text="🗑 Xóa Đấu Giá" />
@@ -86,18 +79,18 @@
 
                   <Tab text="Quản lý Người dùng">
                      <content>
-                        <VBox spacing="15.0" styleClass="card" style="-fx-background-color: white;">
+                        <VBox spacing="15.0" style="-fx-background-color: white;" styleClass="card">
                            <padding>
                               <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
                            </padding>
                            <children>
                               <HBox alignment="CENTER_LEFT" spacing="10.0">
                                  <children>
-                                    <Label styleClass="label" style="-fx-font-weight: bold; -fx-font-size: 16;" text="Danh sách thành viên" />
+                                    <Label style="-fx-font-weight: bold; -fx-font-size: 16;" styleClass="label" text="Danh sách thành viên" />
                                     <Region HBox.hgrow="ALWAYS" />
                                     <Button fx:id="addUserButton" styleClass="button, primary" text="➕ Thêm" />
                                     <Button fx:id="editUserButton" styleClass="button" text="✏ Sửa" />
-                                    <Button fx:id="changeBalanceButton" styleClass="button, success" style="-fx-background-color: #16a34a; -fx-text-fill: white;" text="💰 Sửa Số Dư" />
+                                    <Button fx:id="changeBalanceButton" style="-fx-background-color: #16a34a; -fx-text-fill: white;" styleClass="button, success" text="💰 Sửa Số Dư" />
                                     <Button fx:id="deleteUserButton" styleClass="button, danger" text="🗑 Xóa" />
                                  </children>
                               </HBox>

@@ -90,6 +90,7 @@ public class AddEditItemController extends BaseController {
         removeImageButton.setVisible(false);
     }
 
+    @FXML
     private void handleSaveItem() {
         errorLabel.setText("");
 
@@ -140,9 +141,9 @@ public class AddEditItemController extends BaseController {
             if (selectedImageFile != null) {
                 try {
                     // Đọc toàn bộ byte của file ảnh
-                    byte[] fileContent = Files.readAllBytes(selectedImageFile.toPath());
+                    byte[] fileContent = java.nio.file.Files.readAllBytes(selectedImageFile.toPath());
                     // Chuyển đổi mảng byte sang chuỗi Base64
-                    String encodedString = Base64.getEncoder().encodeToString(fileContent);
+                    String encodedString = java.util.Base64.getEncoder().encodeToString(fileContent);
                     itemJson.addProperty("imageBase64", encodedString);
 
                     // Trích xuất đuôi mở rộng của file ảnh (ví dụ: jpg, png)
@@ -154,26 +155,39 @@ public class AddEditItemController extends BaseController {
                     }
                     itemJson.addProperty("imageExtension", extension);
 
-                } catch (IOException ex) {
+                } catch (java.io.IOException ex) {
                     LoggerUtil.error("Lỗi đọc file ảnh khi lưu", ex);
                     errorLabel.setText("Lỗi xử lý hình ảnh. Vui lòng chọn lại ảnh!");
                     return; // Ngừng quá trình gửi tin nếu có lỗi khi đọc file ảnh
                 }
             }
 
-            // 4. Khởi tạo type và gửi thông điệp lên Server
-            MessageType type = isEditMode ? MessageType.EDIT_ITEM_REQUEST : MessageType.ADD_ITEM_REQUEST;
-            NetworkMessage message = new NetworkMessage(type, itemJson.toString());
+            // ==============================================================
+            // PHẦN BỔ SUNG QUAN TRỌNG: GỬI GÓI TIN LÊN SERVER VÀ ĐÓNG CỬA SỔ
+            // ==============================================================
 
-            // Đẩy lệnh đi
+            NetworkMessage message;
+            if (isEditMode) {
+                // Đang ở chế độ sửa => gửi EDIT_ITEM_REQUEST
+                message = new NetworkMessage(MessageType.EDIT_ITEM_REQUEST, itemJson.toString());
+                LoggerUtil.info("Đang gửi yêu cầu Sửa Sản phẩm (ID: " + editingItemId + ") lên Server...");
+            } else {
+                // Đang ở chế độ thêm mới => gửi ADD_ITEM_REQUEST
+                // Lưu ý: Server đã được cấu hình tự sinh CREATE_AUCTION_RESPONSE sau khi nhận ADD_ITEM_REQUEST
+                message = new NetworkMessage(MessageType.ADD_ITEM_REQUEST, itemJson.toString());
+                LoggerUtil.info("Đang gửi yêu cầu Thêm Sản phẩm & Mở Phiên đấu giá lên Server...");
+            }
+
+            // 4. Phát lệnh đi thông qua Socket
             NetworkService.getInstance().sendNetworkMessage(message);
 
-            DialogUtil.showInfo("Đã gửi yêu cầu lưu sản phẩm lên hệ thống Máy chủ.");
-            closeWindow();
+            // 5. Đóng cửa sổ Popup AddItemView lại để về màn hình Dashboard
+            Stage stage = (Stage) itemNameField.getScene().getWindow();
+            stage.close();
 
         } catch (Exception e) {
-            LoggerUtil.error("Sự cố truyền tin Socket tạo/sửa sản phẩm.", e);
-            errorLabel.setText("Đã xảy ra lỗi khi tạo dữ liệu. Vui lòng thử lại!");
+            LoggerUtil.error("Lỗi không xác định khi lưu thông tin sản phẩm", e);
+            errorLabel.setText("Lỗi hệ thống: Không thể xử lý dữ liệu.");
         }
     }
 

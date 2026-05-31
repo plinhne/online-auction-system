@@ -15,6 +15,7 @@ public class AuctionDTO {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private int leadingBidderId;
+    private String leadingBidderName;
 
     // 2. Dữ liệu lấy thêm từ Sản phẩm (Item)
     private String itemName;
@@ -22,9 +23,12 @@ public class AuctionDTO {
     private String itemCategory;
     private String itemImage_url;
 
+    // BỔ SUNG: Thêm trường lưu số lượng lượt đặt giá
+    private int bidCount;
+
     public AuctionDTO() {}
 
-    // --- BẠN HÃY GEN RA TẤT CẢ GETTER & SETTER CHO CÁC BIẾN TRÊN ---
+    // --- GETTER & SETTER ---
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
     public int getItemId() { return itemId; }
@@ -48,20 +52,25 @@ public class AuctionDTO {
     public void setItemName(String itemName) { this.itemName = itemName; }
     public String getItemDescription() { return itemDescription; }
     public void setItemDescription(String itemDescription) { this.itemDescription = itemDescription; }
+
+    // Giữ nguyên hàm cũ
     public String getItemCategory() { return itemCategory; }
     public void setItemCategory(String itemCategory) { this.itemCategory = itemCategory; }
 
-    public int getLeadingBidderId() {
-        return leadingBidderId;
-    }
-    public void setLeadingBidderId(int leadingBidderId) {
-        this.leadingBidderId = leadingBidderId;
-    }
+    // SỬA LỖI 1: Thêm alias getCategory() và setCategory() để Controller gọi không bị lỗi
+    public String getCategory() { return itemCategory; }
+    public void setCategory(String category) { this.itemCategory = category; }
 
-    public String getItemImage_url() {
-        return itemImage_url;
-    }
-    public void setItemImage_url(String itemImage_url) {
-        this.itemImage_url = itemImage_url;
-    }
+    public int getLeadingBidderId() { return leadingBidderId; }
+    public void setLeadingBidderId(int leadingBidderId) { this.leadingBidderId = leadingBidderId; }
+
+    public String getItemImage_url() { return itemImage_url; }
+    public void setItemImage_url(String itemImage_url) { this.itemImage_url = itemImage_url; }
+
+    public String getLeadingBidderName() { return leadingBidderName; }
+    public void setLeadingBidderName(String leadingBidderName) { this.leadingBidderName = leadingBidderName; }
+
+    // SỬA LỖI 2: Thêm Getter & Setter cho thuộc tính bidCount mới bổ sung
+    public int getBidCount() { return bidCount; }
+    public void setBidCount(int bidCount) { this.bidCount = bidCount; }
 }

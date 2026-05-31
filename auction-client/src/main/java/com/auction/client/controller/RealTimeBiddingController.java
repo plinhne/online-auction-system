@@ -3,7 +3,7 @@ package com.auction.client.controller;
 import com.auction.client.util.DialogUtil;
 import com.auction.client.util.LoggerUtil;
 import com.auction.client.util.ValidationUtil;
-import com.auction.model.auction.Auction;
+import com.auction.dto.AuctionDTO;
 import com.auction.network.NetworkMessage;
 import com.auction.network.MessageType;
 import com.google.gson.Gson;
@@ -39,7 +39,7 @@ public class RealTimeBiddingController extends BaseController {
     @FXML private TextField autoBidIncrementField;
     @FXML private ListView<String> bidActivityList;
 
-    private Auction currentAuction;
+    private AuctionDTO currentAuction; // Đã đổi thành AuctionDTO
     private final Gson gson = new Gson();
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
     private final XYChart.Series<String, Number> priceSeries = new XYChart.Series<>();
@@ -62,17 +62,30 @@ public class RealTimeBiddingController extends BaseController {
         });
     }
 
-    public void setAuctionContext(Auction auction) {
+    public void setAuctionContext(AuctionDTO auction) {
         this.currentAuction = auction;
         if (auction != null) {
             productNameLabel.setText("Mã sản phẩm: " + auction.getItemId());
             updateAuctionRealtimeView(auction);
+
+            // ĐÃ BỔ SUNG: Báo cho Server biết User vừa vào phòng này
+            JsonObject joinJson = new JsonObject();
+            joinJson.addProperty("auctionId", auction.getId());
+            NetworkMessage joinMsg = new NetworkMessage(MessageType.JOIN_AUCTION_REQUEST, joinJson.toString());
+            com.auction.client.network.NetworkService.getInstance().sendNetworkMessage(joinMsg);
+            LoggerUtil.info("Đã gửi yêu cầu JOIN_AUCTION_REQUEST vào phòng: " + auction.getId());
         }
         if (serverListener != null) {
             serverListener.setBiddingController(this);
         }
     }
 
+    // ĐÃ BỔ SUNG: Bạn cần gọi hàm này khi người dùng bấm nút "Back" hoặc tắt cửa sổ
+    public void handleLeaveRoom() {
+        NetworkMessage leaveMsg = new NetworkMessage(MessageType.LEAVE_AUCTION_REQUEST, "{}");
+        com.auction.client.network.NetworkService.getInstance().sendNetworkMessage(leaveMsg);
+        LoggerUtil.info("Đã gửi yêu cầu rời phòng đấu giá.");
+    }
     private void handlePlaceBid() {
         if (currentAuction == null) return;
 
@@ -105,7 +118,6 @@ public class RealTimeBiddingController extends BaseController {
             // 1. GỬI LỆNH ĐẤU GIÁ THỦ CÔNG (BID)
             JsonObject bidJson = new JsonObject();
             bidJson.addProperty("auctionId", currentAuction.getId());
-            // Giữ nguyên là "bidAmount" (Do BidController ở Server đã được sửa thành bidAmount ở lượt trước)
             bidJson.addProperty("bidAmount", amount);
 
             NetworkMessage message = new NetworkMessage(MessageType.PLACE_BID_REQUEST, gson.toJson(bidJson));
@@ -131,7 +143,8 @@ public class RealTimeBiddingController extends BaseController {
         }
     }
 
-    public void updateAuctionRealtimeView(Auction auction) {
+    // Đã đổi tham số thành AuctionDTO
+    public void updateAuctionRealtimeView(AuctionDTO auction) {
         this.currentAuction = auction;
 
         Platform.runLater(() -> {
@@ -148,4 +161,5 @@ public class RealTimeBiddingController extends BaseController {
             activities.add(0, "[" + timeNow + "] Giá mới: " + String.format("%,.0fđ", auction.getCurrentPrice()));
         });
     }
+
 }

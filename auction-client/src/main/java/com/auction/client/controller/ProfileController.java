@@ -115,42 +115,23 @@ public class ProfileController extends BaseController {
      */
 
     private void handleLogout() {
-
         if (DialogUtil.showConfirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?")) {
-
-            LoggerUtil.info("Người dùng thực hiện đăng xuất từ trang Hồ sơ.");
-
-
-
-            // Gửi thông điệp LOGOUT lên Server để Server dọn dẹp Session
-
+            LoggerUtil.info("Đang gửi yêu cầu đăng xuất lên Server...");
             try {
-
-                NetworkMessage logoutMsg = new NetworkMessage(
-
-                        MessageType.LOGOUT_REQUEST,
-
-                        "{}" // Payload rỗng vì chỉ cần type là đủ
-
-                );
-
+                NetworkMessage logoutMsg = new NetworkMessage(MessageType.LOGOUT_REQUEST, "{}");
                 NetworkService.getInstance().sendNetworkMessage(logoutMsg);
-
+                // XÓA DÒNG NÀY: switchWindow(btnLogout, "/fxml/LoginView.fxml");
             } catch (Exception e) {
-
-                LoggerUtil.error("Lỗi mạng: Không thể gửi tín hiệu đăng xuất lên Server.", e);
-
+                LoggerUtil.error("Lỗi mạng: Không thể gửi tín hiệu đăng xuất.", e);
             }
-
-
-
-            // Xóa session ở Client và chuyển về màn hình đăng nhập
-
-            clearSessionContext();
-
-            switchWindow(btnLogout, "/fxml/LoginView.fxml");
-
         }
+    }
 
+    // Hàm này sẽ được ServerListener gọi lại khi Server cho phép đăng xuất
+    public void executeLogoutUI() {
+        Platform.runLater(() -> {
+            clearSessionContext();
+            switchWindow(btnLogout, "/fxml/LoginView.fxml");
+        });
     }
 }
