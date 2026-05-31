@@ -99,6 +99,7 @@
                                     <Label fx:id="currentLeaderLabel" style="-fx-font-weight: bold;" styleClass="text-primary" text="🏆 Người dẫn đầu: Nguyễn Văn A" />
                                     <HBox spacing="10.0">
                                        <children>
+                                          <TextField fx:id="bidAmountField" prefHeight="45.0" promptText="Nhập giá thầu của bạn..." styleClass="text-field" HBox.hgrow="ALWAYS" />
                                           <Button fx:id="placeBidButton" prefHeight="45.0" prefWidth="150.0" styleClass="button, primary" text="ĐẶT GIÁ NGAY" />
                                        </children>
                                     </HBox>

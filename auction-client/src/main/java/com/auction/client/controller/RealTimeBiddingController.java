@@ -3,7 +3,7 @@ package com.auction.client.controller;
 import com.auction.client.util.DialogUtil;
 import com.auction.client.util.LoggerUtil;
 import com.auction.client.util.ValidationUtil;
-import com.auction.dto.AuctionDTO;
+import com.auction.model.auction.Auction;
 import com.auction.network.NetworkMessage;
 import com.auction.network.MessageType;
 import com.google.gson.Gson;
@@ -39,7 +39,7 @@ public class RealTimeBiddingController extends BaseController {
     @FXML private TextField autoBidIncrementField;
     @FXML private ListView<String> bidActivityList;
 
-    private AuctionDTO currentAuction; // Đã đổi thành AuctionDTO
+    private Auction currentAuction;
     private final Gson gson = new Gson();
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
     private final XYChart.Series<String, Number> priceSeries = new XYChart.Series<>();
@@ -62,8 +62,7 @@ public class RealTimeBiddingController extends BaseController {
         });
     }
 
-    // Đã đổi tham số thành AuctionDTO
-    public void setAuctionContext(AuctionDTO auction) {
+    public void setAuctionContext(Auction auction) {
         this.currentAuction = auction;
         if (auction != null) {
             productNameLabel.setText("Mã sản phẩm: " + auction.getItemId());
@@ -106,6 +105,7 @@ public class RealTimeBiddingController extends BaseController {
             // 1. GỬI LỆNH ĐẤU GIÁ THỦ CÔNG (BID)
             JsonObject bidJson = new JsonObject();
             bidJson.addProperty("auctionId", currentAuction.getId());
+            // Giữ nguyên là "bidAmount" (Do BidController ở Server đã được sửa thành bidAmount ở lượt trước)
             bidJson.addProperty("bidAmount", amount);
 
             NetworkMessage message = new NetworkMessage(MessageType.PLACE_BID_REQUEST, gson.toJson(bidJson));
@@ -131,8 +131,7 @@ public class RealTimeBiddingController extends BaseController {
         }
     }
 
-    // Đã đổi tham số thành AuctionDTO
-    public void updateAuctionRealtimeView(AuctionDTO auction) {
+    public void updateAuctionRealtimeView(Auction auction) {
         this.currentAuction = auction;
 
         Platform.runLater(() -> {

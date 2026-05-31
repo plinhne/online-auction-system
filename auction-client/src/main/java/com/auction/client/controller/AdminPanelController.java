@@ -19,7 +19,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import java.util.List;
 import java.util.Optional;
-import javafx.application.Platform;
 
 public class AdminPanelController extends BaseController {
 
@@ -98,14 +97,8 @@ public class AdminPanelController extends BaseController {
         }
 
         try {
-            // Yêu cầu 1: Lấy danh sách đấu giá
             NetworkMessage getAuctionsMsg = new NetworkMessage(MessageType.GET_ALL_AUCTIONS_REQUEST, "{}");
             NetworkService.getInstance().sendNetworkMessage(getAuctionsMsg);
-
-            // Yêu cầu 2: Lấy danh sách người dùng
-            NetworkMessage getUsersMsg = new NetworkMessage(MessageType.GET_ALL_USERS_REQUEST, "{}");
-            NetworkService.getInstance().sendNetworkMessage(getUsersMsg);
-
         } catch (Exception e) {
             LoggerUtil.error("Lỗi khi yêu cầu dữ liệu Admin từ Server.", e);
         }
@@ -114,30 +107,14 @@ public class AdminPanelController extends BaseController {
     // ĐÃ NÂNG CẤP LÊN DTO
     public void updateAdminDashboard(List<AuctionDTO> auctions, List<User> users) {
         LoggerUtil.info("--- TRẠM 2: Đang đổ dữ liệu vào giao diện Admin ---");
+        totalAuctionsLabel.setText(String.valueOf(auctions.size()));
+        totalUsersLabel.setText(String.valueOf(users.size()));
 
-        // Đẩy tác vụ cập nhật UI vào hàng đợi của JavaFX Thread
-        Platform.runLater(() -> {
-            try {
-                // Xử lý null-safe đề phòng Server trả về danh sách null
-                int auctionCount = (auctions != null) ? auctions.size() : 0;
-                int userCount = (users != null) ? users.size() : 0;
+        double revenue = auctions.stream().mapToDouble(AuctionDTO::getCurrentPrice).sum() * 0.1;
+        totalRevenueLabel.setText(String.format("%,.0fđ", revenue));
 
-                totalAuctionsLabel.setText(String.valueOf(auctionCount));
-                totalUsersLabel.setText(String.valueOf(userCount));
-
-                if (auctions != null) {
-                    double revenue = auctions.stream().mapToDouble(AuctionDTO::getCurrentPrice).sum() * 0.1;
-                    totalRevenueLabel.setText(String.format("%,.0fđ", revenue));
-                    masterAuctionList.setAll(auctions);
-                }
-
-                if (users != null) {
-                    masterUserList.setAll(users);
-                }
-            } catch (Exception e) {
-                LoggerUtil.error("Lỗi khi update UI Admin Dashboard: ", e);
-            }
-        });
+        masterAuctionList.setAll(auctions);
+        masterUserList.setAll(users);
     }
 
     private void handleApproveAuction() {
