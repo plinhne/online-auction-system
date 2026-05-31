@@ -252,9 +252,9 @@ online-auction-system/
 ## 7. Báo cáo và Demo
 
 ### Báo cáo PDF
-* **Link:** `<Đính kèm Google Drive>`
+* **Link:** [`<Đính kèm Google Drive>`](https://docs.google.com/document/d/1ij2HYiEnlgID_rCJfkczcLrXqvtXNdep/edit?usp=sharing&ouid=106068683674995394734&rtpof=true&sd=true)
 
 ### Video Demo
-* **Link:** `<Đính kèm YouTube hoặc Google Drive>`
+* **Link:** [`<Đính kèm YouTube hoặc Google Drive>`](https://drive.google.com/file/d/1dZUuavYEbGDha3R4uyShWzkdSxYc3YcZ/view?usp=sharing)
 
 <Đính kèm YouTube hoặc Google Drive>
