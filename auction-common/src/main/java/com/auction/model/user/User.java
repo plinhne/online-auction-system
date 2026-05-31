@@ -9,6 +9,7 @@ public abstract class User extends Entity {
     private UserRole role;      // dùng enum
     private UserStatus status;  // thêm status
     private double walletBalance;
+    private boolean isLocked;
 
     /*Serialization Version Unique Identifier
     ** (Mã định danh phiên bản tuần tự hóa)
@@ -28,6 +29,7 @@ public abstract class User extends Entity {
         this.role = role;
         this.walletBalance = 0;
         this.status = UserStatus.ACTIVE;
+        this.isLocked = false; // Mặc định tài khoản mới tạo không bị khóa
     }
     public User(int id, String name, double walletBalance) {
         super(id);
@@ -48,13 +50,14 @@ public abstract class User extends Entity {
     public double getWalletBalance() {
         return walletBalance;
     }
+    public boolean isLocked() { return isLocked; }
 
     //setters
     public void setName(String name) { this.name = name; }
     public void setEmail(String email) { this.email = email; }
     public void setPassword(String password) { this.password = password; }
     public void setWalletBalance(double walletBalance){ this.walletBalance = walletBalance;}
-
+    public void setLocked(boolean locked) { this.isLocked = locked; }
     public void setStatus(UserStatus status) {
         this.status = status;
     }
