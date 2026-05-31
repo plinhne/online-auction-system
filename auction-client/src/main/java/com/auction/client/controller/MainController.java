@@ -99,8 +99,7 @@ public class MainController extends BaseController implements Initializable {
             Button dashboardMenuBtn = (Button) menuContent.lookup("#dashboardMenuBtn");
             Button logoutMenuBtn = (Button) menuContent.lookup("#logoutMenuBtn");
 
-            // Đổ số dư lần đầu
-            updateDropdownBalance(menuContent);
+            updateDropdownMenuData(menuContent);
 
             if (profileMenuBtn != null) {
                 profileMenuBtn.setOnAction(e -> {
@@ -134,22 +133,40 @@ public class MainController extends BaseController implements Initializable {
     }
 
     /**
-     * Tiện ích giúp cập nhật số dư liên tục mà không cần nạp lại file FXML
+     * Tiện ích giúp cập nhật toàn bộ thông tin (Tên, Vai trò, Số dư) liên tục mà không cần nạp lại file FXML
      */
-    private void updateDropdownBalance(VBox menuContent) {
+    private void updateDropdownMenuData(VBox menuContent) {
         if (menuContent != null && currentUser != null) {
-            Label dropdownBalanceLabel = (Label) menuContent.lookup("#dropdownBalanceLabel");
-            if (dropdownBalanceLabel != null) {
-                dropdownBalanceLabel.setText(FormatterUtil.formatCurrency(currentUser.getWalletBalance()));
+            Label nameLabel = (Label) menuContent.lookup("#dropdownNameLabel");
+            Label roleLabel = (Label) menuContent.lookup("#dropdownRoleLabel");
+            Label balanceLabel = (Label) menuContent.lookup("#dropdownBalanceLabel");
+
+            // Cập nhật tên
+            if (nameLabel != null && currentUser.getName() != null) {
+                nameLabel.setText(currentUser.getName());
+            }
+
+            // Cập nhật vai trò
+            if (roleLabel != null && currentUser.getRole() != null) {
+                roleLabel.setText(currentUser.getRole().toString());
+            }
+
+            // Cập nhật số dư (Nếu biến trong model của bạn là getWalletBalance())
+            if (balanceLabel != null) {
+                // Tùy thuộc vào hàm formatCurrency của bạn có kèm chữ "USD" hay chưa để cộng thêm string cho phù hợp
+                balanceLabel.setText(FormatterUtil.formatCurrency(currentUser.getWalletBalance()) + " USD");
             }
         }
     }
 
+    /**
+     * Hàm trigger cập nhật khi người dùng bấm vào Avatar
+     */
     private void updateDropdownBalance() {
         if (userContextMenu != null && !userContextMenu.getItems().isEmpty()) {
             CustomMenuItem customItem = (CustomMenuItem) userContextMenu.getItems().get(0);
             if (customItem.getContent() instanceof VBox) {
-                updateDropdownBalance((VBox) customItem.getContent());
+                updateDropdownMenuData((VBox) customItem.getContent());
             }
         }
     }

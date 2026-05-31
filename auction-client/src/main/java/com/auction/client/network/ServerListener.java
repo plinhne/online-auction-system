@@ -4,6 +4,7 @@ import com.auction.client.controller.RealTimeBiddingController;
 import com.auction.client.controller.AuctionListViewController;
 import com.auction.client.controller.ProductDetailsController;
 import com.auction.client.controller.AdminPanelController;
+import com.auction.client.controller.SellerDashboardController; // ĐÃ BỔ SUNG: Import SellerDashboard
 import com.auction.client.util.LoggerUtil;
 import com.auction.network.NetworkMessage;
 import com.auction.network.MessageType;
@@ -33,9 +34,10 @@ public class ServerListener extends Thread {
     private RealTimeBiddingController biddingController;
     private AuctionListViewController auctionListController;
     private ProductDetailsController productDetailsController;
-
-    // ĐÃ BỔ SUNG: Khai báo biến controller cho Admin Panel
     private AdminPanelController adminPanelController;
+
+    // ĐÃ BỔ SUNG: Khai báo biến controller cho Seller Dashboard
+    private SellerDashboardController sellerDashboardController;
 
     // Constructor nhận BufferedReader đã được khởi tạo từ NetworkService
     public ServerListener(Socket socket, BufferedReader in) {
@@ -61,9 +63,13 @@ public class ServerListener extends Thread {
         this.productDetailsController = controller;
     }
 
-    // ĐÃ BỔ SUNG: Hàm setter cho AdminPanelController
     public void setAdminPanelController(AdminPanelController controller) {
         this.adminPanelController = controller;
+    }
+
+    // ĐÃ BỔ SUNG: Hàm setter cho SellerDashboardController
+    public void setSellerDashboardController(SellerDashboardController controller) {
+        this.sellerDashboardController = controller;
     }
 
     public void removeBiddingController() {
@@ -161,14 +167,23 @@ public class ServerListener extends Thread {
                 }
                 break;
 
-            // ĐÃ BỔ SUNG: Xử lý dữ liệu trả về cho Admin Panel
-            case ADMIN_ACTION_RESPONSE: // Lưu ý: Hãy đảm bảo tên này khớp chính xác với MessageType Server trả về
+            // ĐÃ BỔ SUNG: Xử lý dữ liệu trả về cho Seller Dashboard
+            case GET_MY_AUCTIONS_RESPONSE:
+                LoggerUtil.info("Nhận dữ liệu danh sách phiên đấu giá của Seller từ Server.");
+                if (sellerDashboardController != null) {
+                    // Chuyển luôn toàn bộ tin nhắn sang cho hàm handleServerResponse trong Controller tự xử lý
+                    sellerDashboardController.handleServerResponse(message);
+                } else {
+                    LoggerUtil.warning("Nhận được GET_MY_AUCTIONS_RESPONSE nhưng SellerDashboardController chưa được đăng ký!");
+                }
+                break;
+
+            case ADMIN_ACTION_RESPONSE:
                 LoggerUtil.info("Nhận dữ liệu tổng hợp cho Admin Panel từ Server.");
                 if (adminPanelController != null && payload != null) {
                     try {
                         JsonObject resp = JsonParser.parseString(payload).getAsJsonObject();
 
-                        // 1. Lấy danh sách Auctions
                         // 1. Lấy danh sách Auctions (ĐÃ ĐỔI SANG DTO)
                         List<com.auction.dto.AuctionDTO> adminAuctions = new java.util.ArrayList<>();
                         if (resp.has("auctions")) {
@@ -176,14 +191,14 @@ public class ServerListener extends Thread {
                             adminAuctions = gson.fromJson(resp.get("auctions"), auctionListType);
                         }
 
-// 2. Lấy danh sách Users (Giữ nguyên)
+                        // 2. Lấy danh sách Users
                         List<com.auction.model.user.User> adminUsers = new java.util.ArrayList<>();
                         if (resp.has("users")) {
                             java.lang.reflect.Type userListType = new com.google.gson.reflect.TypeToken<List<com.auction.model.user.User>>(){}.getType();
                             adminUsers = gson.fromJson(resp.get("users"), userListType);
                         }
 
-// 3. Đẩy cả 2 danh sách vào giao diện (ĐÃ ĐỔI SANG DTO)
+                        // 3. Đẩy cả 2 danh sách vào giao diện
                         final List<com.auction.dto.AuctionDTO> finalAuctions = adminAuctions;
                         final List<com.auction.model.user.User> finalUsers = adminUsers;
 
@@ -237,9 +252,10 @@ public class ServerListener extends Thread {
         this.biddingController = null;
         this.auctionListController = null;
         this.productDetailsController = null;
-
-        // ĐÃ BỔ SUNG: Dọn dẹp bộ nhớ cho Admin Panel Controller
         this.adminPanelController = null;
+
+        // ĐÃ BỔ SUNG: Dọn dẹp bộ nhớ cho Seller Dashboard Controller
+        this.sellerDashboardController = null;
 
         try {
             if (in != null) in.close();
