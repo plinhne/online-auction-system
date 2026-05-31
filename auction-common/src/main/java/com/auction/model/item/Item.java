@@ -6,7 +6,7 @@ import com.auction.model.bid.Bid;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Item extends Entity {
+public abstract class Item extends Entity {
 
     private String name;
     private double price;
