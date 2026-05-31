@@ -71,8 +71,16 @@ public class MainServer {
      * Dùng khi có bid mới: chỉ notify đúng người quan tâm.
      */
     public static void broadcastToAuction(int auctionId, String message) {
+        logger.info("broadcastToAuction {}", auctionId);
+
         for (ClientHandler handler : connectedClients) {
+            logger.info(
+                    "client auction={}",
+                    handler.getCurrentAuctionId()
+            );
+
             if (handler.getCurrentAuctionId() == auctionId) {
+                logger.info("SEND");
                 handler.sendMessage(message);
             }
         }
