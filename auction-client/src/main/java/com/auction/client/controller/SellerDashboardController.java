@@ -1,11 +1,17 @@
 package com.auction.client.controller;
 
+import com.auction.client.network.NetworkService;
 import com.auction.client.util.DialogUtil;
 import com.auction.client.util.FormatterUtil;
 import com.auction.client.util.LoggerUtil;
 import com.auction.model.auction.Auction;
+import com.auction.model.auction.AuctionStatus;
 import com.auction.network.MessageType;
 import com.auction.network.NetworkMessage;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -18,11 +24,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import java.net.URL;
+import javafx.stage.StageStyle;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -32,14 +41,14 @@ public class SellerDashboardController extends BaseController {
     @FXML private Label totalItemsLabel;
     @FXML private Label totalRevenueLabel;
     @FXML private Label activeAuctionsLabel;
-    @FXML private Label totalBidsLabel; // ĐÃ BỔ SUNG TỪ FXML
+    @FXML private Label totalBidsLabel;
 
     // --- NÚT BẤM ---
     @FXML private Button addItemButton;
-    @FXML private Button editButton;    // ĐÃ BỔ SUNG TỪ FXML
-    @FXML private Button deleteButton;  // ĐÃ BỔ SUNG TỪ FXML
+    @FXML private Button editButton;
+    @FXML private Button deleteButton;
 
-    // --- BẢNG DANH SÁCH SẢN PHẨM --- (ĐÃ BỔ SUNG TỪ FXML)
+    // --- BẢNG DANH SÁCH SẢN PHẨM ---
     @FXML private TableView<Auction> itemsTable;
     @FXML private TableColumn<Auction, String> nameColumn;
     @FXML private TableColumn<Auction, String> categoryColumn;
@@ -63,8 +72,12 @@ public class SellerDashboardController extends BaseController {
         editButton.setOnAction(e -> handleEditItem());
         deleteButton.setOnAction(e -> handleDeleteItem());
 
-        // 3. Tải dữ liệu ban đầu
-        loadSellerStatistics();
+        // 3. Đăng ký nhận tin nhắn từ ServerListener
+        if (NetworkService.getInstance().getServerListener() != null) {
+            NetworkService.getInstance().getServerListener().setSellerDashboardController(this);
+        }
+
+        // 4. Tải dữ liệu THỰC từ Server
         fetchMyAuctions();
     }
 
@@ -73,7 +86,7 @@ public class SellerDashboardController extends BaseController {
      */
     private void setupTableView() {
         nameColumn.setCellValueFactory(cell -> new SimpleStringProperty("Mã SP: " + cell.getValue().getItemId()));
-        categoryColumn.setCellValueFactory(cell -> new SimpleStringProperty("N/A")); // Đợi Load Item thật
+        categoryColumn.setCellValueFactory(cell -> new SimpleStringProperty("N/A")); // Đợi Server trả về category
         statusColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getStatus().name()));
         priceColumn.setCellValueFactory(cell -> new SimpleStringProperty(FormatterUtil.formatCurrency(cell.getValue().getCurrentPrice())));
         bidsColumn.setCellValueFactory(cell -> new SimpleStringProperty("..."));
@@ -89,19 +102,18 @@ public class SellerDashboardController extends BaseController {
     }
 
     /**
-     * Mở cửa sổ Thêm sản phẩm (AddEditItemView)
+     * Mở cửa sổ Thêm sản phẩm dạng Popup không viền
      */
     private void openAddItemView() {
         try {
-            LoggerUtil.info("→ Tiến hành mở giao diện nhập form Thêm sản phẩm đấu giá mới.");
+            LoggerUtil.info("→ Tiến hành mở giao diện popup Thêm sản phẩm đấu giá mới.");
 
-            // ĐÃ SỬA LỖI: Sửa lại đường dẫn chuẩn khớp với tên file thực tế
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/AddItemView.fxml"));
             Parent addItemView = loader.load();
 
-            Scene scene = new Scene(addItemView, 800, 900);
+            Scene scene = new Scene(addItemView, 550, 650);
+            scene.setFill(Color.TRANSPARENT);
 
-            // Xử lý CSS an toàn
             URL cssUrl = getClass().getResource("/css/style.css");
             if (cssUrl != null) {
                 scene.getStylesheets().add(cssUrl.toExternalForm());
@@ -109,8 +121,7 @@ public class SellerDashboardController extends BaseController {
 
             Stage stage = new Stage();
             stage.setScene(scene);
-            stage.setTitle("➕ Thêm Mục Đấu Giá Mới");
-
+            stage.initStyle(StageStyle.TRANSPARENT); // Bỏ thanh tiêu đề
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.initOwner(getStage(addItemButton));
             stage.centerOnScreen();
@@ -119,8 +130,7 @@ public class SellerDashboardController extends BaseController {
 
             LoggerUtil.info("✓ Biểu mẫu nhập sản phẩm mới đã đóng lại.");
 
-            // Làm mới lại bảng và số liệu sau khi thêm
-            loadSellerStatistics();
+            // Sau khi thêm sản phẩm xong, tự động load lại dữ liệu bảng
             fetchMyAuctions();
 
         } catch (IOException e) {
@@ -158,7 +168,7 @@ public class SellerDashboardController extends BaseController {
             @Override
             protected Void call() throws Exception {
                 NetworkMessage msg = new NetworkMessage(MessageType.GET_MY_AUCTIONS_REQUEST, "{}");
-                com.auction.client.network.NetworkService.getInstance().sendNetworkMessage(msg);
+                NetworkService.getInstance().sendNetworkMessage(msg);
                 return null;
             }
         };
@@ -166,46 +176,65 @@ public class SellerDashboardController extends BaseController {
     }
 
     /**
-     * Tải dữ liệu thống kê bán hàng (Tạm thời dùng Mock, sau này Server trả về sẽ đẩy vào đây)
+     * HÀM MỚI: Xử lý gói tin Server trả về (Được gọi từ ServerListener)
      */
-    private void loadSellerStatistics() {
-        Task<SellerStats> loadStatsTask = new Task<>() {
-            @Override
-            protected SellerStats call() throws Exception {
-                Thread.sleep(150);
-                return new SellerStats(10, 125500.0, 5, 42); // Thêm 42 lượt đặt
-            }
-        };
+    public void handleServerResponse(NetworkMessage message) {
+        Platform.runLater(() -> {
+            try {
+                // 1. Cấu hình Gson an toàn có hỗ trợ LocalDateTime
+                Gson gson = new com.google.gson.GsonBuilder()
+                        .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonSerializer<java.time.LocalDateTime>) (src, typeOfSrc, context) -> new com.google.gson.JsonPrimitive(src.toString()))
+                        .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonDeserializer<java.time.LocalDateTime>) (json, typeOfT, context) -> java.time.LocalDateTime.parse(json.getAsString()))
+                        .create();
 
-        loadStatsTask.setOnSucceeded(e -> {
-            SellerStats stats = loadStatsTask.getValue();
-            totalItemsLabel.setText(String.valueOf(stats.getTotalItems()));
-            activeAuctionsLabel.setText(String.valueOf(stats.getActiveAuctions()));
-            totalRevenueLabel.setText(FormatterUtil.formatCurrency(stats.getTotalRevenue()));
-            if (totalBidsLabel != null) {
-                totalBidsLabel.setText(String.valueOf(stats.getTotalBids()));
+                // 2. Phân tích gói tin thành JsonObject trước
+                com.google.gson.JsonObject jsonObject = com.google.gson.JsonParser.parseString(message.getPayload()).getAsJsonObject();
+
+                // 3. Kiểm tra xem Server có trả về danh sách "auctions" không
+                if (jsonObject.has("auctions")) {
+                    // Trích xuất riêng mảng "auctions" để ép kiểu thành List<Auction>
+                    Type listType = new TypeToken<List<Auction>>(){}.getType();
+                    List<Auction> realAuctions = gson.fromJson(jsonObject.get("auctions"), listType);
+
+                    // 4. Cập nhật giao diện
+                    sellerAuctionsList.clear();
+                    sellerAuctionsList.addAll(realAuctions);
+                    calculateAndDisplayStats(realAuctions);
+
+                } else if (jsonObject.has("status") && "ERROR".equals(jsonObject.get("status").getAsString())) {
+                    // Xử lý trường hợp Server báo lỗi
+                    DialogUtil.showError("Lỗi từ Server: " + jsonObject.get("message").getAsString());
+                }
+
+            } catch (Exception e) {
+                LoggerUtil.error("Lỗi khi parse dữ liệu danh sách đấu giá từ Server", e);
+                DialogUtil.showError("Không thể tải dữ liệu sản phẩm từ máy chủ.");
             }
         });
+    };
 
-        runAsyncTask(loadStatsTask);
-    }
+    /**
+     * HÀM MỚI: Tính toán các thẻ thống kê dựa trên danh sách đấu giá thực tế
+     */
+    private void calculateAndDisplayStats(List<Auction> auctions) {
+        int totalItems = auctions.size();
+        int active = 0;
+        double revenue = 0.0;
+        int totalBids = 0;
 
-    private static class SellerStats {
-        private final int totalItems;
-        private final double totalRevenue;
-        private final int activeAuctions;
-        private final int totalBids;
-
-        public SellerStats(int totalItems, double totalRevenue, int activeAuctions, int totalBids) {
-            this.totalItems = totalItems;
-            this.totalRevenue = totalRevenue;
-            this.activeAuctions = activeAuctions;
-            this.totalBids = totalBids;
+        for (Auction auction : auctions) {
+            if (auction.getStatus() == AuctionStatus.ACTIVE) {
+                active++;
+            }
+            if (auction.getStatus() == AuctionStatus.PAID) {
+                revenue += auction.getCurrentPrice();
+            }
         }
 
-        public int getTotalItems() { return totalItems; }
-        public double getTotalRevenue() { return totalRevenue; }
-        public int getActiveAuctions() { return activeAuctions; }
-        public int getTotalBids() { return totalBids; }
+        // Đổ dữ liệu lên giao diện
+        if (totalItemsLabel != null) totalItemsLabel.setText(String.valueOf(totalItems));
+        if (activeAuctionsLabel != null) activeAuctionsLabel.setText(String.valueOf(active));
+        if (totalRevenueLabel != null) totalRevenueLabel.setText(FormatterUtil.formatCurrency(revenue) + " USD");
+        if (totalBidsLabel != null) totalBidsLabel.setText(String.valueOf(totalBids));
     }
 }
