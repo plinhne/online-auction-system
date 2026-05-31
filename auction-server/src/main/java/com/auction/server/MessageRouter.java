@@ -4,10 +4,7 @@ import com.auction.model.auction.Auction;
 import com.auction.model.user.User;
 import com.auction.network.MessageType;
 import com.auction.network.NetworkMessage;
-import com.auction.server.controller.AuctionController;
-import com.auction.server.controller.AuthController;
-import com.auction.server.controller.BidController;
-import com.auction.server.controller.ItemController;
+import com.auction.server.controller.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -32,15 +29,17 @@ public class MessageRouter {
     public MessageRouter(AuthController authController,
                          AuctionController auctionController,
                          BidController bidController,
-                         ItemController itemController) {
-        registerHandlers(authController, auctionController, bidController, itemController);
+                         ItemController itemController,
+                         UserController userController) {
+        registerHandlers(authController, auctionController, bidController, itemController, userController);
         registerResponseTypes();
     }
 
     private void registerHandlers(AuthController auth,
                                   AuctionController auction,
                                   BidController bid,
-                                  ItemController item) {
+                                  ItemController item,
+                                  UserController user) {
         // ── PING ──
         handlers.put(MessageType.PING, (req, res) -> {
             res.addProperty("status", "OK");
@@ -111,6 +110,23 @@ public class MessageRouter {
             res.addProperty("status", "OK");
             res.addProperty("message", "Đã tiếp nhận lệnh Admin");
         }));
+        // ── ADMIN USER ────────────────────────────────────────────────────────────
+        handlers.put(MessageType.GET_ALL_USERS_REQUEST,
+                requireLogin((req, res) -> user.handleGetAllUsers(res)));
+        handlers.put(MessageType.CREATE_USER_REQUEST,
+                requireLogin((req, res) -> user.handleCreateUser(req, res)));
+        handlers.put(MessageType.UPDATE_USER_REQUEST,
+                requireLogin((req, res) -> user.handleUpdateUser(req, res, currentUser)));
+        handlers.put(MessageType.DELETE_USER_REQUEST,
+                requireLogin((req, res) -> user.handleDeleteUser(req, res, currentUser)));
+        handlers.put(MessageType.UPDATE_BALANCE_REQUEST,
+                requireLogin((req, res) -> user.handleUpdateBalance(req, res, currentUser)));
+
+// ── ADMIN AUCTION ─────────────────────────────────────────────────────────
+        handlers.put(MessageType.ADMIN_DELETE_AUCTION_REQUEST,
+                requireLogin((req, res) -> user.handleAdminDeleteAuction(req, res, currentUser)));
+        handlers.put(MessageType.ADMIN_UPDATE_AUCTION_REQUEST,
+                requireLogin((req, res) -> user.handleAdminUpdateAuction(req, res, currentUser)));
     }
 
     private void registerResponseTypes() {
@@ -135,6 +151,13 @@ public class MessageRouter {
         responseTypeMap.put(MessageType.PLACE_BID_REQUEST,        MessageType.PLACE_BID_RESPONSE);
         responseTypeMap.put(MessageType.SET_AUTO_BID_REQUEST,     MessageType.SET_AUTO_BID_RESPONSE);
         responseTypeMap.put(MessageType.ADMIN_ACTION_REQUEST,     MessageType.ADMIN_ACTION_RESPONSE); // Map mới
+        responseTypeMap.put(MessageType.GET_ALL_USERS_REQUEST,        MessageType.GET_ALL_USERS_RESPONSE);
+        responseTypeMap.put(MessageType.CREATE_USER_REQUEST,          MessageType.CREATE_USER_RESPONSE);
+        responseTypeMap.put(MessageType.UPDATE_USER_REQUEST,          MessageType.UPDATE_USER_RESPONSE);
+        responseTypeMap.put(MessageType.DELETE_USER_REQUEST,          MessageType.DELETE_USER_RESPONSE);
+        responseTypeMap.put(MessageType.UPDATE_BALANCE_REQUEST,       MessageType.UPDATE_BALANCE_RESPONSE);
+        responseTypeMap.put(MessageType.ADMIN_DELETE_AUCTION_REQUEST, MessageType.ADMIN_DELETE_AUCTION_RESPONSE);
+        responseTypeMap.put(MessageType.ADMIN_UPDATE_AUCTION_REQUEST, MessageType.ADMIN_UPDATE_AUCTION_RESPONSE);
     }
 
     public String route(String rawJson) {

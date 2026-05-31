@@ -1,9 +1,12 @@
 package com.auction.client.controller;
 
+import com.auction.client.network.NetworkService;
 import com.auction.client.util.DialogUtil;
 import com.auction.client.util.FormatterUtil;
 import com.auction.client.util.LoggerUtil;
 import com.auction.model.user.User;
+import com.auction.network.MessageType;
+import com.auction.network.NetworkMessage;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -14,6 +17,7 @@ public class ProfileController extends BaseController {
 
     // --- CÁC THÀNH PHẦN ĐỒ HỌA FX INJECT TỪ FXML ---
     @FXML private Button btnBack;
+    @FXML private Button btnLogout;
     @FXML private Label fullNameLabel;
     @FXML private Label roleBadge;
     @FXML private Label usernameLabel;
@@ -28,7 +32,11 @@ public class ProfileController extends BaseController {
         // Cấu hình sự kiện nút quay lại (chuyển về màn hình danh sách đấu giá)
         if (btnBack != null) {
             btnBack.setOnAction(e -> switchWindow(btnBack, "/fxml/MainView.fxml"));        }
+        // Cấu hình sự kiện nút đăng xuất
+        if (btnLogout != null) {
+            btnLogout.setOnAction(e -> handleLogout());
 
+        }
         // Kích hoạt luồng tải dữ liệu an toàn
         loadUserProfile();
     }
@@ -98,5 +106,51 @@ public class ProfileController extends BaseController {
 
         // Kích hoạt tiến trình ngầm thông qua hàm dùng chung trong BaseController
         runAsyncTask(loadProfileTask);
+    }
+
+    /**
+
+     * Xử lý sự kiện đăng xuất tài khoản
+
+     */
+
+    private void handleLogout() {
+
+        if (DialogUtil.showConfirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?")) {
+
+            LoggerUtil.info("Người dùng thực hiện đăng xuất từ trang Hồ sơ.");
+
+
+
+            // Gửi thông điệp LOGOUT lên Server để Server dọn dẹp Session
+
+            try {
+
+                NetworkMessage logoutMsg = new NetworkMessage(
+
+                        MessageType.LOGOUT_REQUEST,
+
+                        "{}" // Payload rỗng vì chỉ cần type là đủ
+
+                );
+
+                NetworkService.getInstance().sendNetworkMessage(logoutMsg);
+
+            } catch (Exception e) {
+
+                LoggerUtil.error("Lỗi mạng: Không thể gửi tín hiệu đăng xuất lên Server.", e);
+
+            }
+
+
+
+            // Xóa session ở Client và chuyển về màn hình đăng nhập
+
+            clearSessionContext();
+
+            switchWindow(btnLogout, "/fxml/LoginView.fxml");
+
+        }
+
     }
 }

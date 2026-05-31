@@ -157,6 +157,15 @@ public class AuctionDAO {
         }
     }
 
+    public void delete(int auctionId) throws SQLException {
+        String sql = "DELETE FROM auctions WHERE id = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, auctionId);
+            stmt.executeUpdate();
+        }
+    }
+
 
     private Auction mapRow(ResultSet rs) throws SQLException {
         Auction auction = new Auction(

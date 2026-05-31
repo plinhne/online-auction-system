@@ -7,6 +7,7 @@ import com.auction.client.util.LoggerUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import java.io.IOException;
@@ -86,15 +87,19 @@ public class ItemCardController extends BaseController {
 
         try {
             LoggerUtil.info("→ Người dùng click nút xem chi tiết đấu giá ID: " + currentAuction.getId());
-            switchWindow(viewDetailsButton, "/fxml/ProductDetailsView.fxml");
+//            switchWindow(viewDetailsButton, "/fxml/ProductDetailsView.fxml");
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ProductDetailsView.fxml"));
 
             Platform.runLater(() -> {
                 try {
-                    loader.load();
+                    Parent root = loader.load();
                     ProductDetailsController detailsController = loader.getController();
                     if (detailsController != null) {
                         detailsController.setAuctionDetails(currentAuction);
+                    }
+                    javafx.scene.Scene scene = viewDetailsButton.getScene();
+                    if (scene != null) {
+                        scene.setRoot(root);
                     }
                 } catch (IOException ex) {
                     LoggerUtil.error("Lỗi nạp dữ liệu chi tiết sản phẩm từ nút bấm thẻ Card.", ex);

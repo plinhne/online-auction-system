@@ -5,10 +5,10 @@ public class Art extends Item {
 
         super(id, name, price, ItemCategory.ART);
     }
-    @Override
-    public void printInfor() {
-        System.out.println("Art: " + getName() +
-                " | Price: " + getPrice());
-    }
+//    @Override
+//    public void printInfor() {
+//        System.out.println("Art: " + getName() +
+//                " | Price: " + getPrice());
+//    }
 }
 

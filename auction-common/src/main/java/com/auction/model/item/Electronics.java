@@ -7,9 +7,9 @@ public class Electronics extends Item {
         super(id, name, price, ItemCategory.ELECTRONICS);
     }
 
-    @Override
-    public void printInfor() {
-        System.out.println("Electronics: " + getName() +
-                " | Price: " + getPrice());
-    }
+//    @Override
+//    public void printInfor() {
+//        System.out.println("Electronics: " + getName() +
+//                " | Price: " + getPrice());
+//    }
 }

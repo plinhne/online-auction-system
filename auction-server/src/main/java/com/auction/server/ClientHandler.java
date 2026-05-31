@@ -2,10 +2,7 @@ package com.auction.server;
 
 import com.auction.model.auction.Auction;
 import com.auction.model.pattern.observer.BidObserver;
-import com.auction.server.controller.AuctionController;
-import com.auction.server.controller.AuthController;
-import com.auction.server.controller.BidController;
-import com.auction.server.controller.ItemController;
+import com.auction.server.controller.*;
 import com.auction.server.dao.AuctionDAO;
 import com.auction.server.dao.BidDAO;
 import com.auction.server.dao.ItemDAO;
@@ -51,15 +48,17 @@ public class ClientHandler implements Runnable, BidObserver {
         this.auctionService             = new AuctionService(auctionDAO);
         BidService bidService           = new BidService(auctionDAO, bidDAO);
         ItemService itemService         = new ItemService(itemDAO);
+        ImageService imageService       = new ImageService();
 
         AutoBidService autoBidService = bidService.getAutoBidService();
 
         AuthController authController       = new AuthController(authService, userService);
-        AuctionController auctionController = new AuctionController(auctionService, itemService);
+        AuctionController auctionController = new AuctionController(auctionService, itemService, userService);
         BidController bidController         = new BidController(bidService, autoBidService, auctionService);
-        ItemController itemController       = new ItemController(itemService);
+        ItemController itemController       = new ItemController(itemService, imageService);
+        UserController userController       = new UserController(userService, auctionService,gson);
 
-        this.router = new MessageRouter(authController, auctionController, bidController, itemController);
+        this.router = new MessageRouter(authController, auctionController, bidController, itemController, userController);
     }
 
     @Override

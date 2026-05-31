@@ -6,12 +6,13 @@ import com.auction.model.bid.Bid;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Item extends Entity {
+public class Item extends Entity {
 
     private String name;
     private double price;
     private ItemStatus status;
     private String description;
+    private String imageUrl;
 
     private ItemCategory category;
 
@@ -31,6 +32,9 @@ public abstract class Item extends Entity {
     public ItemStatus getStatus() { return status; }
     public List<Bid> getBids() { return bids; }
     public String getDescription() { return description; }
+    public String getImageUrl() {
+        return imageUrl;
+    }
 
     // item category
     public ItemCategory getCategory() { return category; }
@@ -40,7 +44,10 @@ public abstract class Item extends Entity {
     public void setStatus(ItemStatus status) { this.status = status; }
     public void setDescription(String description) { this.description = description; }
     public void setCategory(ItemCategory category) { this.category = category; }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 
     // polymorphism
-    public abstract void printInfor();
+//    public abstract void printInfor();
 }

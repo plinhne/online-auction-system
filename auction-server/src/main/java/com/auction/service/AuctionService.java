@@ -93,7 +93,13 @@ public class AuctionService {
         if (auction == null) throw new IllegalArgumentException("Auction not found: " + auctionId);
         auction.endAuction(); // validate: ACTIVE → ENDED
         auctionDAO.updateStatus(auctionId, AuctionStatus.ENDED);
-        logger.info("Auction ended: auctionId={}", auctionId);
+        Integer winnerId = auctionDAO.findWinnerbyId(auctionId);
+        if (winnerId != null && winnerId > 0) {
+            logger.info("Auction {} ended, winner: userId={}", auctionId, winnerId);
+            // broadcast thông báo winner cho client nếu cần
+        } else {
+            logger.info("Auction {} ended with no winner", auctionId);
+        }
     }
 
     /**
@@ -120,5 +126,15 @@ public class AuctionService {
 
         auctionDAO.updateStatus(auctionId, AuctionStatus.CANCELLED);
         logger.info("Auction cancelled: auctionId={}, by userId={}", auctionId, requester.getId());
+    }
+
+    public void deleteAuction(int auctionId) throws SQLException {
+        auctionDAO.delete(auctionId);
+    }
+
+    public void adminUpdateAuction(int auctionId, String status) throws SQLException {
+        if (status != null) {
+            auctionDAO.updateStatus(auctionId, AuctionStatus.valueOf(status.toUpperCase()));
+        }
     }
 }

@@ -3,6 +3,8 @@ package com.auction.server.controller;
 import com.auction.model.auction.Auction;
 import com.auction.model.user.User;
 import com.auction.service.AuctionService;
+import com.auction.service.ItemService;
+import com.auction.service.UserService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -15,50 +17,69 @@ public class AuctionController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionController.class);
 
     private final AuctionService auctionService;
-    private final com.auction.service.ItemService itemService;
+    private final ItemService itemService;
+    private final UserService userService;
     private final Gson gson = new com.google.gson.GsonBuilder()
             .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonSerializer<java.time.LocalDateTime>) (src, typeOfSrc, context) -> new com.google.gson.JsonPrimitive(src.toString()))
             .registerTypeAdapter(java.time.LocalDateTime.class, (com.google.gson.JsonDeserializer<java.time.LocalDateTime>) (json, typeOfT, context) -> java.time.LocalDateTime.parse(json.getAsString()))
             .create();
 
-    public AuctionController(AuctionService auctionService, com.auction.service.ItemService itemService) {
+    public AuctionController(AuctionService auctionService, ItemService itemService, UserService userService) {
         this.auctionService = auctionService;
         this.itemService = itemService;
+        this.userService = userService;
     }
 
-    public void handleGetAuctions(JsonObject response) throws Exception {
-        List<Auction> auctions = auctionService.getAllAuctions();
-        List<com.auction.dto.AuctionDTO> dtos = new java.util.ArrayList<>();
+    private com.auction.dto.AuctionDTO toDTO(Auction a) {
+        com.auction.dto.AuctionDTO dto = new com.auction.dto.AuctionDTO();
+        dto.setId(a.getId());
+        dto.setItemId(a.getItemId());
+        dto.setSellerId(a.getSellerId());
+        dto.setStartingPrice(a.getStartingPrice());
+        dto.setCurrentPrice(a.getCurrentPrice());
+        dto.setMinIncrement(a.getMinIncrement());
+        dto.setStatus(a.getStatus());
+        dto.setStartTime(a.getStartTime());
+        dto.setEndTime(a.getEndTime());
+        dto.setLeadingBidderId(a.getLeadingBidderId());
 
-        for (Auction a : auctions) {
-            com.auction.dto.AuctionDTO dto = new com.auction.dto.AuctionDTO();
-            // Copy dữ liệu Auction
-            dto.setId(a.getId());
-            dto.setItemId(a.getItemId());
-            dto.setSellerId(a.getSellerId());
-            dto.setStartingPrice(a.getStartingPrice());
-            dto.setCurrentPrice(a.getCurrentPrice());
-            dto.setMinIncrement(a.getMinIncrement());
-            dto.setStatus(a.getStatus());
-            dto.setStartTime(a.getStartTime());
-            dto.setEndTime(a.getEndTime());
+        if (a.getLeadingBidderId() > 0) {
+            try {
+                com.auction.model.user.User bidder = userService.findById(a.getLeadingBidderId());
+                dto.setLeadingBidderName(bidder != null ? bidder.getName() : "Unknown");
+            } catch (Exception e) {
+                logger.warn("Cannot load leading bidder for auctionId={}", a.getId());
+                dto.setLeadingBidderName("Unknown");
+            }
+        } else {
+            dto.setLeadingBidderName("Chưa có");
+        }
 
-            // Tra cứu dữ liệu Item
+        try {
             com.auction.model.item.Item item = itemService.getItemById(a.getItemId());
             if (item != null) {
                 dto.setItemName(item.getName());
                 dto.setItemDescription(item.getDescription());
                 dto.setItemCategory(item.getCategory().name());
-            } else {
-                dto.setItemName("Sản phẩm #" + a.getItemId());
-                dto.setItemDescription("Đang cập nhật...");
-                dto.setItemCategory("OTHER");
+                dto.setItemImage_url(item.getImageUrl());
             }
-            dtos.add(dto);
+        } catch (Exception e) {
+            logger.warn("Cannot load item for auctionId={}", a.getId());
+            dto.setItemName("Sản phẩm #" + a.getItemId());
+            dto.setItemDescription("Đang cập nhật...");
+            dto.setItemCategory("OTHER");
+            dto.setItemImage_url(null);
         }
+        return dto;
+    }
 
+    public void handleGetAuctions(JsonObject response) throws Exception {
+        List<Auction> auctions = auctionService.getAllAuctions();
+        List<com.auction.dto.AuctionDTO> dtos = auctions.stream()
+                .map(this::toDTO)
+                .toList();
         response.addProperty("status", "OK");
-        response.add("auctions", gson.toJsonTree(dtos)); // Truyền mảng DTO xuống Client
+        response.add("auctions", gson.toJsonTree(dtos));
     }
 
     public Auction handleJoinAuction(JsonObject request, JsonObject response) throws Exception {
@@ -71,7 +92,7 @@ public class AuctionController {
             return null;
         }
         response.addProperty("status", "OK");
-        response.add("auction", gson.toJsonTree(auction));
+        response.add("auction", gson.toJsonTree(toDTO(auction))); // dùng DTO
         return auction;
     }
 
@@ -80,15 +101,22 @@ public class AuctionController {
     }
 
     public void handleGetMyAuctions(JsonObject response, User seller) throws Exception {
+        logger.info(">>> getMyAuctions for sellerId={}", seller.getId());
         List<Auction> auctions = auctionService.getAuctionsBySeller(seller.getId());
+        List<com.auction.dto.AuctionDTO> dtos = auctions.stream()
+                .map(this::toDTO)
+                .toList();
         response.addProperty("status", "OK");
-        response.add("auctions", gson.toJsonTree(auctions));
+        response.add("auctions", gson.toJsonTree(dtos));
     }
 
     public void handleGetMyBids(JsonObject response, User bidder) throws Exception {
         List<Auction> auctions = auctionService.getAuctionsByBidder(bidder.getId());
+        List<com.auction.dto.AuctionDTO> dtos = auctions.stream()
+                .map(this::toDTO)
+                .toList();
         response.addProperty("status", "OK");
-        response.add("auctions", gson.toJsonTree(auctions));
+        response.add("auctions", gson.toJsonTree(dtos));
     }
 
     //Mutation
@@ -103,9 +131,8 @@ public class AuctionController {
         Auction auction = auctionService.createAuction(
                 seller, itemId, startingPrice, minIncrement, startTime, endTime
         );
-
         response.addProperty("status", "OK");
-        response.add("auction", gson.toJsonTree(auction));
+        response.add("auction", gson.toJsonTree(toDTO(auction))); // dùng DTO
         return auction;
     }
 

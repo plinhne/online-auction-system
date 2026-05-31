@@ -14,11 +14,14 @@ public class AuctionDTO {
     private AuctionStatus status;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private int leadingBidderId;
+    private String leadingBidderName;
 
     // 2. Dữ liệu lấy thêm từ Sản phẩm (Item)
     private String itemName;
     private String itemDescription;
     private String itemCategory;
+    private String itemImage_url;
 
     public AuctionDTO() {}
 
@@ -50,6 +53,23 @@ public class AuctionDTO {
     public void setItemCategory(String itemCategory) { this.itemCategory = itemCategory; }
 
     public int getLeadingBidderId() {
-        return 0;
+        return leadingBidderId;
+    }
+    public void setLeadingBidderId(int leadingBidderId) {
+        this.leadingBidderId = leadingBidderId;
+    }
+
+    public String getItemImage_url() {
+        return itemImage_url;
+    }
+    public void setItemImage_url(String itemImage_url) {
+        this.itemImage_url = itemImage_url;
+    }
+
+    public String getLeadingBidderName() {
+        return leadingBidderName;
+    }
+    public void setLeadingBidderName(String leadingBidderName) {
+        this.leadingBidderName = leadingBidderName;
     }
 }

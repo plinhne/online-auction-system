@@ -5,124 +5,147 @@
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane styleClass="bg-light" stylesheets="@../css/style.css" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.auction.client.controller.RealTimeBiddingController">
+<BorderPane styleClass="main-container" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.RealTimeBiddingController">
    <center>
-      <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+      <ScrollPane fitToHeight="true" fitToWidth="true" styleClass="modern-scroll-pane">
          <content>
-            <HBox spacing="20.0">
+            <HBox spacing="24.0" styleClass="content-wrapper">
                <padding>
-                  <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                  <Insets bottom="24.0" left="24.0" right="24.0" top="24.0" />
                </padding>
                <children>
 
-                  <!-- CỘT TRÁI: ĐIỀU KHIỂN ĐẤU GIÁ (CHIẾM NHIỀU DIỆN TÍCH) -->
                   <VBox spacing="20.0" HBox.hgrow="ALWAYS">
                      <children>
 
-                        <!-- 1. Thông tin sản phẩm & Thời gian (Hàng ngang) -->
-                        <HBox spacing="20.0">
+                        <HBox spacing="20.0" styleClass="product-hero-card">
                            <children>
-                              <!-- Tóm tắt sản phẩm -->
-                              <VBox spacing="5.0" styleClass="card" HBox.hgrow="ALWAYS">
+                              <StackPane prefHeight="100.0" prefWidth="100.0" styleClass="image-container">
                                  <children>
-                                    <Label fx:id="productNameLabel" styleClass="label, header" style="-fx-font-size: 20;" text="Tên sản phẩm đang đấu giá" />
-                                    <Label styleClass="label, subtitle" text="Phiên đấu giá trực tiếp - Vui lòng không thoát khi đang đặt thầu." />
+                                    <ImageView fx:id="productImageView" fitHeight="90.0" fitWidth="90.0" pickOnBounds="true" preserveRatio="true" />
                                  </children>
-                              </VBox>
-
-                              <!-- Countdown Timer -->
-                              <VBox alignment="CENTER" prefWidth="250.0" styleClass="bg-danger" style="-fx-padding: 15; -fx-background-radius: 8;">
+                              </StackPane>
+                              <VBox alignment="CENTER_LEFT" spacing="6.0" HBox.hgrow="ALWAYS">
                                  <children>
-                                    <Label style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11;" text="⏱ THỜI GIAN CÒN LẠI" />
-                                    <Label fx:id="timeRemainingLabel" style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: white;" text="00:15:42" />
-                                    <ProgressBar fx:id="timeProgressBar" maxWidth="Infinity" prefHeight="6.0" progress="0.4" style="-fx-accent: white;" />
-                                 </children>
-                              </VBox>
-                           </children>
-                        </HBox>
-
-                        <!-- 2. Giá hiện tại & Biểu đồ xu hướng (Hàng ngang) -->
-                        <HBox spacing="20.0">
-                           <children>
-                              <!-- Thẻ Giá hiện tại -->
-                              <VBox prefWidth="300.0" spacing="10.0" styleClass="bg-success" style="-fx-padding: 25; -fx-background-radius: 8; -fx-border-color: #86efac;">
-                                 <children>
-                                    <Label style="-fx-text-fill: #065f46; -fx-font-weight: bold;" text="GIÁ CAO NHẤT HIỆN TẠI" />
-                                    <Label fx:id="currentPriceLabel" style="-fx-font-size: 38; -fx-font-weight: bold; -fx-text-fill: #059669;" text="2.850.000đ" />
-                                    <Separator style="-fx-opacity: 0.2;" />
-                                    <Label fx:id="currentLeaderLabel" style="-fx-text-fill: #065f46; -fx-font-weight: bold;" text="🏆 Dẫn đầu: bạn_đang_dẫn_đầu" />
-                                    <Label fx:id="bidCountLabel" style="-fx-text-fill: #065f46; -fx-font-size: 11;" text="Tổng cộng 18 lượt đặt giá" />
-                                 </children>
-                              </VBox>
-
-                              <!-- Biểu đồ xu hướng giá (Chart) -->
-                              <VBox styleClass="card" HBox.hgrow="ALWAYS">
-                                 <children>
-                                    <Label styleClass="label" style="-fx-font-weight: bold;" text="📈 Biểu đồ xu hướng giá" />
-                                    <LineChart fx:id="priceHistoryChart" createSymbols="true" legendVisible="false" prefHeight="180.0">
-                                       <xAxis><CategoryAxis label="Thời gian" side="BOTTOM" /></xAxis>
-                                       <yAxis><NumberAxis label="Giá (đ)" side="LEFT" /></yAxis>
-                                    </LineChart>
-                                 </children>
-                              </VBox>
-                           </children>
-                        </HBox>
-
-                        <!-- 3. Khu vực tương tác Đặt thầu -->
-                        <HBox spacing="20.0">
-                           <children>
-                              <!-- Đặt thầu thủ công -->
-                              <VBox spacing="15.0" styleClass="card" HBox.hgrow="ALWAYS">
-                                 <children>
-                                    <Label styleClass="label" style="-fx-font-weight: bold;" text="💰 Đặt giá của bạn" />
-                                    <HBox spacing="10.0">
+                                    <Label fx:id="productNameLabel" styleClass="product-title" text="Tên sản phẩm đang đấu giá" />
+                                    <HBox alignment="CENTER_LEFT" spacing="8.0">
                                        <children>
-                                          <TextField fx:id="bidAmountField" prefHeight="45.0" promptText="Nhập số tiền..." styleClass="text-field" HBox.hgrow="ALWAYS" />
-                                          <Button fx:id="placeBidButton" prefHeight="45.0" prefWidth="140.0" styleClass="button, primary" text="ĐẶT GIÁ" />
-                                       </children>
-                                    </HBox>
-                                    <HBox spacing="10.0">
-                                       <children>
-                                          <Button fx:id="quickBid1Button" maxWidth="Infinity" styleClass="button" text="+50k" HBox.hgrow="ALWAYS" />
-                                          <Button fx:id="quickBid2Button" maxWidth="Infinity" styleClass="button" text="+100k" HBox.hgrow="ALWAYS" />
-                                          <Button fx:id="quickBid3Button" maxWidth="Infinity" styleClass="button" text="+500k" HBox.hgrow="ALWAYS" />
-                                       </children>
-                                    </HBox>
-                                 </children>
-                              </VBox>
-
-                              <!-- Đấu giá tự động (Auto-Bid) -->
-                              <VBox prefWidth="350.0" spacing="12.0" styleClass="card">
-                                 <children>
-                                    <CheckBox fx:id="autoBidCheckBox" style="-fx-font-weight: bold;" text="⚡ Tự động đặt giá (Auto-Bid)" />
-                                    <Label styleClass="text-muted" style="-fx-font-size: 10;" text="Hệ thống sẽ tự đặt giá cao hơn đối thủ cho đến giới hạn." />
-                                    <HBox spacing="10.0">
-                                       <children>
-                                          <TextField fx:id="autoBidMaxField" disable="true" promptText="Giá tối đa..." styleClass="text-field" HBox.hgrow="ALWAYS" />
-                                          <TextField fx:id="autoBidIncrementField" disable="true" prefWidth="100.0" promptText="Bước nhảy" styleClass="text-field" />
+                                          <Label styleClass="badge-category" text="Electronics" />
+                                          <Label styleClass="text-muted" text="•  Phiên đấu giá trực tiếp từ hệ thống" />
                                        </children>
                                     </HBox>
                                  </children>
                               </VBox>
                            </children>
                         </HBox>
+
+                        <VBox spacing="10.0" styleClass="countdown-card">
+                           <children>
+                              <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                 <children>
+                                    <Label styleClass="section-icon" text="🕒" />
+                                    <Label styleClass="countdown-title" text="Thời gian còn lại:" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Label fx:id="timeRemainingLabel" styleClass="countdown-timer" text="11h 56m 17s" />
+                                 </children>
+                              </HBox>
+                              <ProgressBar fx:id="timeProgressBar" maxWidth="Infinity" prefHeight="6.0" progress="0.6" styleClass="modern-progress-bar" />
+                           </children> </VBox>
+
+                        <VBox spacing="12.0" styleClass="price-status-card">
+                           <children>
+                              <HBox alignment="BOTTOM_LEFT" spacing="15.0">
+                                 <children>
+                                    <VBox spacing="4.0">
+                                       <children>
+                                          <Label styleClass="text-muted-small" text="GIÁ CAO NHẤT HIỆN TẠI" />
+                                          <Label fx:id="currentPriceLabel" styleClass="huge-price-text" text="0.0" />
+                                       </children>
+                                    </VBox>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <VBox alignment="BOTTOM_RIGHT" spacing="4.0">
+                                       <children>
+                                          <Label fx:id="currentLeaderLabel" styleClass="leader-badge" text="👑 Dẫn đầu: Photographer_Pro" />
+                                          <Label fx:id="bidCountLabel" styleClass="text-muted-small" text="3 lượt đặt giá" />
+                                       </children>
+                                    </VBox>
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+
+                        <VBox spacing="20.0" styleClass="bidding-panel-card">
+                           <children>
+                              <VBox spacing="10.0">
+                                 <children>
+                                    <Label styleClass="card-sub-header" text="💰 Đặt giá của bạn" />
+                                    <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                       <children>
+                                          <TextField fx:id="bidAmountField" prefHeight="45.0" promptText="Nhập số tiền hoặc chọn nhanh bên dưới..." styleClass="modern-text-field" HBox.hgrow="ALWAYS" />
+                                          <Button fx:id="placeBidButton" prefHeight="45.0" prefWidth="140.0" styleClass="btn-primary" text="Đặt giá ngay" />
+                                       </children>
+                                    </HBox>
+                                    <HBox spacing="10.0">
+                                       <children>
+                                          <Button fx:id="quickBid1Button" maxWidth="Infinity" styleClass="btn-chip" text="+50k" HBox.hgrow="ALWAYS" />
+                                          <Button fx:id="quickBid2Button" maxWidth="Infinity" styleClass="btn-chip" text="+100k" HBox.hgrow="ALWAYS" />
+                                          <Button fx:id="quickBid3Button" maxWidth="Infinity" styleClass="btn-chip" text="+500k" HBox.hgrow="ALWAYS" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+
+                              <Separator style="-fx-opacity: 0.5;" />
+
+                              <VBox spacing="12.0">
+                                 <children>
+                                    <CheckBox fx:id="autoBidCheckBox" styleClass="modern-checkbox" text="⚡ Kích hoạt Tự động đặt giá (Auto-Bid)" />
+                                    <GridPane hgap="12.0" vgap="8.0">
+                                       <columnConstraints>
+                                          <ColumnConstraints percentWidth="50.0" />
+                                          <ColumnConstraints percentWidth="50.0" />
+                                       </columnConstraints>
+                                       <rowConstraints>
+                                          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                       </rowConstraints>
+                                       <children>
+                                          <TextField fx:id="autoBidMaxField" disable="true" prefHeight="40.0" promptText="Giá giới hạn tối đa..." styleClass="modern-text-field" GridPane.columnIndex="0" />
+                                          <TextField fx:id="autoBidIncrementField" disable="true" prefHeight="40.0" promptText="Bước nhảy (Bước giá)..." styleClass="modern-text-field" GridPane.columnIndex="1" />
+                                       </children>
+                                    </GridPane>
+                                 </children>
+                              </VBox>
+                           </children>
+                        </VBox>
+
+                        <VBox styleClass="chart-card">
+                           <children>
+                              <Label styleClass="card-sub-header" text="📈 Biểu đồ xu hướng giá (Real-time)" />
+                              <LineChart fx:id="priceHistoryChart" createSymbols="true" legendVisible="false" prefHeight="220.0" styleClass="modern-line-chart">
+                                 <xAxis><CategoryAxis side="BOTTOM" tickLabelFill="#64748b" /></xAxis>
+                                 <yAxis><NumberAxis side="LEFT" tickLabelFill="#64748b" /></yAxis>
+                              </LineChart>
+                           </children>
+                        </VBox>
+
                      </children>
                   </VBox>
 
-                  <!-- CỘT PHẢI: HOẠT ĐỘNG TRỰC TIẾP -->
-                  <VBox prefWidth="320.0" spacing="15.0" styleClass="card">
+                  <VBox prefWidth="340.0" spacing="16.0" styleClass="side-activity-card">
                      <children>
-                        <Label styleClass="label" style="-fx-font-weight: bold; -fx-font-size: 14;" text="📊 HOẠT ĐỘNG TRỰC TIẾP" />
+                        <Label styleClass="side-header" text="📊 HOẠT ĐỘNG TRỰC TIẾP" />
                         <Separator />
-                        <ListView fx:id="bidActivityList" styleClass="list-view" VBox.vgrow="ALWAYS" />
-                        <VBox alignment="CENTER" spacing="5.0" style="-fx-background-color: #f0fdf4; -fx-padding: 10; -fx-background-radius: 5;">
+                        <ListView fx:id="bidActivityList" styleClass="modern-list-view" VBox.vgrow="ALWAYS" />
+
+                        <HBox alignment="CENTER" spacing="8.0" styleClass="status-pill-success">
                            <children>
-                              <Label style="-fx-text-fill: #15803d; -fx-font-size: 11; -fx-font-weight: bold;" text="KẾT NỐI: ỔN ĐỊNH" />
-                              <Label style="-fx-text-fill: #15803d; -fx-font-size: 9;" text="Đang lắng nghe dữ liệu từ Server..." />
+                              <Label style="-fx-text-fill: #059669; -fx-font-size: 13;" text="●" />
+                              <Label styleClass="status-text" text="KẾT NỐI: ỔN ĐỊNH (SERVER LIVE)" />
                            </children>
-                        </VBox>
+                        </HBox>
                      </children>
                   </VBox>
 

@@ -16,10 +16,16 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+
+// Bổ sung các thư viện để xử lý Base64 và File
+import java.nio.file.Files;
+import java.util.Base64;
+import java.io.IOException;
 
 public class AddEditItemController extends BaseController {
 
@@ -126,13 +132,36 @@ public class AddEditItemController extends BaseController {
             itemJson.addProperty("startingPrice", Double.parseDouble(startingPriceField.getText()));
 
             // 2. Các trường dữ liệu dành cho AuctionController tạo phòng đấu giá
-            // Gửi dưới dạng chuỗi ISO-8601 (yyyy-MM-dd'T'HH:mm) để Server parse trực tiếp được
             itemJson.addProperty("startTime", startDateTime.toString());
             itemJson.addProperty("endTime", endDateTime.toString());
-
-            // Min increment tạm thời thiết lập mặc định (bạn có thể thêm ô nhập liệu trên FXML sau nếu cần)
             itemJson.addProperty("minIncrement", 1000.0);
 
+            // 3. Xử lý ảnh: Chuyển đổi File sang chuỗi Base64
+            if (selectedImageFile != null) {
+                try {
+                    // Đọc toàn bộ byte của file ảnh
+                    byte[] fileContent = Files.readAllBytes(selectedImageFile.toPath());
+                    // Chuyển đổi mảng byte sang chuỗi Base64
+                    String encodedString = Base64.getEncoder().encodeToString(fileContent);
+                    itemJson.addProperty("imageBase64", encodedString);
+
+                    // Trích xuất đuôi mở rộng của file ảnh (ví dụ: jpg, png)
+                    String fileName = selectedImageFile.getName();
+                    String extension = "";
+                    int i = fileName.lastIndexOf('.');
+                    if (i > 0) {
+                        extension = fileName.substring(i + 1);
+                    }
+                    itemJson.addProperty("imageExtension", extension);
+
+                } catch (IOException ex) {
+                    LoggerUtil.error("Lỗi đọc file ảnh khi lưu", ex);
+                    errorLabel.setText("Lỗi xử lý hình ảnh. Vui lòng chọn lại ảnh!");
+                    return; // Ngừng quá trình gửi tin nếu có lỗi khi đọc file ảnh
+                }
+            }
+
+            // 4. Khởi tạo type và gửi thông điệp lên Server
             MessageType type = isEditMode ? MessageType.EDIT_ITEM_REQUEST : MessageType.ADD_ITEM_REQUEST;
             NetworkMessage message = new NetworkMessage(type, itemJson.toString());
 
@@ -150,7 +179,6 @@ public class AddEditItemController extends BaseController {
 
     private void closeWindow() {
         if (saveButton.getScene() != null && saveButton.getScene().getWindow() != null) {
-            ((Stage) saveButton.getScene().getWindow()).close();
-        }
+            saveButton.getScene().getWindow().hide();        }
     }
 }

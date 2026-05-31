@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS users (
     email    VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     role     VARCHAR(20)  NOT NULL,
-    status   VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE'
+    status   VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
+    balance  DOUBLE       NOT NULL DEFAULT 0.0
     );
 
 CREATE TABLE IF NOT EXISTS items (
@@ -12,7 +13,8 @@ CREATE TABLE IF NOT EXISTS items (
                                      name        VARCHAR(200) NOT NULL,
     description CLOB,
     seller_id   INT NOT NULL REFERENCES users(id),
-    category    VARCHAR(50)
+    category    VARCHAR(50),
+    image_url   NVARCHAR(500) DEFAULT NULL
     );
 
 CREATE TABLE IF NOT EXISTS auctions (

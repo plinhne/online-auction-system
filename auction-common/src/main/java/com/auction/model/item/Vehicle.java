@@ -6,9 +6,9 @@ public class Vehicle extends Item {
         super(id, name, price, ItemCategory.VEHICLE);
     }
 
-    @Override
-    public void printInfor() {
-        System.out.println("Vehicle: " + getName() +
-                " | Price: " + getPrice());
-    }
+//    @Override
+//    public void printInfor() {
+//        System.out.println("Vehicle: " + getName() +
+//                " | Price: " + getPrice());
+//    }
 }
