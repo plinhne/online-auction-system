@@ -39,10 +39,6 @@ public class ItemService {
 
     // ── Mutation ─────────────────────────────────────────────────────────────
 
-    /**
-     * Seller tạo item mới.
-     * Validate: chỉ SELLER mới được tạo, name không được rỗng.
-     */
     public Item createItem(User seller, String name, String description,
                            double startingPrice, ItemCategory category) throws SQLException {
         if (seller.getRole() != UserRole.SELLER) {
@@ -65,10 +61,6 @@ public class ItemService {
         return item;
     }
 
-    /**
-     * Seller sửa item — chỉ được sửa item của chính mình.
-     * Không cho sửa nếu item đang có auction ACTIVE.
-     */
     public void updateItem(User seller, int itemId, String name,
                            String description, ItemCategory category) throws SQLException {
         Item item = getItemById(itemId);
@@ -86,9 +78,11 @@ public class ItemService {
         logger.info("Item updated: itemId={}, by userId={}", itemId, seller.getId());
     }
 
-    /**
-     * Seller xoá item — chỉ được xoá khi item chưa có auction nào.
-     */
+    public void updateImageUrl(User requester, int itemId, String imageUrl) throws SQLException {
+        itemDAO.updateImageUrl(itemId, imageUrl);
+        logger.info("Image URL updated: itemId={}, url={}", itemId, imageUrl);
+    }
+
     public void deleteItem(User requester, int itemId) throws SQLException {
         Item item = getItemById(itemId);
 

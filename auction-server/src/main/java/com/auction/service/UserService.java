@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.util.List;
 
 public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
@@ -40,5 +41,22 @@ public class UserService {
 
     public User findByEmail(String email) throws SQLException {
         return userDAO.findByEmail(email);
+    }
+
+    public List<User> findAll() throws SQLException {
+        return userDAO.findAll();
+    }
+
+    public void updateUser(int userId, String name, String role) throws SQLException {
+        userDAO.update(userId, name, role);
+    }
+
+    public void deleteUser(int userId) throws SQLException {
+        userDAO.delete(userId);
+    }
+
+    public void updateBalance(int userId, double balance) throws SQLException {
+        if (balance < 0) throw new IllegalArgumentException("Balance cannot be negative");
+        userDAO.updateBalance(userId, balance);
     }
 }
