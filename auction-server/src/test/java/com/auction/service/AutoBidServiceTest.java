@@ -1,6 +1,6 @@
 package com.auction.service;
 
-import com.auction.model.auction.Auction;
+import com.auction.Auction;
 import com.auction.model.bid.Bid;
 import com.auction.server.dao.AuctionDAO;
 import com.auction.server.dao.BidDAO;

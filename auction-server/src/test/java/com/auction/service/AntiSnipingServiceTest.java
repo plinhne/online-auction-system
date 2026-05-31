@@ -1,6 +1,6 @@
 package com.auction.service;
 
-import com.auction.model.auction.Auction;
+import com.auction.Auction;
 import com.auction.server.dao.AuctionDAO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
