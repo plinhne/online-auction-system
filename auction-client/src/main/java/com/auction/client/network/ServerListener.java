@@ -211,17 +211,11 @@ public class ServerListener extends Thread {
 
             case AUCTION_UPDATE_NOTIFICATION:
                 LoggerUtil.info("Nhận tín hiệu Broadcast cập nhật phiên đấu giá Realtime.");
-                if (biddingController != null && payload != null) {
-                    try {
-                        // Bóc tách JSON trực tiếp ra AuctionDTO
-                        com.auction.dto.AuctionDTO updatedAuctionDTO = gson.fromJson(payload, com.auction.dto.AuctionDTO.class);
-
-                        Platform.runLater(() -> {
-                            biddingController.updateAuctionRealtimeView(updatedAuctionDTO);
-                        });
-                    } catch (Exception e) {
-                        LoggerUtil.error("Lỗi khi bóc tách dữ liệu Realtime: " + e.getMessage(), e);
-                    }
+                if (biddingController != null) {
+                    Auction updatedAuction = gson.fromJson(payload, Auction.class);
+                    Platform.runLater(() -> {
+                        biddingController.updateAuctionRealtimeView(updatedAuction);
+                    });
                 }
                 break;
 

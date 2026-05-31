@@ -16,6 +16,7 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
@@ -34,6 +35,7 @@ public class ProductDetailsController extends BaseController {
     @FXML private Label currentPriceLabel;
     @FXML private Label startingPriceLabel;
     @FXML private Label currentLeaderLabel;
+    @FXML private TextField bidAmountField;
     @FXML private Button placeBidButton;
     @FXML private Label descriptionArea;
     @FXML private Label bidCountLabel;
@@ -51,25 +53,8 @@ public class ProductDetailsController extends BaseController {
     public void initialize() {
         LoggerUtil.info("Khởi tạo cấu trúc bảng Lịch sử thầu TableView.");
 
-        // XỬ LÝ NÚT QUAY LẠI KHÔNG CẦN MAIN_CONTROLLER
         if (backButton != null) {
-            backButton.setOnAction(e -> {
-                try {
-                    // Quét toàn bộ màn hình để tìm lại khung Navbar
-                    javafx.scene.Scene currentScene = backButton.getScene();
-                    javafx.scene.layout.VBox contentArea = (currentScene != null) ?
-                            (javafx.scene.layout.VBox) currentScene.lookup("#contentArea") : null;
-
-                    if (contentArea != null) {
-                        javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/fxml/AuctionListView.fxml"));
-                        contentArea.getChildren().setAll((javafx.scene.Node) loader.load());
-                    } else {
-                        switchWindow(backButton, "/fxml/MainView.fxml");
-                    }
-                } catch (Exception ex) {
-                    LoggerUtil.error("Lỗi khi quay lại màn hình danh sách.", ex);
-                }
-            });
+            backButton.setOnAction(e -> switchWindow(backButton, "/fxml/MainView.fxml"));
         }
 
         bidderColumn.setCellValueFactory(cellData -> new SimpleStringProperty("User ID: " + cellData.getValue().getBidderId()));
@@ -83,14 +68,10 @@ public class ProductDetailsController extends BaseController {
         });
 
         bidsTable.setItems(bidHistoryList);
-
-        if (placeBidButton != null) {
-            placeBidButton.setOnAction(event -> navigateToRealTimeBidding());
-        }
+        placeBidButton.setOnAction(event -> handlePlaceBid());
     }
 
-    public void setAuctionDetails(AuctionDTO auction) {
-        this.currentAuction = auction;
+    public void setAuctionDetails(AuctionDTO auction) {        this.currentAuction = auction;
         if (auction != null) {
             statusLabel.setText("● " + auction.getStatus().name());
             startTimeLabel.setText(auction.getStartTime().format(dateTimeFormatter));
@@ -120,6 +101,7 @@ public class ProductDetailsController extends BaseController {
         }
     }
 
+    // Xử lý phản hồi từ Server
     public void onMessageReceived(NetworkMessage message) {
         if (message.getType() == MessageType.GET_ITEM_DETAILS_RESPONSE) {
             JsonObject payload = JsonParser.parseString(message.getPayload()).getAsJsonObject();
@@ -152,41 +134,64 @@ public class ProductDetailsController extends BaseController {
         }
     }
 
+    private void handlePlaceBid() {
+        if (currentUser == null) {
+            DialogUtil.showWarning("Vui lòng đăng nhập!");
+            return;
+        }
+
+        if (ValidationUtil.isEmpty(bidAmountField.getText())) {
+            DialogUtil.showWarning("Vui lòng điền giá!");
+            return;
+        }
+
+        double amount;
+        try {
+            amount = Double.parseDouble(bidAmountField.getText().trim());
+        } catch (NumberFormatException ex) {
+            DialogUtil.showWarning("Giá không hợp lệ!");
+            return;
+        }
+
+        double minIncrement = currentAuction.getMinIncrement();
+        if (!ValidationUtil.isValidBidAmount(amount, currentAuction.getCurrentPrice(), minIncrement)) {
+            DialogUtil.showError("Mức giá không hợp lệ!");
+            return;
+        }
+
+        placeBidButton.setDisable(true);
+        Task<Void> bidTask = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                JsonObject bidRequestJson = new JsonObject();
+                bidRequestJson.addProperty("auctionId", currentAuction.getId());
+                bidRequestJson.addProperty("bidderId", currentUser.getId());
+                bidRequestJson.addProperty("bidAmount", amount);
+
+                NetworkMessage message = new NetworkMessage(MessageType.PLACE_BID_REQUEST, bidRequestJson.toString());
+                com.auction.client.network.NetworkService.getInstance().sendNetworkMessage(message);
+                return null;
+            }
+        };
+
+        bidTask.setOnSucceeded(e -> {
+            placeBidButton.setDisable(false);
+            bidAmountField.clear();
+        });
+
+        bidTask.setOnFailed(e -> {
+            placeBidButton.setDisable(false);
+            DialogUtil.showError("Lỗi kết nối!");
+        });
+
+        runAsyncTask(bidTask);
+    }
+
     public void setBidHistory(List<Bid> bids) {
         if (bids != null) {
             bidCountLabel.setText(bids.size() + " lượt đặt");
             bidHistoryList.setAll(bids);
             FXCollections.reverse(bidHistoryList);
-        }
-    }
-
-    // XỬ LÝ VÀO PHÒNG KHÔNG CẦN MAIN_CONTROLLER
-    private void navigateToRealTimeBidding() {
-        if (currentAuction == null) {
-            DialogUtil.showWarning("Không tìm thấy dữ liệu phiên đấu giá hiện tại!");
-            return;
-        }
-
-        try {
-            // Quét màn hình để tìm Navbar thay vì gọi từ MainController
-            javafx.scene.Scene currentScene = placeBidButton.getScene();
-            javafx.scene.layout.VBox contentArea = (currentScene != null) ?
-                    (javafx.scene.layout.VBox) currentScene.lookup("#contentArea") : null;
-
-            if (contentArea != null) {
-                Object controller = loadCenterView(contentArea, "/fxml/RealTimeBiddingView.fxml");
-
-                if (controller instanceof RealTimeBiddingController) {
-                    ((RealTimeBiddingController) controller).updateAuctionRealtimeView(currentAuction);
-                }
-
-                LoggerUtil.info("Đã chuyển sang phòng đấu giá Real-time bên dưới Navbar.");
-            } else {
-                LoggerUtil.warning("Không tìm thấy Navbar (#contentArea). Mở toàn màn hình.");
-                switchWindow(placeBidButton, "/fxml/RealTimeBiddingView.fxml");
-            }
-        } catch (Exception e) {
-            LoggerUtil.error("Lỗi khi nạp giao diện phòng đấu giá", e);
         }
     }
 }
