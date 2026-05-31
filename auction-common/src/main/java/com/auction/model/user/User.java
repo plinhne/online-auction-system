@@ -17,6 +17,7 @@ public abstract class User extends Entity {
         this.email = email;
         this.password = password;
         this.role = role;
+        this.walletBalance = 0;
         this.status = UserStatus.ACTIVE;
     }
     public User(int id, String name, double walletBalance) {

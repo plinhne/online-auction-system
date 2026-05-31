@@ -1,5 +1,6 @@
-package com.auction.model.auction.payment;
+package com.auction.payment;
 
+import com.auction.model.auction.Auction;
 import com.auction.model.item.Item;
 import com.auction.model.user.User;
 
@@ -8,7 +9,11 @@ import java.time.LocalDateTime;
 
 public class AuctionResult {
 
+    private Auction auction;
+
     private Item item;
+
+    private User seller;
 
     private User winner;
 
@@ -16,17 +21,21 @@ public class AuctionResult {
 
     private LocalDateTime paymentDeadline;
 
-    private com.auction.model.auction.payment.PaymentStatus paymentStatus;
+    private PaymentStatus paymentStatus;
 
-    private com.auction.model.auction.payment.Deposit deposit;
+    private Deposit deposit;
 
     public AuctionResult(
+            Auction auction,
             Item item,
+            User seller,
             User winner,
             double finalPrice,
-            com.auction.model.auction.payment.Deposit deposit
+            Deposit deposit
     ) {
+        this.auction = auction;
         this.item = item;
+        this.seller = seller;
         this.winner = winner;
         this.finalPrice = finalPrice;
         this.deposit = deposit;
@@ -35,7 +44,7 @@ public class AuctionResult {
                 LocalDateTime.now().plusDays(1);
 
         this.paymentStatus =
-                com.auction.model.auction.payment.PaymentStatus.PENDING;
+                PaymentStatus.PENDING;
     }
 
     public Item getItem() {
@@ -54,17 +63,28 @@ public class AuctionResult {
         return paymentDeadline;
     }
 
-    public com.auction.model.auction.payment.PaymentStatus getPaymentStatus() {
+    public PaymentStatus getPaymentStatus() {
         return paymentStatus;
     }
 
+    public Auction getAuction(){
+        return auction;
+    }
+
+    public User getSeller() {
+        return seller;
+    }
+
+    public void setPaymentDeadline(LocalDateTime paymentDeadline) {
+        this.paymentDeadline = paymentDeadline;
+    }
     public void setPaymentStatus(
-            com.auction.model.auction.payment.PaymentStatus paymentStatus
+            PaymentStatus paymentStatus
     ) {
         this.paymentStatus = paymentStatus;
     }
 
-    public com.auction.model.auction.payment.Deposit getDeposit() {
+    public Deposit getDeposit() {
         return deposit;
     }
 }

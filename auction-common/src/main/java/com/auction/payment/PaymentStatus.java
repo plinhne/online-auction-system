@@ -1,4 +1,4 @@
-package com.auction.model.auction.payment;
+package com.auction.payment;
 
 public enum PaymentStatus {
 

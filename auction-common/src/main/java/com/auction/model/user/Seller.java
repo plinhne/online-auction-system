@@ -11,6 +11,18 @@ public class Seller extends User {
         super(id, name, email, password, UserRole.SELLER);
     }
 
+    public Seller(
+            int id,
+            String name,
+            String email,
+            String password,
+            double walletBalance
+    ) {
+        super(id, name, email, password, UserRole.SELLER);
+        setWalletBalance(walletBalance);
+    }
+
+
     public Item createItem(String type, int id, String name, double price) {
 
         if (type.equalsIgnoreCase("electronics")) {
