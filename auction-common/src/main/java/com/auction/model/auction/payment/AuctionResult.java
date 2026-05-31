@@ -16,15 +16,15 @@ public class AuctionResult {
 
     private LocalDateTime paymentDeadline;
 
-    private com.auction.model.payment.PaymentStatus paymentStatus;
+    private com.auction.model.auction.payment.PaymentStatus paymentStatus;
 
-    private com.auction.model.payment.Deposit deposit;
+    private com.auction.model.auction.payment.Deposit deposit;
 
     public AuctionResult(
             Item item,
             User winner,
             double finalPrice,
-            com.auction.model.payment.Deposit deposit
+            com.auction.model.auction.payment.Deposit deposit
     ) {
         this.item = item;
         this.winner = winner;
@@ -35,7 +35,7 @@ public class AuctionResult {
                 LocalDateTime.now().plusDays(1);
 
         this.paymentStatus =
-                com.auction.model.payment.PaymentStatus.PENDING;
+                com.auction.model.auction.payment.PaymentStatus.PENDING;
     }
 
     public Item getItem() {
@@ -54,17 +54,17 @@ public class AuctionResult {
         return paymentDeadline;
     }
 
-    public com.auction.model.payment.PaymentStatus getPaymentStatus() {
+    public com.auction.model.auction.payment.PaymentStatus getPaymentStatus() {
         return paymentStatus;
     }
 
     public void setPaymentStatus(
-            com.auction.model.payment.PaymentStatus paymentStatus
+            com.auction.model.auction.payment.PaymentStatus paymentStatus
     ) {
         this.paymentStatus = paymentStatus;
     }
 
-    public com.auction.model.payment.Deposit getDeposit() {
+    public com.auction.model.auction.payment.Deposit getDeposit() {
         return deposit;
     }
 }
