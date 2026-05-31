@@ -11,6 +11,16 @@ public abstract class User extends Entity {
     private UserStatus status;  // thêm status
     private double walletBalance;
 
+    /*Serialization Version Unique Identifier
+    ** (Mã định danh phiên bản tuần tự hóa)
+    * 1L là 1 long
+    * Nếu implements Serializable mà không viết dòng này,
+    * Java sẽ tự động tạo ra một cái ID ngầm định phức tạp
+    * (dựa trên tên class, các biến, các hàm có bên trong).
+    */
+    private static final long serialVersionUID = 1L;
+
+
     public User(int id, String name, String email, String password, UserRole role) {
         super(id);
         this.name = name;

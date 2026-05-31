@@ -6,6 +6,7 @@ import com.auction.model.item.Item;
 import com.auction.model.item.Vehicle;
 
 public class Seller extends User {
+    private static final long serialVersionUID = 1L;
 
     public Seller(int id, String name, String email, String password) {
         super(id, name, email, password, UserRole.SELLER);
