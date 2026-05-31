@@ -230,6 +230,10 @@ public class ServerListener extends Thread {
                 }
                 break;
 
+            case LOGOUT_RESPONSE:
+                LoggerUtil.info("Đã đăng xuất khỏi hệ thống.");
+                break;
+
             case PONG:
                 LoggerUtil.info("Đã nhận PONG từ Server - Kết nối mạng ổn định.");
                 break;

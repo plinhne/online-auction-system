@@ -140,12 +140,21 @@ public class AuctionListViewController extends BaseController implements Initial
 
             ProductDetailsController detailsController = loader.getController();
             if (detailsController != null) {
-                // Hãy vào file ProductDetailsController.java và đảm bảo hàm setAuctionDetails
-                // chấp nhận tham số kiểu AuctionDTO thay vì Auction
                 detailsController.setAuctionDetails(dto);
+            } else {
+                LoggerUtil.error("LỖI: loader.getController() trả về null. Hãy kiểm tra fx:controller trong file FXML!");
             }
 
-            auctionGridPane.getScene().setRoot(root);
+            // TÌM CÁI KHAY contentArea CỦA MAINCONTROLLER TỪ SCENE HIỆN TẠI
+            VBox contentArea = (VBox) auctionGridPane.getScene().lookup("#contentArea");
+
+            if (contentArea != null) {
+                // Nạp màn hình chi tiết vào giữa, giữ nguyên thanh công cụ chạy quanh
+                contentArea.getChildren().setAll(root);
+            } else {
+                // Nếu không tìm thấy khay (phòng hờ), mới dùng hạ sách kích rễ setRoot
+                auctionGridPane.getScene().setRoot(root);
+            }
         } catch (Exception e) {
             LoggerUtil.error("Không thể mở màn hình chi tiết sản phẩm.", e);
             DialogUtil.showError("Lỗi hệ thống khi tải chi tiết!");

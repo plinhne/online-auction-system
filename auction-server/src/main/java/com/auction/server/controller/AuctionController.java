@@ -101,6 +101,7 @@ public class AuctionController {
     }
 
     public void handleGetMyAuctions(JsonObject response, User seller) throws Exception {
+        logger.info(">>> getMyAuctions for sellerId={}", seller.getId());
         List<Auction> auctions = auctionService.getAuctionsBySeller(seller.getId());
         List<com.auction.dto.AuctionDTO> dtos = auctions.stream()
                 .map(this::toDTO)

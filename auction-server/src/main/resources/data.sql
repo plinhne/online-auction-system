@@ -15,19 +15,19 @@ MERGE INTO items (name, description, seller_id, category, image_url)
     VALUES (
                'Vintage Porsche 911 Carrera',
                'Rare 1973 Porsche 911 Carrera RS 2.7 in original condition.',
-               2, 'VEHICLE',
+               6, 'VEHICLE',
                'uploads/items/car.jpg'
            ),
            (
                'Picasso Original Lithograph',
                'Authentic Pablo Picasso lithograph from 1960s.',
-               2, 'ART',
+               6, 'ART',
                'uploads/items/art.jpg'
            ),
            (
                'DJI Mavic 3 Pro Drone',
                'Professional drone with Hasselblad camera system.',
-               2, 'ELECTRONICS',
+               6, 'ELECTRONICS',
                'uploads/items/drone.jpg'
            );
 
@@ -35,17 +35,17 @@ MERGE INTO items (name, description, seller_id, category, image_url)
 MERGE INTO auctions (item_id, seller_id, starting_price, current_price, min_increment, status, start_time, end_time)
     KEY(item_id)
     VALUES (
-               1, 2, 150000.00, 285000.00, 1000.00, 'ACTIVE',
+               1, 6, 150000.00, 285000.00, 1000.00, 'ACTIVE',
                PARSEDATETIME('2026-05-27 11:51:00', 'yyyy-MM-dd HH:mm:ss'),
-               PARSEDATETIME('2026-05-29 14:51:00', 'yyyy-MM-dd HH:mm:ss')
+               PARSEDATETIME('2026-06-29 14:51:00', 'yyyy-MM-dd HH:mm:ss')
            ),
            (
-               2, 2, 50000.00, 125000.00, 500.00, 'ACTIVE',
+               2, 6, 50000.00, 125000.00, 500.00, 'ACTIVE',
                PARSEDATETIME('2026-05-24 12:03:00', 'yyyy-MM-dd HH:mm:ss'),
-               PARSEDATETIME('2026-05-29 13:03:00', 'yyyy-MM-dd HH:mm:ss')
+               PARSEDATETIME('2026-06-29 13:03:00', 'yyyy-MM-dd HH:mm:ss')
            ),
            (
-               3, 2, 1500.00, 1500.00, 50.00, 'SCHEDULED',
+               3, 6, 1500.00, 1500.00, 50.00, 'SCHEDULED',
                PARSEDATETIME('2026-05-31 14:03:00', 'yyyy-MM-dd HH:mm:ss'),
                PARSEDATETIME('2026-06-01 14:03:00', 'yyyy-MM-dd HH:mm:ss')
            );

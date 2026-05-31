@@ -6,7 +6,7 @@ import com.auction.model.bid.Bid;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Item extends Entity {
+public class Item extends Entity {
 
     private String name;
     private double price;
@@ -49,5 +49,5 @@ public abstract class Item extends Entity {
     }
 
     // polymorphism
-    public abstract void printInfor();
+//    public abstract void printInfor();
 }
